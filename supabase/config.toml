@@ -1,0 +1,13 @@
+project_id = "familyflow"
+
+[db]
+port = 54322
+major_version = 15
+seed.enabled = true
+seed.sql_paths = ["./seed.sql"]
+
+[api]
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+

@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "FamilyFlow",
+    "slug": "familyflow",
+    "scheme": "familyflow",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-router",
+      "expo-notifications"
+    ],
+    "ios": {
+      "bundleIdentifier": "com.familyflow.app",
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.familyflow.app"
+    },
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}
