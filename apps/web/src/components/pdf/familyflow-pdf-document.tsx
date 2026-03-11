@@ -169,17 +169,17 @@ const styles = StyleSheet.create({
   },
   weeklyGrid: {
     flexDirection: "row",
-    marginTop: 2
+    marginTop: 8
   },
   dayColumn: {
     flex: 1,
     borderRadius: 18,
-    paddingTop: 10,
-    paddingRight: 8,
-    paddingBottom: 10,
-    paddingLeft: 8,
+    paddingTop: 12,
+    paddingRight: 9,
+    paddingBottom: 12,
+    paddingLeft: 9,
     marginRight: 8,
-    minHeight: 252
+    minHeight: 328
   },
   dayColumnLast: {
     marginRight: 0
@@ -206,19 +206,19 @@ const styles = StyleSheet.create({
     marginBottom: 7
   },
   taskTitle: {
-    fontSize: 8.6,
+    fontSize: 8.2,
     fontWeight: 700,
     lineHeight: 1.35
   },
   taskMeta: {
-    fontSize: 7.4,
+    fontSize: 7.2,
     marginTop: 3,
-    lineHeight: 1.45
+    lineHeight: 1.4
   },
   footerLegend: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginTop: 12
+    marginTop: 10
   },
   legendItem: {
     flexDirection: "row",
@@ -234,6 +234,10 @@ const styles = StyleSheet.create({
   },
   legendText: {
     fontSize: 8
+  },
+  smallNote: {
+    fontSize: 8,
+    marginTop: 6
   },
   portraitHeader: {
     marginBottom: 18
@@ -433,39 +437,9 @@ export function FamilyFlowPdfDocument({
         </View>
 
         <View style={styles.sectionTitleRow}>
-          <Text style={styles.sectionTitle}>Routines quotidiennes</Text>
-          <Text style={{ ...styles.sectionNote, color: palette.muted }}>
-            A repeter tous les jours pour garder un foyer fluide
-          </Text>
-        </View>
-
-        <View style={styles.routinesWrap}>
-          {dailyTasks.slice(0, 6).map((task, index) => (
-            <View
-              key={task.id}
-              style={{
-                ...styles.routineCard,
-                ...(index % 3 === 2 ? styles.routineCardThird : {}),
-                backgroundColor: index % 2 === 0 ? "#FFFFFF" : palette.soft,
-                borderWidth: 1,
-                borderColor: index % 2 === 0 ? "#ECE7FF" : "#E3DCF7"
-              }}
-            >
-              <Text style={styles.routineTitle}>[ ] {task.title}</Text>
-              <Text style={{ ...styles.routineMeta, color: palette.muted }}>
-                {getMemberName(data, task.assignedMemberId)} | {task.estimatedMinutes} min
-              </Text>
-              <Text style={{ ...styles.routineMeta, color: palette.muted }}>
-                {task.smartReason ?? "routine proposee automatiquement"}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        <View style={styles.sectionTitleRow}>
           <Text style={styles.sectionTitle}>Tableau semaine</Text>
           <Text style={{ ...styles.sectionNote, color: palette.muted }}>
-            Colonnes par jour, cases a cocher et membre deja suggere
+            Pleine largeur, cases a cocher et lisibilite renforcee pour impression
           </Text>
         </View>
 
@@ -489,7 +463,7 @@ export function FamilyFlowPdfDocument({
                   Pas de tache ciblee ce jour-la. Laisser une place libre pour les imprevus.
                 </Text>
               ) : (
-                bucket.tasks.slice(0, 5).map((task) => (
+                bucket.tasks.slice(0, 3).map((task) => (
                   <View key={task.id} style={{ ...styles.dayTask, backgroundColor: palette.soft }}>
                     <Text style={styles.taskTitle}>[ ] {task.title}</Text>
                     <Text style={{ ...styles.taskMeta, color: palette.muted }}>
@@ -501,9 +475,18 @@ export function FamilyFlowPdfDocument({
                   </View>
                 ))
               )}
+              {bucket.tasks.length > 3 ? (
+                <Text style={{ ...styles.taskMeta, color: palette.muted }}>
+                  + {bucket.tasks.length - 3} autre(s) tache(s) dans l'app FamilyFlow.
+                </Text>
+              ) : null}
             </View>
           ))}
         </View>
+
+        <Text style={{ ...styles.smallNote, color: palette.muted }}>
+          Astuce impression : choisir le theme Noir & blanc pour un rendu plus net et economique en encre.
+        </Text>
 
         <View style={styles.footerLegend}>
           {Object.entries(categoryLabels).map(([key, label]) => (
@@ -524,6 +507,29 @@ export function FamilyFlowPdfDocument({
         </View>
 
         <View style={{ ...styles.panel, backgroundColor: palette.soft }}>
+          <Text style={styles.sectionTitle}>Routines quotidiennes</Text>
+          <View style={styles.routinesWrap}>
+            {dailyTasks.slice(0, 6).map((task, index) => (
+              <View
+                key={task.id}
+                style={{
+                  ...styles.routineCard,
+                  ...(index % 3 === 2 ? styles.routineCardThird : {}),
+                  backgroundColor: "#FFFFFF",
+                  borderWidth: 1,
+                  borderColor: "#E7E2FF"
+                }}
+              >
+                <Text style={styles.routineTitle}>[ ] {task.title}</Text>
+                <Text style={{ ...styles.routineMeta, color: palette.muted }}>
+                  {getMemberName(data, task.assignedMemberId)} | {task.estimatedMinutes} min
+                </Text>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        <View style={{ ...styles.panel, backgroundColor: palette.soft }}>
           <Text style={styles.sectionTitle}>Repartition par membre</Text>
           {data.profile.members.map((member) => {
             const memberTasks = data.tasks
@@ -539,7 +545,7 @@ export function FamilyFlowPdfDocument({
                   </Text>
                 </View>
                 <View style={styles.memberTasks}>
-                  {memberTasks.slice(0, 3).map((task) => (
+                  {memberTasks.slice(0, 2).map((task) => (
                     <View key={task.id} style={{ ...styles.assignmentCard, backgroundColor: "#FFFFFF" }}>
                       <Text style={styles.taskTitle}>{task.title}</Text>
                       <Text style={{ ...styles.assignmentMeta, color: palette.muted }}>
@@ -570,7 +576,7 @@ export function FamilyFlowPdfDocument({
             </View>
           </View>
 
-          {data.savingsScenarios.map((scenario) => (
+          {data.savingsScenarios.slice(0, 3).map((scenario) => (
             <View key={scenario.id} style={{ ...styles.scenarioCard, backgroundColor: palette.soft }}>
               <Text style={styles.scenarioTitle}>{scenario.title}</Text>
               <Text style={{ ...styles.scenarioText, color: palette.muted }}>{scenario.description}</Text>
