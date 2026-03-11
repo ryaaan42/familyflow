@@ -1,12 +1,21 @@
 import { formatISO, startOfMonth } from "date-fns";
 
 import { buildTaskSuggestions } from "./engines/task-suggestions";
-import { DemoDataset } from "./types";
+import {
+  BudgetItem,
+  BudgetMonth,
+  DemoDataset,
+  HouseholdProfile,
+  SavingsScenario,
+  Task,
+  TaskCompletion,
+  UserProfile
+} from "./types";
 
 const now = new Date("2026-03-11T09:00:00.000Z");
 
 export const createDemoDataset = (): DemoDataset => {
-  const user = {
+  const user: UserProfile = {
     id: "user-demo",
     email: "emma@familyflow.app",
     displayName: "Emma Martin",
@@ -15,7 +24,7 @@ export const createDemoDataset = (): DemoDataset => {
     plan: "plus" as const
   };
 
-  const profile = {
+  const profile: HouseholdProfile = {
     household: {
       id: "household-demo",
       name: "Famille Martin",
@@ -92,20 +101,20 @@ export const createDemoDataset = (): DemoDataset => {
   };
 
   const suggestedTasks = buildTaskSuggestions(profile, { referenceDate: now });
-  const tasks = suggestedTasks.map((task, index) => ({
+  const tasks: Task[] = suggestedTasks.map((task, index) => ({
     ...task,
     status:
       index % 5 === 0 ? "done" : index % 4 === 0 ? "in_progress" : "todo"
   }));
 
-  const budget = {
+  const budget: BudgetMonth = {
     id: "budget-2026-03",
     householdId: "household-demo",
     month: formatISO(startOfMonth(now), { representation: "date" }),
     targetSavings: 450
   };
 
-  const budgetItems = [
+  const budgetItems: BudgetItem[] = [
     {
       id: "income-1",
       budgetId: budget.id,
@@ -171,7 +180,7 @@ export const createDemoDataset = (): DemoDataset => {
     }
   ];
 
-  const savingsScenarios = [
+  const savingsScenarios: SavingsScenario[] = [
     {
       id: "scenario-cinema",
       householdId: profile.household.id,
@@ -206,7 +215,7 @@ export const createDemoDataset = (): DemoDataset => {
     }
   ];
 
-  const completions = tasks
+  const completions: TaskCompletion[] = tasks
     .filter((task) => task.status === "done" && task.assignedMemberId)
     .map((task, index) => ({
       id: `completion-${index + 1}`,
@@ -239,4 +248,3 @@ export const createDemoDataset = (): DemoDataset => {
     }
   };
 };
-
