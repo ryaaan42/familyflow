@@ -38,18 +38,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-5 xl:grid-cols-[280px_minmax(0,1fr)] xl:px-6">
-      <aside className="premium-shell rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,253,251,0.92),rgba(247,241,255,0.88))] p-5 shadow-[0_28px_90px_rgba(40,32,92,0.12)] backdrop-blur-xl">
-        <div className="mb-8 flex items-center justify-between">
+    <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-5 px-3 py-4 md:px-5 lg:py-6 xl:grid-cols-[280px_minmax(0,1fr)] xl:gap-6 xl:px-6">
+      <aside className="premium-shell rounded-[30px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,253,251,0.94),rgba(247,241,255,0.9))] p-4 shadow-[0_28px_90px_rgba(40,32,92,0.12)] backdrop-blur-xl md:p-5">
+        <div className="mb-5 flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--foreground-subtle)]">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--foreground-subtle)] md:text-sm">
               FamilyFlow
             </p>
-            <h1 className="text-2xl font-semibold tracking-[-0.03em]">Workspace</h1>
+            <h1 className="text-xl font-semibold tracking-[-0.03em] md:text-2xl">Workspace</h1>
           </div>
           <Badge variant="mint">Plus</Badge>
         </div>
-        <nav className="grid gap-2">
+        <nav className="flex gap-2 overflow-x-auto pb-1 xl:grid xl:overflow-visible">
           {visibleItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
@@ -59,7 +59,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-[20px] px-4 py-3 text-sm font-medium transition",
+                  "flex shrink-0 items-center gap-3 rounded-[18px] px-4 py-3 text-sm font-medium transition",
                   active
                     ? "bg-[linear-gradient(135deg,rgba(109,94,244,0.18),rgba(74,142,255,0.12),rgba(86,199,161,0.08))] text-[var(--brand-primary)] shadow-[0_14px_30px_rgba(92,85,219,0.16)]"
                     : "text-[var(--foreground-muted)] hover:bg-white/80"
@@ -71,11 +71,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="mt-8 rounded-[30px] bg-[linear-gradient(135deg,rgba(109,94,244,0.12),rgba(255,126,107,0.12),rgba(255,191,90,0.18))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+        <div className="mt-5 rounded-[26px] bg-[linear-gradient(135deg,rgba(109,94,244,0.12),rgba(245,99,151,0.12),rgba(255,201,90,0.18))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] md:mt-8 md:p-5">
           <p className="text-sm font-semibold">Freemium prepare</p>
           <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">
-            La V1 supporte deja les themes PDF premium, les limites de membres et les rappels
-            avances.
+            La V1 supporte deja les themes PDF premium, les limites de membres et les rappels avances.
           </p>
         </div>
       </aside>
