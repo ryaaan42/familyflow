@@ -7,7 +7,6 @@ import {
   Text,
   View
 } from "@react-pdf/renderer";
-import { addDays, startOfWeek } from "date-fns";
 import {
   buildSavingsSummary,
   categoryColors,
@@ -330,12 +329,26 @@ const styles = StyleSheet.create({
 const formatDateLabel = (date: Date) =>
   `${date.getDate().toString().padStart(2, "0")}/${(date.getMonth() + 1).toString().padStart(2, "0")}`;
 
+const addDaysNative = (date: Date, amount: number) => {
+  const next = new Date(date);
+  next.setDate(next.getDate() + amount);
+  return next;
+};
+
+const startOfWeekMonday = (date: Date) => {
+  const next = new Date(date);
+  const mondayOffset = (next.getDay() + 6) % 7;
+  next.setDate(next.getDate() - mondayOffset);
+  next.setHours(0, 0, 0, 0);
+  return next;
+};
+
 const getMemberName = (data: DemoDataset, memberId?: string) =>
   data.profile.members.find((member) => member.id === memberId)?.name ?? "A attribuer";
 
 const getWeekStart = (data: DemoDataset) => {
   const referenceTaskDate = data.tasks[0] ? new Date(data.tasks[0].dueDate) : new Date();
-  return startOfWeek(referenceTaskDate, { weekStartsOn: 1 });
+  return startOfWeekMonday(referenceTaskDate);
 };
 
 const getDailyTasks = (data: DemoDataset) =>
@@ -347,7 +360,7 @@ const getWeeklyBuckets = (data: DemoDataset) => {
   const weekStart = getWeekStart(data);
 
   return weekdayLabels.map((label, index) => {
-    const date = addDays(weekStart, index);
+    const date = addDaysNative(weekStart, index);
     const tasks = data.tasks
       .filter((task) => {
         if (task.frequency === "quotidienne") {
@@ -378,7 +391,7 @@ export function FamilyFlowPdfDocument({
   const palette = themeMap[theme];
   const savings = buildSavingsSummary(data.savingsScenarios, data.tasks, data.budgetItems);
   const weekStart = getWeekStart(data);
-  const weekEnd = addDays(weekStart, 6);
+  const weekEnd = addDaysNative(weekStart, 6);
   const dailyTasks = getDailyTasks(data);
   const weeklyBuckets = getWeeklyBuckets(data);
 
