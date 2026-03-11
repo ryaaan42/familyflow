@@ -1,11 +1,9 @@
 import { Tabs } from "expo-router";
 import { Coins, House, LayoutDashboard, Sparkles, Users } from "lucide-react-native";
 
-import { useTheme } from "../../src/lib/theme";
+import { colors } from "../../src/lib/theme";
 
 export default function TabsLayout() {
-  const colors = useTheme();
-
   return (
     <Tabs
       screenOptions={{

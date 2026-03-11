@@ -1,59 +1,25 @@
-import { useColorScheme } from "react-native";
-
-export const lightColors = {
-  background: "#f7f4ff",
-  backgroundStrong: "#ece6ff",
-  backgroundPanel: "#f0ebff",
-  foreground: "#120a2e",
-  muted: "#5a4d8a",
-  subtle: "#8a79bb",
+export const colors = {
+  background: "#f9f8ff",
+  backgroundPanel: "#f4f2ff",
+  foreground: "#0d0c1e",
+  muted: "#5d5a7a",
+  subtle: "#9490b8",
   card: "#ffffff",
-  cardMuted: "#ede7ff",
-  border: "#d0c4ff",
-  primary: "#7c5ef4",
-  violet: "#a855f7",
+  cardMuted: "#f0edff",
+  border: "#e5e1ff",
+  primary: "#7c3aed",
+  violet: "#8b5cf6",
   pink: "#ec4899",
-  coral: "#ff6b6b",
+  coral: "#f43f5e",
   orange: "#f97316",
-  mint: "#10d98e",
+  mint: "#10b981",
   mintStrong: "#059669",
   blue: "#3b82f6",
   cyan: "#06b6d4",
   yellow: "#f59e0b",
-  tabBar: "#f0ebff",
-  tabBarBorder: "#d0c4ff"
+  tabBar: "#ffffff",
+  tabBarBorder: "#e5e1ff"
 };
-
-export const darkColors = {
-  background: "#0d0820",
-  backgroundStrong: "#180f30",
-  backgroundPanel: "#130b28",
-  foreground: "#eee8ff",
-  muted: "#a898d8",
-  subtle: "#7868a8",
-  card: "#1a1035",
-  cardMuted: "#22163f",
-  border: "#3a2a6a",
-  primary: "#a87ef6",
-  violet: "#c084fc",
-  pink: "#f472b6",
-  coral: "#fb7185",
-  orange: "#fb923c",
-  mint: "#34d399",
-  mintStrong: "#10b981",
-  blue: "#60a5fa",
-  cyan: "#22d3ee",
-  yellow: "#fbbf24",
-  tabBar: "#130b28",
-  tabBarBorder: "#3a2a6a"
-};
-
-export type AppColors = typeof lightColors;
-
-export function useTheme(): AppColors {
-  const scheme = useColorScheme();
-  return scheme === "dark" ? darkColors : lightColors;
-}
 
 export const formatCurrency = (value: number) =>
   new Intl.NumberFormat("fr-FR", {
@@ -61,6 +27,3 @@ export const formatCurrency = (value: number) =>
     currency: "EUR",
     maximumFractionDigits: 0
   }).format(value);
-
-/** @deprecated Use useTheme() hook instead */
-export const colors = lightColors;

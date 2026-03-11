@@ -1,16 +1,15 @@
 import { selectDashboardSummary, useFamilyFlowStore } from "@familyflow/shared";
+import { LinearGradient } from "expo-linear-gradient";
 import { CheckCircle2, PiggyBank, Users2 } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
 import { MetricTile } from "../../src/components/metric-tile";
 import { ScreenShell } from "../../src/components/screen-shell";
-import { useTheme, formatCurrency } from "../../src/lib/theme";
+import { colors, formatCurrency } from "../../src/lib/theme";
 
 export default function DashboardScreen() {
   const state = useFamilyFlowStore();
   const summary = selectDashboardSummary(state);
-  const colors = useTheme();
 
   return (
     <ScreenShell
@@ -44,27 +43,22 @@ export default function DashboardScreen() {
         />
       </View>
 
-      <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
+      <View style={styles.sectionCard}>
         <View style={styles.sectionHeader}>
           <Users2 color={colors.primary} size={18} />
-          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Priorites du jour</Text>
+          <Text style={styles.sectionTitle}>Priorites du jour</Text>
         </View>
         <View style={styles.list}>
           {state.tasks.slice(0, 4).map((task) => (
-            <View key={task.id} style={[styles.listItem, { backgroundColor: colors.cardMuted }]}>
-              <View>
-                <Text style={[styles.itemTitle, { color: colors.foreground }]}>{task.title}</Text>
-                <Text style={[styles.itemSubtitle, { color: colors.muted }]}>
+            <View key={task.id} style={styles.listItem}>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.itemTitle}>{task.title}</Text>
+                <Text style={styles.itemSubtitle}>
                   {state.profile.members.find((member) => member.id === task.assignedMemberId)?.name ??
                     "A assigner"}
                 </Text>
               </View>
-              <Text
-                style={[
-                  styles.status,
-                  { color: task.status === "done" ? colors.mint : colors.primary }
-                ]}
-              >
+              <Text style={[styles.status, task.status === "done" && styles.statusDone]}>
                 {task.status === "done" ? "Fait" : "A faire"}
               </Text>
             </View>
@@ -78,18 +72,20 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   hero: {
     borderRadius: 30,
-    padding: 20,
+    padding: 22,
     gap: 8
   },
   heroEyebrow: {
-    color: "rgba(255,255,255,0.78)",
-    fontSize: 13
+    color: "rgba(255,255,255,0.75)",
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.5
   },
   heroTitle: {
-    color: "#FFFFFF",
-    fontSize: 28,
+    color: "#ffffff",
+    fontSize: 26,
     fontWeight: "700",
-    letterSpacing: -1
+    letterSpacing: -0.8
   },
   heroSubtitle: {
     color: "rgba(255,255,255,0.82)",
@@ -101,6 +97,7 @@ const styles = StyleSheet.create({
     gap: 12
   },
   sectionCard: {
+    backgroundColor: colors.card,
     borderRadius: 28,
     padding: 18,
     gap: 14
@@ -111,14 +108,16 @@ const styles = StyleSheet.create({
     gap: 8
   },
   sectionTitle: {
-    fontSize: 18,
+    color: colors.foreground,
+    fontSize: 17,
     fontWeight: "700"
   },
   list: {
-    gap: 12
+    gap: 10
   },
   listItem: {
-    borderRadius: 20,
+    backgroundColor: colors.cardMuted,
+    borderRadius: 18,
     padding: 14,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -126,15 +125,21 @@ const styles = StyleSheet.create({
     gap: 12
   },
   itemTitle: {
-    fontSize: 15,
+    color: colors.foreground,
+    fontSize: 14,
     fontWeight: "600"
   },
   itemSubtitle: {
-    marginTop: 4,
-    fontSize: 13
+    color: colors.muted,
+    marginTop: 3,
+    fontSize: 12
   },
   status: {
+    color: colors.primary,
     fontSize: 12,
     fontWeight: "700"
+  },
+  statusDone: {
+    color: colors.mint
   }
 });

@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { useTheme } from "../lib/theme";
+import { colors } from "../lib/theme";
 
 export function MetricTile({
   icon,
@@ -14,14 +14,15 @@ export function MetricTile({
   value: string;
   accent?: string;
 }) {
-  const colors = useTheme();
   const accentColor = accent ?? colors.primary;
 
   return (
-    <View style={[styles.card, { backgroundColor: colors.card }]}>
-      <View style={[styles.iconWrap, { backgroundColor: `${accentColor}22` }]}>{icon}</View>
-      <Text style={[styles.label, { color: colors.muted }]}>{label}</Text>
-      <Text style={[styles.value, { color: colors.foreground }]}>{value}</Text>
+    <View style={styles.card}>
+      {icon !== undefined && (
+        <View style={[styles.iconWrap, { backgroundColor: `${accentColor}18` }]}>{icon}</View>
+      )}
+      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.value, { color: accentColor }]}>{value}</Text>
     </View>
   );
 }
@@ -29,22 +30,25 @@ export function MetricTile({
 const styles = StyleSheet.create({
   card: {
     flex: 1,
+    backgroundColor: colors.card,
     borderRadius: 24,
     padding: 16,
     gap: 8
   },
   iconWrap: {
-    width: 42,
-    height: 42,
+    width: 40,
+    height: 40,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center"
   },
   label: {
+    color: colors.muted,
     fontSize: 13
   },
   value: {
     fontSize: 24,
-    fontWeight: "700"
+    fontWeight: "700",
+    letterSpacing: -0.5
   }
 });
