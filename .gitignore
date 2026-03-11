@@ -1,0 +1,16 @@
+node_modules
+.turbo
+.next
+dist
+coverage
+.expo
+.expo-shared
+*.log
+.DS_Store
+.env
+.env.local
+.env.*.local
+apps/web/.next
+apps/mobile/.expo
+supabase/.temp
+
