@@ -10,13 +10,9 @@ export const createSupabaseServerClient = async () => {
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        setAll: (cookiesToSet) => {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            cookieStore.set(name, value, options);
-          });
-        }
+        // The current V1 does not persist auth mutations from server components yet.
+        setAll: () => {}
       }
     }
   );
 };
-
