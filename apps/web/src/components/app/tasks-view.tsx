@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { useMemo } from "react";
-import { getDay, parseISO } from "date-fns";
 import {
   categoryColors,
   categoryLabels,
@@ -22,7 +21,10 @@ import { Card } from "@/components/ui/card";
 
 const weekdayLabels = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
 
-const getMondayIndex = (value: string) => (getDay(parseISO(value)) + 6) % 7;
+const getMondayIndex = (value: string) => {
+  const date = new Date(value);
+  return (date.getDay() + 6) % 7;
+};
 
 export function TasksView() {
   const state = useFamilyFlowStore();
