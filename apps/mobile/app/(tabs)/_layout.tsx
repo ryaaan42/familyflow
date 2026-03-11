@@ -1,9 +1,11 @@
 import { Tabs } from "expo-router";
 import { Coins, House, LayoutDashboard, Sparkles, Users } from "lucide-react-native";
 
-import { colors } from "../../src/lib/theme";
+import { useTheme } from "../../src/lib/theme";
 
 export default function TabsLayout() {
+  const colors = useTheme();
+
   return (
     <Tabs
       screenOptions={{
@@ -11,8 +13,8 @@ export default function TabsLayout() {
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.muted,
         tabBarStyle: {
-          backgroundColor: "#FFFCFA",
-          borderTopColor: "#EFE7FF",
+          backgroundColor: colors.tabBar,
+          borderTopColor: colors.tabBarBorder,
           height: 84,
           paddingBottom: 10,
           paddingTop: 10

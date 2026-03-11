@@ -5,11 +5,12 @@ import { LinearGradient } from "expo-linear-gradient";
 
 import { MetricTile } from "../../src/components/metric-tile";
 import { ScreenShell } from "../../src/components/screen-shell";
-import { colors, formatCurrency } from "../../src/lib/theme";
+import { useTheme, formatCurrency } from "../../src/lib/theme";
 
 export default function DashboardScreen() {
   const state = useFamilyFlowStore();
   const summary = selectDashboardSummary(state);
+  const colors = useTheme();
 
   return (
     <ScreenShell
@@ -17,7 +18,7 @@ export default function DashboardScreen() {
       subtitle="Organisation familiale, budget et economies dans une seule app."
     >
       <LinearGradient
-        colors={["#6D5EF4", "#4A8EFF", "#56C7A1"]}
+        colors={[colors.primary, colors.blue, colors.mint]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.hero}
@@ -43,22 +44,27 @@ export default function DashboardScreen() {
         />
       </View>
 
-      <View style={styles.sectionCard}>
+      <View style={[styles.sectionCard, { backgroundColor: colors.card }]}>
         <View style={styles.sectionHeader}>
           <Users2 color={colors.primary} size={18} />
-          <Text style={styles.sectionTitle}>Priorites du jour</Text>
+          <Text style={[styles.sectionTitle, { color: colors.foreground }]}>Priorites du jour</Text>
         </View>
         <View style={styles.list}>
           {state.tasks.slice(0, 4).map((task) => (
-            <View key={task.id} style={styles.listItem}>
+            <View key={task.id} style={[styles.listItem, { backgroundColor: colors.cardMuted }]}>
               <View>
-                <Text style={styles.itemTitle}>{task.title}</Text>
-                <Text style={styles.itemSubtitle}>
+                <Text style={[styles.itemTitle, { color: colors.foreground }]}>{task.title}</Text>
+                <Text style={[styles.itemSubtitle, { color: colors.muted }]}>
                   {state.profile.members.find((member) => member.id === task.assignedMemberId)?.name ??
                     "A assigner"}
                 </Text>
               </View>
-              <Text style={[styles.status, task.status === "done" && styles.statusDone]}>
+              <Text
+                style={[
+                  styles.status,
+                  { color: task.status === "done" ? colors.mint : colors.primary }
+                ]}
+              >
                 {task.status === "done" ? "Fait" : "A faire"}
               </Text>
             </View>
@@ -95,7 +101,6 @@ const styles = StyleSheet.create({
     gap: 12
   },
   sectionCard: {
-    backgroundColor: colors.card,
     borderRadius: 28,
     padding: 18,
     gap: 14
@@ -107,14 +112,12 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "700",
-    color: colors.foreground
+    fontWeight: "700"
   },
   list: {
     gap: 12
   },
   listItem: {
-    backgroundColor: colors.cardMuted,
     borderRadius: 20,
     padding: 14,
     flexDirection: "row",
@@ -123,21 +126,15 @@ const styles = StyleSheet.create({
     gap: 12
   },
   itemTitle: {
-    color: colors.foreground,
     fontSize: 15,
     fontWeight: "600"
   },
   itemSubtitle: {
-    color: colors.muted,
     marginTop: 4,
     fontSize: 13
   },
   status: {
-    color: colors.primary,
     fontSize: 12,
     fontWeight: "700"
-  },
-  statusDone: {
-    color: colors.mint
   }
 });

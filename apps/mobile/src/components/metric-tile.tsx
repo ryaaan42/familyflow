@@ -1,24 +1,27 @@
 import { ReactNode } from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-import { colors } from "../lib/theme";
+import { useTheme } from "../lib/theme";
 
 export function MetricTile({
   icon,
   label,
   value,
-  accent = colors.primary
+  accent
 }: {
   icon?: ReactNode;
   label: string;
   value: string;
   accent?: string;
 }) {
+  const colors = useTheme();
+  const accentColor = accent ?? colors.primary;
+
   return (
-    <View style={styles.card}>
-      <View style={[styles.iconWrap, { backgroundColor: `${accent}18` }]}>{icon}</View>
-      <Text style={styles.label}>{label}</Text>
-      <Text style={styles.value}>{value}</Text>
+    <View style={[styles.card, { backgroundColor: colors.card }]}>
+      <View style={[styles.iconWrap, { backgroundColor: `${accentColor}22` }]}>{icon}</View>
+      <Text style={[styles.label, { color: colors.muted }]}>{label}</Text>
+      <Text style={[styles.value, { color: colors.foreground }]}>{value}</Text>
     </View>
   );
 }
@@ -26,7 +29,6 @@ export function MetricTile({
 const styles = StyleSheet.create({
   card: {
     flex: 1,
-    backgroundColor: colors.card,
     borderRadius: 24,
     padding: 16,
     gap: 8
@@ -39,11 +41,9 @@ const styles = StyleSheet.create({
     justifyContent: "center"
   },
   label: {
-    color: colors.muted,
     fontSize: 13
   },
   value: {
-    color: colors.foreground,
     fontSize: 24,
     fontWeight: "700"
   }

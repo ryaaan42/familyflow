@@ -39,7 +39,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-5 xl:grid-cols-[280px_minmax(0,1fr)] xl:px-6">
-      <aside className="premium-shell rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,253,251,0.92),rgba(247,241,255,0.88))] p-5 shadow-[0_28px_90px_rgba(40,32,92,0.12)] backdrop-blur-xl">
+      <aside className="sidebar-panel premium-shell rounded-[34px] border border-[var(--border)] bg-[var(--background-panel)] p-5 shadow-[0_28px_90px_rgba(40,32,92,0.12)] backdrop-blur-xl">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--foreground-subtle)]">
@@ -59,10 +59,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-[20px] px-4 py-3 text-sm font-medium transition",
+                  "nav-hover flex items-center gap-3 rounded-[20px] px-4 py-3 text-sm font-medium transition",
                   active
-                    ? "bg-[linear-gradient(135deg,rgba(109,94,244,0.18),rgba(74,142,255,0.12),rgba(86,199,161,0.08))] text-[var(--brand-primary)] shadow-[0_14px_30px_rgba(92,85,219,0.16)]"
-                    : "text-[var(--foreground-muted)] hover:bg-white/80"
+                    ? "nav-active bg-[linear-gradient(135deg,rgba(124,94,244,0.2),rgba(59,130,246,0.14),rgba(16,217,142,0.1))] text-[var(--brand-primary)] shadow-[0_14px_30px_rgba(92,85,219,0.18)]"
+                    : "text-[var(--foreground-muted)] hover:bg-[var(--card-muted)]"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -71,7 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="mt-8 rounded-[30px] bg-[linear-gradient(135deg,rgba(109,94,244,0.12),rgba(255,126,107,0.12),rgba(255,191,90,0.18))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
+        <div className="freemium-card mt-8 rounded-[30px] bg-[linear-gradient(135deg,rgba(124,94,244,0.14),rgba(255,107,107,0.14),rgba(245,158,11,0.2))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
           <p className="text-sm font-semibold">Freemium prepare</p>
           <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">
             La V1 supporte deja les themes PDF premium, les limites de membres et les rappels
