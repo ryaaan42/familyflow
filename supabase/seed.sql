@@ -71,6 +71,9 @@ insert into public.households (
   children_count,
   has_pets,
   city,
+  is_expecting_baby,
+  pregnancy_due_date,
+  birth_list_share_slug,
   planning_mode
 )
 values (
@@ -83,6 +86,9 @@ values (
   2,
   true,
   'Lyon',
+  true,
+  '2026-07-18',
+  'martin-baby-jules',
   'shared'
 )
 on conflict (id) do nothing;
@@ -96,6 +102,7 @@ insert into public.household_members (
   role,
   avatar_color,
   availability_hours_per_week,
+  is_pregnant,
   favorite_categories,
   blocked_categories,
   is_admin
@@ -110,6 +117,7 @@ values
     'parent',
     '#6D5EF4',
     12,
+    true,
     '{budget,courses}',
     '{}',
     true
@@ -123,6 +131,7 @@ values
     'parent',
     '#FF7E6B',
     10,
+    false,
     '{administratif,entretien}',
     '{}',
     true
@@ -136,6 +145,7 @@ values
     'ado',
     '#56C7A1',
     7,
+    false,
     '{animaux,cuisine}',
     '{administratif}',
     false
@@ -149,9 +159,65 @@ values
     'enfant',
     '#FFBF5A',
     4,
+    false,
     '{enfants,animaux}',
     '{hygiene}',
     false
+  )
+on conflict (id) do nothing;
+
+insert into public.birth_list_items (
+  id,
+  household_id,
+  title,
+  description,
+  category,
+  priority,
+  status,
+  quantity,
+  reserved_quantity,
+  estimated_price,
+  notes
+)
+values
+  (
+    'abababab-abab-abab-abab-ababababab01',
+    '33333333-3333-3333-3333-333333333333',
+    'Poussette compacte',
+    'Modele pliable pratique pour la ville et la voiture.',
+    'sorties',
+    'essentiel',
+    'wanted',
+    1,
+    0,
+    420,
+    null
+  ),
+  (
+    'abababab-abab-abab-abab-ababababab02',
+    '33333333-3333-3333-3333-333333333333',
+    'Lit cododo',
+    'Pour les premieres semaines dans la chambre parentale.',
+    'mobilier',
+    'essentiel',
+    'reserved',
+    1,
+    1,
+    210,
+    'Reserve par Mamie Claire'
+  ),
+  (
+    'abababab-abab-abab-abab-ababababab03',
+    '33333333-3333-3333-3333-333333333333',
+    'Biberons anti-coliques',
+    'Pack de base pour les premiers mois.',
+    'repas',
+    'utile',
+    'wanted',
+    6,
+    0,
+    48,
+    null
   )
 on conflict (id) do nothing;
 
@@ -193,7 +259,7 @@ values
     '66666666-6666-6666-6666-666666666661',
     true,
     'Planifier les repas',
-    'Prevoir les repas de la semaine et la liste associée.',
+    'Prevoir les repas de la semaine et la liste associee.',
     'budget',
     18,
     '{parent,adulte}',
