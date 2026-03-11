@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { AiHouseholdRequest } from "@familyflow/shared";
 import { z } from "zod";
 
-import { createAiHouseholdPlan } from "@/lib/ai/familyflow-ai";
+import {
+  createAiHouseholdPlan,
+  type AiHouseholdRequest
+} from "@/lib/ai/familyflow-ai";
 
 export const runtime = "nodejs";
 
