@@ -32,6 +32,8 @@ export type PdfTheme = "minimal" | "familial-kawaii" | "premium" | "print";
 export type PaperFormat = "A4";
 export type PetType = "chien" | "chat" | "autre";
 export type SubscriptionPlan = "free" | "plus" | "family-pro";
+export type BirthListPriority = "essentiel" | "utile" | "confort";
+export type BirthListStatus = "wanted" | "reserved" | "received";
 
 export interface UserProfile {
   id: string;
@@ -51,6 +53,9 @@ export interface Household {
   childrenCount: number;
   hasPets: boolean;
   city?: string;
+  isExpectingBaby?: boolean;
+  pregnancyDueDate?: string;
+  birthListShareSlug?: string;
   balanceScore: number;
   createdAt: string;
 }
@@ -63,6 +68,7 @@ export interface HouseholdMember {
   role: Role;
   avatarColor: string;
   availabilityHoursPerWeek: number;
+  isPregnant?: boolean;
   favoriteCategories: TaskCategory[];
   blockedCategories: TaskCategory[];
 }
@@ -81,9 +87,14 @@ export interface TaskTemplate {
   description: string;
   category: TaskCategory;
   minAge: number;
+  maxAge?: number;
   roles: Role[];
   requiresPetType?: PetType | "any";
   housingTypes?: HousingType[];
+  householdSizeMin?: number;
+  childrenCountMin?: number;
+  roomCountMin?: number;
+  preferredDayOffset?: number;
   baseFrequency: Frequency;
   estimatedMinutes: number;
   difficulty: 1 | 2 | 3 | 4 | 5;
@@ -107,6 +118,7 @@ export interface Task {
   templateId?: string;
   minimumAge?: number;
   recommendedRoles?: Role[];
+  smartReason?: string;
   origin: "template" | "custom" | "smart";
   createdAt: string;
 }
@@ -171,10 +183,48 @@ export interface NotificationSetting {
   quietHoursEnd: string;
 }
 
+export interface BirthListItem {
+  id: string;
+  householdId: string;
+  title: string;
+  description?: string;
+  category: "mobilier" | "repas" | "sorties" | "hygiene" | "vetements" | "eveil" | "soin";
+  priority: BirthListPriority;
+  status: BirthListStatus;
+  quantity: number;
+  reservedQuantity: number;
+  estimatedPrice?: number;
+  storeUrl?: string;
+  notes?: string;
+}
+
 export interface HouseholdProfile {
   household: Household;
   members: HouseholdMember[];
   pets: Pet[];
+}
+
+export interface AiHouseholdPlanItem {
+  title: string;
+  reason: string;
+  who: string;
+  when: string;
+}
+
+export interface AiBirthListSuggestion {
+  title: string;
+  reason: string;
+  priority: BirthListPriority;
+}
+
+export interface AiHouseholdPlan {
+  headline: string;
+  summary: string;
+  taskFocus: AiHouseholdPlanItem[];
+  routines: string[];
+  savingsMoves: string[];
+  birthListSuggestions: AiBirthListSuggestion[];
+  usedFallback: boolean;
 }
 
 export interface DemoDataset {
@@ -185,7 +235,7 @@ export interface DemoDataset {
   budget: BudgetMonth;
   budgetItems: BudgetItem[];
   savingsScenarios: SavingsScenario[];
+  birthListItems: BirthListItem[];
   pdfPreferences: PdfExportPreference;
   notificationSettings: NotificationSetting;
 }
-

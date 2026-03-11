@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Baby,
+  BrainCircuit,
   Coins,
   FileSpreadsheet,
   Home,
@@ -11,13 +13,16 @@ import {
   Sparkles,
   Users
 } from "lucide-react";
+import { useFamilyFlowStore } from "@familyflow/shared";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/app", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/app/assistant", label: "Assistant IA", icon: BrainCircuit },
   { href: "/app/household", label: "Foyer", icon: Users },
+  { href: "/app/birth-list", label: "Naissance", icon: Baby, requiresExpectingBaby: true },
   { href: "/app/tasks", label: "Taches", icon: Home },
   { href: "/app/budget", label: "Budget", icon: Coins },
   { href: "/app/savings", label: "Economies", icon: Sparkles },
@@ -27,10 +32,14 @@ const navItems = [
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const state = useFamilyFlowStore();
+  const visibleItems = navItems.filter(
+    (item) => !item.requiresExpectingBaby || state.profile.household.isExpectingBaby
+  );
 
   return (
-    <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-5 xl:grid-cols-[260px_minmax(0,1fr)] xl:px-6">
-      <aside className="rounded-[30px] border border-white/60 bg-[rgba(255,251,248,0.92)] p-5 shadow-[0_20px_80px_rgba(109,94,244,0.08)] backdrop-blur">
+    <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-5 xl:grid-cols-[280px_minmax(0,1fr)] xl:px-6">
+      <aside className="premium-shell rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,253,251,0.92),rgba(247,241,255,0.88))] p-5 shadow-[0_28px_90px_rgba(40,32,92,0.12)] backdrop-blur-xl">
         <div className="mb-8 flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--foreground-subtle)]">
@@ -41,7 +50,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Badge variant="mint">Plus</Badge>
         </div>
         <nav className="grid gap-2">
-          {navItems.map((item) => {
+          {visibleItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
 
@@ -50,10 +59,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium transition",
+                  "flex items-center gap-3 rounded-[20px] px-4 py-3 text-sm font-medium transition",
                   active
-                    ? "bg-[linear-gradient(135deg,rgba(109,94,244,0.14),rgba(74,142,255,0.08))] text-[var(--brand-primary)]"
-                    : "text-[var(--foreground-muted)] hover:bg-white/70"
+                    ? "bg-[linear-gradient(135deg,rgba(109,94,244,0.18),rgba(74,142,255,0.12),rgba(86,199,161,0.08))] text-[var(--brand-primary)] shadow-[0_14px_30px_rgba(92,85,219,0.16)]"
+                    : "text-[var(--foreground-muted)] hover:bg-white/80"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -62,7 +71,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
-        <div className="mt-8 rounded-[28px] bg-[linear-gradient(135deg,rgba(255,126,107,0.14),rgba(255,191,90,0.18))] p-5">
+        <div className="mt-8 rounded-[30px] bg-[linear-gradient(135deg,rgba(109,94,244,0.12),rgba(255,126,107,0.12),rgba(255,191,90,0.18))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
           <p className="text-sm font-semibold">Freemium prepare</p>
           <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">
             La V1 supporte deja les themes PDF premium, les limites de membres et les rappels
@@ -74,4 +83,3 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
-

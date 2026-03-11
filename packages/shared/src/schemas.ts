@@ -5,7 +5,8 @@ export const memberSchema = z.object({
   age: z.coerce.number().min(1).max(99),
   role: z.enum(["parent", "adulte", "ado", "enfant", "autre"]),
   avatarColor: z.string().min(4),
-  availabilityHoursPerWeek: z.coerce.number().min(1).max(80)
+  availabilityHoursPerWeek: z.coerce.number().min(1).max(80),
+  isPregnant: z.boolean().optional().default(false)
 });
 
 export const householdSchema = z.object({
@@ -14,7 +15,10 @@ export const householdSchema = z.object({
   surfaceSqm: z.coerce.number().min(20).max(700),
   rooms: z.coerce.number().min(1).max(20),
   childrenCount: z.coerce.number().min(0).max(12),
-  city: z.string().optional()
+  city: z.string().optional(),
+  isExpectingBaby: z.boolean().default(false),
+  pregnancyDueDate: z.string().optional(),
+  birthListShareSlug: z.string().optional()
 });
 
 export const budgetItemSchema = z.object({
@@ -46,4 +50,3 @@ export const savingsScenarioSchema = z.object({
   improvedMonthlyCost: z.coerce.number().nonnegative(),
   effort: z.enum(["facile", "moyen", "avance"])
 });
-

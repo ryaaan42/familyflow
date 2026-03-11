@@ -2,6 +2,7 @@ import { formatISO, startOfMonth } from "date-fns";
 
 import { buildTaskSuggestions } from "./engines/task-suggestions";
 import {
+  BirthListItem,
   BudgetItem,
   BudgetMonth,
   DemoDataset,
@@ -34,6 +35,9 @@ export const createDemoDataset = (): DemoDataset => {
       childrenCount: 2,
       hasPets: true,
       city: "Lyon",
+      isExpectingBaby: true,
+      pregnancyDueDate: "2026-07-18",
+      birthListShareSlug: "martin-baby-jules",
       balanceScore: 82,
       createdAt: now.toISOString()
     },
@@ -46,6 +50,7 @@ export const createDemoDataset = (): DemoDataset => {
         role: "parent" as const,
         avatarColor: "#6D5EF4",
         availabilityHoursPerWeek: 12,
+        isPregnant: true,
         favoriteCategories: ["budget", "courses"],
         blockedCategories: []
       },
@@ -215,6 +220,69 @@ export const createDemoDataset = (): DemoDataset => {
     }
   ];
 
+  const birthListItems: BirthListItem[] = [
+    {
+      id: "birth-1",
+      householdId: profile.household.id,
+      title: "Poussette compacte",
+      description: "Modele pliable pratique pour ville et voiture.",
+      category: "sorties",
+      priority: "essentiel",
+      status: "wanted",
+      quantity: 1,
+      reservedQuantity: 0,
+      estimatedPrice: 420,
+      storeUrl: "https://familyflow.app/demo/poussette"
+    },
+    {
+      id: "birth-2",
+      householdId: profile.household.id,
+      title: "Lit cododo",
+      description: "Pour les premieres semaines dans la chambre parentale.",
+      category: "mobilier",
+      priority: "essentiel",
+      status: "reserved",
+      quantity: 1,
+      reservedQuantity: 1,
+      estimatedPrice: 210,
+      notes: "Reserve par Mamie Claire"
+    },
+    {
+      id: "birth-3",
+      householdId: profile.household.id,
+      title: "Biberons anti-coliques",
+      category: "repas",
+      priority: "utile",
+      status: "wanted",
+      quantity: 6,
+      reservedQuantity: 0,
+      estimatedPrice: 48
+    },
+    {
+      id: "birth-4",
+      householdId: profile.household.id,
+      title: "Bodies naissance",
+      category: "vetements",
+      priority: "essentiel",
+      status: "received",
+      quantity: 8,
+      reservedQuantity: 8,
+      estimatedPrice: 36,
+      notes: "Deja recus"
+    },
+    {
+      id: "birth-5",
+      householdId: profile.household.id,
+      title: "Table a langer",
+      category: "hygiene",
+      priority: "utile",
+      status: "wanted",
+      quantity: 1,
+      reservedQuantity: 0,
+      estimatedPrice: 95
+    }
+  ];
+
   const completions: TaskCompletion[] = tasks
     .filter((task) => task.status === "done" && task.assignedMemberId)
     .map((task, index) => ({
@@ -232,6 +300,7 @@ export const createDemoDataset = (): DemoDataset => {
     budget,
     budgetItems,
     savingsScenarios,
+    birthListItems,
     pdfPreferences: {
       theme: "premium",
       includeLegend: true,

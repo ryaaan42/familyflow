@@ -21,7 +21,10 @@ export function HouseholdOnboardingForm() {
       surfaceSqm: 118,
       rooms: 6,
       childrenCount: 2,
-      city: "Lyon"
+      city: "Lyon",
+      isExpectingBaby: true,
+      pregnancyDueDate: "2026-07-18",
+      birthListShareSlug: "martin-baby-jules"
     }
   });
 
@@ -58,6 +61,20 @@ export function HouseholdOnboardingForm() {
         <div className="space-y-2">
           <Label htmlFor="children">Nombre d'enfants</Label>
           <Input id="children" type="number" {...form.register("childrenCount")} />
+        </div>
+        <div className="space-y-2 md:col-span-2">
+          <label className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm">
+            <input type="checkbox" {...form.register("isExpectingBaby")} />
+            Une maman du foyer est actuellement enceinte
+          </label>
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="dueDate">Terme estime</Label>
+          <Input id="dueDate" type="date" {...form.register("pregnancyDueDate")} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="shareSlug">Slug partage liste de naissance</Label>
+          <Input id="shareSlug" {...form.register("birthListShareSlug")} />
         </div>
         <div className="md:col-span-2">
           <Button type="button">Enregistrer le foyer</Button>

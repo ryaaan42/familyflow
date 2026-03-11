@@ -15,7 +15,7 @@ export function MetricCard({
   tone?: "default" | "coral" | "mint" | "yellow";
 }) {
   return (
-    <Card>
+    <Card className="overflow-hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,242,255,0.92))]">
       <div className="space-y-4 p-6">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -32,4 +32,3 @@ export function MetricCard({
     </Card>
   );
 }
-
