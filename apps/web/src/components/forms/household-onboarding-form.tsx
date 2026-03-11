@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-type HouseholdFormValues = z.infer<typeof householdSchema>;
+type HouseholdFormValues = z.input<typeof householdSchema>;
 
 export function HouseholdOnboardingForm() {
   const form = useForm<HouseholdFormValues>({
