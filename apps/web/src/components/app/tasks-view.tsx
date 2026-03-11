@@ -129,7 +129,7 @@ export function TasksView() {
         </div>
       </Card>
 
-      <section className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
+      <section className="space-y-5">
         <Card className="grid-sheen overflow-hidden">
           <div className="space-y-5 p-6">
             <div className="flex items-center justify-between gap-4">
@@ -145,57 +145,55 @@ export function TasksView() {
               </div>
             </div>
 
-            <div className="overflow-x-auto pb-1">
-              <div className="grid min-w-[920px] grid-cols-7 gap-3">
-                {weeklyBuckets.map((bucket, index) => (
-                  <div
-                    key={bucket.label}
-                    className="rounded-[26px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,255,0.94))] p-4 shadow-[0_20px_48px_rgba(30,24,77,0.08)]"
-                  >
-                    <div className="mb-4 flex items-center justify-between">
-                      <div>
-                        <p className="font-semibold">{bucket.label}</p>
-                        <p className="text-xs text-[var(--foreground-subtle)]">
-                          {bucket.tasks.length} tache{bucket.tasks.length > 1 ? "s" : ""}
-                        </p>
-                      </div>
-                      <Badge variant={index >= 5 ? "coral" : "outline"}>{index + 1}</Badge>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-7">
+              {weeklyBuckets.map((bucket, index) => (
+                <div
+                  key={bucket.label}
+                  className="rounded-[26px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,243,255,0.94))] p-4 shadow-[0_20px_48px_rgba(30,24,77,0.08)]"
+                >
+                  <div className="mb-4 flex items-center justify-between">
+                    <div>
+                      <p className="font-semibold">{bucket.label}</p>
+                      <p className="text-xs text-[var(--foreground-subtle)]">
+                        {bucket.tasks.length} tache{bucket.tasks.length > 1 ? "s" : ""}
+                      </p>
                     </div>
-                    <div className="space-y-3">
-                      {bucket.tasks.length === 0 ? (
-                        <div className="rounded-2xl bg-[var(--card-muted)] px-3 py-4 text-sm text-[var(--foreground-muted)]">
-                          Jour plus leger. Laisser une marge pour les imprevus.
-                        </div>
-                      ) : (
-                        bucket.tasks.slice(0, 4).map((task) => (
-                          <button
-                            key={task.id}
-                            type="button"
-                            onClick={() => state.toggleTask(task.id)}
-                            className="w-full rounded-[20px] border px-3 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(40,32,92,0.1)]"
-                            style={{
-                              borderColor: `${categoryColors[task.category]}28`,
-                              background: `linear-gradient(180deg, rgba(255,255,255,0.98), ${categoryColors[task.category]}10)`
-                            }}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="space-y-1">
-                                <p className="font-medium">{task.title}</p>
-                                <p className="text-xs text-[var(--foreground-muted)]">
-                                  {state.profile.members.find((member) => member.id === task.assignedMemberId)?.name ?? "A assigner"}
-                                </p>
-                              </div>
-                              <Badge variant={task.status === "done" ? "mint" : "outline"}>
-                                {task.status === "done" ? "Fait" : `${task.estimatedMinutes} min`}
-                              </Badge>
-                            </div>
-                          </button>
-                        ))
-                      )}
-                    </div>
+                    <Badge variant={index >= 5 ? "coral" : "outline"}>{index + 1}</Badge>
                   </div>
-                ))}
-              </div>
+                  <div className="space-y-3">
+                    {bucket.tasks.length === 0 ? (
+                      <div className="rounded-2xl bg-[var(--card-muted)] px-3 py-4 text-sm text-[var(--foreground-muted)]">
+                        Jour plus leger. Laisser une marge pour les imprevus.
+                      </div>
+                    ) : (
+                      bucket.tasks.slice(0, 4).map((task) => (
+                        <button
+                          key={task.id}
+                          type="button"
+                          onClick={() => state.toggleTask(task.id)}
+                          className="w-full rounded-[20px] border px-3 py-3 text-left transition hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(40,32,92,0.1)]"
+                          style={{
+                            borderColor: `${categoryColors[task.category]}28`,
+                            background: `linear-gradient(180deg, rgba(255,255,255,0.98), ${categoryColors[task.category]}10)`
+                          }}
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="space-y-1">
+                              <p className="font-medium">{task.title}</p>
+                              <p className="text-xs text-[var(--foreground-muted)]">
+                                {state.profile.members.find((member) => member.id === task.assignedMemberId)?.name ?? "A assigner"}
+                              </p>
+                            </div>
+                            <Badge variant={task.status === "done" ? "mint" : "outline"}>
+                              {task.status === "done" ? "Fait" : `${task.estimatedMinutes} min`}
+                            </Badge>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </Card>
@@ -213,7 +211,7 @@ export function TasksView() {
                 </p>
               </div>
             </div>
-            <div className="grid gap-3">
+            <div className="grid gap-3 lg:grid-cols-2">
               {dailyTasks.map((task, index) => (
                 <div
                   key={task.id}

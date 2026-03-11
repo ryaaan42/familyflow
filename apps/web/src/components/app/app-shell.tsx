@@ -38,17 +38,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-5 px-3 py-4 md:px-5 lg:py-6 xl:grid-cols-[280px_minmax(0,1fr)] xl:gap-6 xl:px-6">
-      <aside className="premium-shell rounded-[30px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,253,251,0.94),rgba(247,241,255,0.9))] p-4 shadow-[0_28px_90px_rgba(40,32,92,0.12)] backdrop-blur-xl md:p-5">
-        <div className="mb-5 flex items-center justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[var(--foreground-subtle)] md:text-sm">
-              FamilyFlow
-            </p>
-            <h1 className="text-xl font-semibold tracking-[-0.03em] md:text-2xl">Workspace</h1>
-          </div>
-          <Badge variant="mint">Plus</Badge>
+    <div className="mx-auto grid min-h-screen w-full max-w-[1600px] gap-5 px-3 py-4 md:px-5 lg:py-6 xl:grid-cols-[308px_minmax(0,1fr)] xl:gap-6 xl:px-6">
+      <aside className="premium-shell sticky top-4 h-fit rounded-[30px] border border-[#d9e6ff] bg-[linear-gradient(180deg,rgba(255,255,255,0.94),rgba(239,247,255,0.92))] p-4 shadow-[0_26px_70px_rgba(24,53,123,0.14)] backdrop-blur-xl md:p-5">
+        <div className="mb-5 rounded-[24px] border border-white/70 bg-[linear-gradient(140deg,rgba(53,89,230,0.9),rgba(0,169,255,0.82),rgba(46,197,161,0.75))] p-4 text-white">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/78 md:text-sm">FamilyFlow</p>
+          <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">Control Center</h1>
+          <p className="mt-2 text-sm text-white/82">Pilotez toute la vie du foyer depuis un seul espace clair.</p>
         </div>
+
         <nav className="flex gap-2 overflow-x-auto pb-1 xl:grid xl:overflow-visible">
           {visibleItems.map((item) => {
             const Icon = item.icon;
@@ -59,22 +56,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex shrink-0 items-center gap-3 rounded-[18px] px-4 py-3 text-sm font-medium transition",
+                  "group flex shrink-0 items-center gap-3 rounded-2xl border px-4 py-3 text-sm font-semibold transition",
                   active
-                    ? "bg-[linear-gradient(135deg,rgba(109,94,244,0.18),rgba(74,142,255,0.12),rgba(86,199,161,0.08))] text-[var(--brand-primary)] shadow-[0_14px_30px_rgba(92,85,219,0.16)]"
-                    : "text-[var(--foreground-muted)] hover:bg-white/80"
+                    ? "border-[#b7ccff] bg-[linear-gradient(135deg,rgba(53,89,230,0.18),rgba(0,169,255,0.12),rgba(46,197,161,0.08))] text-[var(--brand-primary)] shadow-[0_12px_28px_rgba(53,89,230,0.14)]"
+                    : "border-transparent text-[var(--foreground-muted)] hover:border-[#d9e6ff] hover:bg-white/86"
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <span
+                  className={cn(
+                    "rounded-xl p-2 transition",
+                    active ? "bg-white/80" : "bg-[#f1f6ff] text-[var(--foreground-subtle)] group-hover:bg-white"
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                </span>
                 {item.label}
               </Link>
             );
           })}
         </nav>
-        <div className="mt-5 rounded-[26px] bg-[linear-gradient(135deg,rgba(109,94,244,0.12),rgba(245,99,151,0.12),rgba(255,201,90,0.18))] p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)] md:mt-8 md:p-5">
-          <p className="text-sm font-semibold">Freemium prepare</p>
+
+        <div className="mt-5 rounded-[24px] border border-[#d6e4ff] bg-[linear-gradient(135deg,rgba(255,255,255,0.94),rgba(235,245,255,0.9))] p-4 md:mt-7 md:p-5">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm font-semibold">Plan Premium</p>
+            <Badge variant="mint">Beta</Badge>
+          </div>
           <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">
-            La V1 supporte deja les themes PDF premium, les limites de membres et les rappels avances.
+            Debloquez les exports avances, les themes personnalises et des recommandations encore plus fines.
           </p>
         </div>
       </aside>
