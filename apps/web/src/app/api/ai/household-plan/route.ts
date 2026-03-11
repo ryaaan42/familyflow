@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { AiHouseholdRequest } from "@familyflow/shared";
 import { z } from "zod";
 
 import { createAiHouseholdPlan } from "@/lib/ai/familyflow-ai";
@@ -23,7 +24,13 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const plan = await createAiHouseholdPlan(parsed.data);
+  const aiRequest: AiHouseholdRequest = {
+    profile: parsed.data.profile,
+    tasks: parsed.data.tasks,
+    budgetItems: parsed.data.budgetItems,
+    birthListItems: parsed.data.birthListItems ?? []
+  };
+  const plan = await createAiHouseholdPlan(aiRequest);
 
   return NextResponse.json(plan);
 }
