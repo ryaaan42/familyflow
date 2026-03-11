@@ -1,5 +1,12 @@
 import React from "react";
-import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
+import {
+  Document,
+  type DocumentProps,
+  Page,
+  StyleSheet,
+  Text,
+  View
+} from "@react-pdf/renderer";
 import { buildSavingsSummary, DemoDataset, PdfTheme } from "@familyflow/shared";
 
 const themeMap: Record<PdfTheme, { accent: string; soft: string; text: string }> = {
@@ -69,7 +76,7 @@ export function FamilyFlowPdfDocument({
 }: {
   data: DemoDataset;
   theme: PdfTheme;
-}) {
+}): React.ReactElement<DocumentProps> {
   const palette = themeMap[theme];
   const savings = buildSavingsSummary(data.savingsScenarios, data.tasks, data.budgetItems);
 
@@ -138,3 +145,7 @@ export function FamilyFlowPdfDocument({
   );
 }
 
+export const createFamilyFlowPdfDocument = (
+  data: DemoDataset,
+  theme: PdfTheme
+): React.ReactElement<DocumentProps> => <FamilyFlowPdfDocument data={data} theme={theme} />;
