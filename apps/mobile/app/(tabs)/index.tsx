@@ -1,7 +1,7 @@
 import { selectDashboardSummary, useFamilyFlowStore } from "@familyflow/shared";
+import { LinearGradient } from "expo-linear-gradient";
 import { CheckCircle2, PiggyBank, Users2 } from "lucide-react-native";
 import { StyleSheet, Text, View } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 
 import { MetricTile } from "../../src/components/metric-tile";
 import { ScreenShell } from "../../src/components/screen-shell";
@@ -17,7 +17,7 @@ export default function DashboardScreen() {
       subtitle="Organisation familiale, budget et economies dans une seule app."
     >
       <LinearGradient
-        colors={["#6D5EF4", "#4A8EFF", "#56C7A1"]}
+        colors={[colors.primary, colors.blue, colors.mint]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.hero}
@@ -51,7 +51,7 @@ export default function DashboardScreen() {
         <View style={styles.list}>
           {state.tasks.slice(0, 4).map((task) => (
             <View key={task.id} style={styles.listItem}>
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={styles.itemTitle}>{task.title}</Text>
                 <Text style={styles.itemSubtitle}>
                   {state.profile.members.find((member) => member.id === task.assignedMemberId)?.name ??
@@ -72,18 +72,20 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   hero: {
     borderRadius: 30,
-    padding: 20,
+    padding: 22,
     gap: 8
   },
   heroEyebrow: {
-    color: "rgba(255,255,255,0.78)",
-    fontSize: 13
+    color: "rgba(255,255,255,0.75)",
+    fontSize: 13,
+    fontWeight: "600",
+    letterSpacing: 0.5
   },
   heroTitle: {
-    color: "#FFFFFF",
-    fontSize: 28,
+    color: "#ffffff",
+    fontSize: 26,
     fontWeight: "700",
-    letterSpacing: -1
+    letterSpacing: -0.8
   },
   heroSubtitle: {
     color: "rgba(255,255,255,0.82)",
@@ -106,16 +108,16 @@ const styles = StyleSheet.create({
     gap: 8
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.foreground
+    color: colors.foreground,
+    fontSize: 17,
+    fontWeight: "700"
   },
   list: {
-    gap: 12
+    gap: 10
   },
   listItem: {
     backgroundColor: colors.cardMuted,
-    borderRadius: 20,
+    borderRadius: 18,
     padding: 14,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -124,13 +126,13 @@ const styles = StyleSheet.create({
   },
   itemTitle: {
     color: colors.foreground,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "600"
   },
   itemSubtitle: {
     color: colors.muted,
-    marginTop: 4,
-    fontSize: 13
+    marginTop: 3,
+    fontSize: 12
   },
   status: {
     color: colors.primary,

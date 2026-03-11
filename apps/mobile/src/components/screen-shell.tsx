@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 10,
-    gap: 8
+    gap: 6
   },
   title: {
     color: colors.foreground,

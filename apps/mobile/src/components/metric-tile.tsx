@@ -7,18 +7,22 @@ export function MetricTile({
   icon,
   label,
   value,
-  accent = colors.primary
+  accent
 }: {
   icon?: ReactNode;
   label: string;
   value: string;
   accent?: string;
 }) {
+  const accentColor = accent ?? colors.primary;
+
   return (
     <View style={styles.card}>
-      <View style={[styles.iconWrap, { backgroundColor: `${accent}18` }]}>{icon}</View>
+      {icon !== undefined && (
+        <View style={[styles.iconWrap, { backgroundColor: `${accentColor}18` }]}>{icon}</View>
+      )}
       <Text style={styles.label}>{label}</Text>
-      <Text style={styles.value}>{value}</Text>
+      <Text style={[styles.value, { color: accentColor }]}>{value}</Text>
     </View>
   );
 }
@@ -32,8 +36,8 @@ const styles = StyleSheet.create({
     gap: 8
   },
   iconWrap: {
-    width: 42,
-    height: 42,
+    width: 40,
+    height: 40,
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center"
@@ -43,8 +47,8 @@ const styles = StyleSheet.create({
     fontSize: 13
   },
   value: {
-    color: colors.foreground,
     fontSize: 24,
-    fontWeight: "700"
+    fontWeight: "700",
+    letterSpacing: -0.5
   }
 });

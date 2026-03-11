@@ -39,17 +39,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="mx-auto grid min-h-screen w-full max-w-7xl gap-6 px-4 py-5 xl:grid-cols-[280px_minmax(0,1fr)] xl:px-6">
-      <aside className="premium-shell rounded-[34px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,253,251,0.92),rgba(247,241,255,0.88))] p-5 shadow-[0_28px_90px_rgba(40,32,92,0.12)] backdrop-blur-xl">
+      <aside className="premium-shell sticky top-5 h-fit rounded-[28px] border border-[var(--border)] bg-white p-5 shadow-[0_4px_24px_rgba(124,58,237,0.08)]">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[var(--foreground-subtle)]">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-[var(--brand-primary)]">
               FamilyFlow
             </p>
-            <h1 className="text-2xl font-semibold tracking-[-0.03em]">Workspace</h1>
+            <h1 className="mt-1 text-xl font-bold tracking-[-0.03em]">Workspace</h1>
           </div>
           <Badge variant="mint">Plus</Badge>
         </div>
-        <nav className="grid gap-2">
+        <nav className="grid gap-1">
           {visibleItems.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
@@ -59,23 +59,22 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 rounded-[20px] px-4 py-3 text-sm font-medium transition",
+                  "flex items-center gap-3 rounded-[16px] px-4 py-3 text-sm font-medium transition-all",
                   active
-                    ? "bg-[linear-gradient(135deg,rgba(109,94,244,0.18),rgba(74,142,255,0.12),rgba(86,199,161,0.08))] text-[var(--brand-primary)] shadow-[0_14px_30px_rgba(92,85,219,0.16)]"
-                    : "text-[var(--foreground-muted)] hover:bg-white/80"
+                    ? "bg-[rgba(124,58,237,0.1)] text-[var(--brand-primary)] font-semibold"
+                    : "text-[var(--foreground-muted)] hover:bg-[var(--card-muted)] hover:text-[var(--foreground)]"
                 )}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4 shrink-0" />
                 {item.label}
               </Link>
             );
           })}
         </nav>
-        <div className="mt-8 rounded-[30px] bg-[linear-gradient(135deg,rgba(109,94,244,0.12),rgba(255,126,107,0.12),rgba(255,191,90,0.18))] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.55)]">
-          <p className="text-sm font-semibold">Freemium prepare</p>
-          <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">
-            La V1 supporte deja les themes PDF premium, les limites de membres et les rappels
-            avances.
+        <div className="mt-6 rounded-[20px] bg-[linear-gradient(135deg,rgba(124,58,237,0.08),rgba(236,72,153,0.08))] p-4">
+          <p className="text-sm font-semibold text-[var(--foreground)]">Freemium prepare</p>
+          <p className="mt-1.5 text-xs leading-5 text-[var(--foreground-muted)]">
+            Themes PDF premium, limites membres et rappels avances.
           </p>
         </div>
       </aside>
