@@ -1,21 +1,26 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fffaf6;
-  --background-strong: #fff1e6;
-  --background-panel: #fff8f3;
-  --foreground: #171329;
-  --foreground-muted: #666382;
-  --foreground-subtle: #908aa9;
-  --card-muted: #f5f1ff;
-  --border: #ece3ff;
+  --background: #f7f8ff;
+  --background-strong: #eef0ff;
+  --background-panel: #ffffff;
+  --foreground: #16152f;
+  --foreground-muted: #5f5d7f;
+  --foreground-subtle: #8d89b1;
+  --card-muted: #f2f0ff;
+  --border: #e5e3fb;
   --ring: #6d5ef4;
-  --brand-primary: #6d5ef4;
-  --brand-coral: #ff7e6b;
-  --brand-mint: #56c7a1;
-  --brand-mint-strong: #2c8c6c;
-  --brand-yellow: #ffbf5a;
-  --brand-yellow-strong: #9f6710;
+  --brand-primary: #6757f6;
+  --brand-blue: #3c8df6;
+  --brand-coral: #f56397;
+  --brand-mint: #38c793;
+  --brand-mint-strong: #227a5e;
+  --brand-yellow: #ffc95a;
+  --brand-yellow-strong: #8d640b;
+  --radius-lg: 24px;
+  --radius-xl: 30px;
+  --shadow-soft: 0 16px 48px rgba(53, 38, 120, 0.12);
+  --shadow-hover: 0 24px 56px rgba(53, 38, 120, 0.18);
 }
 
 * {
@@ -35,7 +40,7 @@ body {
     radial-gradient(circle at 77% 68%, rgba(86, 199, 161, 0.18), transparent 30%),
     radial-gradient(circle at 16% 82%, rgba(255, 126, 107, 0.2), transparent 24%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.68), rgba(255, 250, 246, 0.72)),
-    linear-gradient(180deg, #fff8f1 0%, #fffdfc 46%, #fff5fb 100%);
+    linear-gradient(180deg, #f8f9ff 0%, #ffffff 46%, #fff7fd 100%);
   color: var(--foreground);
 }
 
@@ -116,13 +121,18 @@ select {
   position: relative;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.78);
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.98), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(250, 245, 255, 0.92));
   box-shadow:
     0 28px 90px rgba(30, 24, 77, 0.1),
     inset 0 1px 0 rgba(255, 255, 255, 0.88);
   backdrop-filter: blur(24px);
+}
+
+.premium-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top left, rgba(255, 255, 255, 0.78), transparent 32%);
+  pointer-events: none;
 }
 
 .premium-card::after {

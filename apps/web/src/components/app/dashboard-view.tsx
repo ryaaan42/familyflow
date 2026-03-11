@@ -213,22 +213,22 @@ export function DashboardView() {
               </div>
             </div>
             <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-              <div className="h-[240px] rounded-[30px] bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(245,240,255,0.82))] p-3">
+              <div className="h-[260px] rounded-[30px] bg-[linear-gradient(180deg,rgba(255,255,255,0.92),rgba(245,240,255,0.82))] p-3 sm:h-[300px] lg:h-[240px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie
                       data={tasksByCategory}
                       dataKey="value"
                       nameKey="name"
-                      innerRadius={58}
-                      outerRadius={86}
+                      innerRadius={54}
+                      outerRadius={82}
                       paddingAngle={4}
                     />
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
-              <div className="grid gap-3">
+              <div className="grid max-h-[300px] gap-3 overflow-y-auto pr-1">
                 {tasksByCategory.map((item) => (
                   <div
                     key={item.name}
