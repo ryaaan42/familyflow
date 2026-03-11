@@ -23,7 +23,7 @@ export const CardHeader = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
 
 CardHeader.displayName = "CardHeader";
 
-export const CardTitle = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLHeadingElement>>(
+export const CardTitle = React.forwardRef<HTMLHeadingElement, React.HTMLAttributes<HTMLHeadingElement>>(
   ({ className, ...props }, ref) => (
     <h3 ref={ref} className={cn("text-lg font-semibold tracking-tight", className)} {...props} />
   )
@@ -50,4 +50,3 @@ export const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<
 );
 
 CardFooter.displayName = "CardFooter";
-
