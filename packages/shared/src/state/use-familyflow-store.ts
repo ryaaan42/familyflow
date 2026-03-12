@@ -1,32 +1,134 @@
 import { create } from "zustand";
 
-import { createDemoDataset } from "../demo";
 import { autoBalanceTasks } from "../engines/task-suggestions";
 import { buildSavingsSummary } from "../engines/savings-projections";
 import {
   BudgetItem,
-  DemoDataset,
+  BudgetMonth,
   HouseholdMember,
+  HouseholdProfile,
+  PdfExportPreference,
   PdfTheme,
-  SavingsScenario
+  SavingsScenario,
+  Task,
+  TaskCompletion,
+  UserProfile,
+  NotificationSetting,
+  BirthListItem
 } from "../types";
 
-const demoData = createDemoDataset();
+const defaultPdfPreferences: PdfExportPreference = {
+  theme: "premium",
+  includeLegend: true,
+  includeBudgetSummary: true,
+  includeLogo: true,
+  paperFormat: "A4"
+};
 
-interface FamilyFlowState extends DemoDataset {
+const defaultNotificationSettings: NotificationSetting = {
+  emailDigest: true,
+  budgetReminder: true,
+  weeklyPdfReminder: false,
+  quietHoursStart: "22:00",
+  quietHoursEnd: "08:00"
+};
+
+const emptyProfile: HouseholdProfile = {
+  household: {
+    id: "",
+    name: "",
+    housingType: "appartement",
+    surfaceSqm: 0,
+    rooms: 0,
+    childrenCount: 0,
+    hasPets: false,
+    balanceScore: 0,
+    createdAt: new Date().toISOString()
+  },
+  members: [],
+  pets: []
+};
+
+const emptyUser: UserProfile = {
+  id: "",
+  email: "",
+  displayName: "",
+  locale: "fr-FR",
+  currency: "EUR",
+  plan: "free"
+};
+
+const emptyBudget: BudgetMonth = {
+  id: "",
+  householdId: "",
+  month: new Date().toISOString().slice(0, 7),
+  targetSavings: 0
+};
+
+interface InitializePayload {
+  user?: UserProfile;
+  profile?: HouseholdProfile;
+  tasks?: Task[];
+  completions?: TaskCompletion[];
+  budget?: BudgetMonth;
+  budgetItems?: BudgetItem[];
+  savingsScenarios?: SavingsScenario[];
+  birthListItems?: BirthListItem[];
+}
+
+interface FamilyFlowState {
+  user: UserProfile;
+  profile: HouseholdProfile;
+  tasks: Task[];
+  completions: TaskCompletion[];
+  budget: BudgetMonth;
+  budgetItems: BudgetItem[];
+  savingsScenarios: SavingsScenario[];
+  birthListItems: BirthListItem[];
+  pdfPreferences: PdfExportPreference;
+  notificationSettings: NotificationSetting;
   hydratedFromDemo: boolean;
+  ready: boolean;
+  initialize: (payload: InitializePayload) => void;
   toggleTask: (taskId: string) => void;
   assignTask: (taskId: string, memberId: string) => void;
   rebalanceAssignments: () => void;
   addBudgetItem: (item: BudgetItem) => void;
   addScenario: (scenario: SavingsScenario) => void;
   addMember: (member: HouseholdMember) => void;
+  updateMember: (memberId: string, updates: Partial<HouseholdMember>) => void;
+  removeMember: (memberId: string) => void;
   setPdfTheme: (theme: PdfTheme) => void;
 }
 
 export const useFamilyFlowStore = create<FamilyFlowState>((set, get) => ({
-  ...demoData,
-  hydratedFromDemo: true,
+  user: emptyUser,
+  profile: emptyProfile,
+  tasks: [],
+  completions: [],
+  budget: emptyBudget,
+  budgetItems: [],
+  savingsScenarios: [],
+  birthListItems: [],
+  pdfPreferences: defaultPdfPreferences,
+  notificationSettings: defaultNotificationSettings,
+  hydratedFromDemo: false,
+  ready: false,
+
+  initialize: (payload) =>
+    set((state) => ({
+      user: payload.user ?? state.user,
+      profile: payload.profile ?? state.profile,
+      tasks: payload.tasks ?? state.tasks,
+      completions: payload.completions ?? state.completions,
+      budget: payload.budget ?? state.budget,
+      budgetItems: payload.budgetItems ?? state.budgetItems,
+      savingsScenarios: payload.savingsScenarios ?? state.savingsScenarios,
+      birthListItems: payload.birthListItems ?? state.birthListItems,
+      hydratedFromDemo: false,
+      ready: true
+    })),
+
   toggleTask: (taskId) =>
     set((state) => ({
       tasks: state.tasks.map((task) =>
@@ -38,24 +140,29 @@ export const useFamilyFlowStore = create<FamilyFlowState>((set, get) => ({
           : task
       )
     })),
+
   assignTask: (taskId, memberId) =>
     set((state) => ({
       tasks: state.tasks.map((task) =>
         task.id === taskId ? { ...task, assignedMemberId: memberId } : task
       )
     })),
+
   rebalanceAssignments: () =>
     set((state) => ({
       tasks: autoBalanceTasks(state.tasks, state.profile)
     })),
+
   addBudgetItem: (item) =>
     set((state) => ({
       budgetItems: [item, ...state.budgetItems]
     })),
+
   addScenario: (scenario) =>
     set((state) => ({
       savingsScenarios: [scenario, ...state.savingsScenarios]
     })),
+
   addMember: (member) =>
     set((state) => ({
       profile: {
@@ -63,6 +170,25 @@ export const useFamilyFlowStore = create<FamilyFlowState>((set, get) => ({
         members: [...state.profile.members, member]
       }
     })),
+
+  updateMember: (memberId, updates) =>
+    set((state) => ({
+      profile: {
+        ...state.profile,
+        members: state.profile.members.map((m) =>
+          m.id === memberId ? { ...m, ...updates } : m
+        )
+      }
+    })),
+
+  removeMember: (memberId) =>
+    set((state) => ({
+      profile: {
+        ...state.profile,
+        members: state.profile.members.filter((m) => m.id !== memberId)
+      }
+    })),
+
   setPdfTheme: (theme) =>
     set((state) => ({
       pdfPreferences: {
@@ -74,15 +200,19 @@ export const useFamilyFlowStore = create<FamilyFlowState>((set, get) => ({
 
 export const selectDashboardSummary = (state: FamilyFlowState) => {
   const completed = state.tasks.filter((task) => task.status === "done").length;
-  const completionRate = Math.round((completed / state.tasks.length) * 100);
-  const busiestMember = [...state.profile.members]
-    .map((member) => ({
-      member,
-      load: state.tasks
-        .filter((task) => task.assignedMemberId === member.id)
-        .reduce((sum, task) => sum + task.estimatedMinutes, 0)
-    }))
-    .sort((left, right) => right.load - left.load)[0];
+  const total = state.tasks.length;
+  const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const busiestMember =
+    state.profile.members.length > 0
+      ? [...state.profile.members]
+          .map((member) => ({
+            member,
+            load: state.tasks
+              .filter((task) => task.assignedMemberId === member.id)
+              .reduce((sum, task) => sum + task.estimatedMinutes, 0)
+          }))
+          .sort((left, right) => right.load - left.load)[0]
+      : undefined;
   const savings = buildSavingsSummary(state.savingsScenarios, state.tasks, state.budgetItems);
   const income = state.budgetItems
     .filter((item) => item.type === "income")
@@ -99,4 +229,3 @@ export const selectDashboardSummary = (state: FamilyFlowState) => {
     disposableIncome: income - spend
   };
 };
-

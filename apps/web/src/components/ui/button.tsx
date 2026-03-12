@@ -12,10 +12,10 @@ const buttonVariants = cva(
         default:
           "bg-[linear-gradient(135deg,#3559e6_0%,#00a9ff_58%,#2ec5a1_100%)] text-white shadow-[0_16px_34px_rgba(53,89,230,0.34)] hover:-translate-y-0.5 hover:shadow-[0_20px_40px_rgba(53,89,230,0.42)]",
         secondary:
-          "border border-[#d7e4ff] bg-white text-[var(--foreground)] shadow-[0_8px_24px_rgba(24,53,123,0.08)] hover:-translate-y-0.5 hover:bg-[#f7faff]",
-        ghost: "text-[var(--foreground-muted)] hover:bg-white/80",
+          "border border-[#d7e4ff] bg-white !text-[#0f1832] shadow-[0_8px_24px_rgba(24,53,123,0.08)] hover:-translate-y-0.5 hover:bg-[#f7faff]",
+        ghost: "!text-[#4f5d80] hover:bg-white/80",
         outline:
-          "border border-[#d7e4ff] bg-[rgba(255,255,255,0.65)] text-[var(--foreground)] backdrop-blur hover:bg-white/90"
+          "border border-[#d7e4ff] bg-[rgba(255,255,255,0.65)] !text-[#0f1832] backdrop-blur hover:bg-white/90"
       },
       size: {
         default: "h-11 px-5",

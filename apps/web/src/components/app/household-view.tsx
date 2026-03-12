@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 import { HouseholdOnboardingForm } from "@/components/forms/household-onboarding-form";
+import { MemberManager } from "@/components/app/member-dialog";
 
 export function HouseholdView() {
   const state = useFamilyFlowStore();
@@ -22,13 +23,14 @@ export function HouseholdView() {
             <Badge className="w-fit bg-white/14 text-white shadow-none">Foyer</Badge>
             <h2 className="text-3xl font-semibold tracking-[-0.03em]">{state.profile.household.name}</h2>
             <p className="max-w-3xl text-[15px] text-white/78">
-              {state.profile.household.housingType}, {state.profile.household.surfaceSqm} m2,{" "}
-              {state.profile.household.rooms} pieces, {state.profile.household.city}
+              {state.profile.household.housingType}, {state.profile.household.surfaceSqm} m²,{" "}
+              {state.profile.household.rooms} pièces
+              {state.profile.household.city ? `, ${state.profile.household.city}` : ""}
             </p>
             {state.profile.household.isExpectingBaby ? (
               <div className="rounded-[24px] border border-white/16 bg-white/10 px-4 py-3 text-sm text-white/82 backdrop-blur-md">
-                Naissance en preparation pour {expectingParent?.name ?? "le foyer"}.
-                Terme estime le {state.profile.household.pregnancyDueDate ?? "a definir"}.
+                Naissance en préparation pour {expectingParent?.name ?? "le foyer"}.
+                Terme estimé le {state.profile.household.pregnancyDueDate ?? "à définir"}.
               </div>
             ) : null}
           </div>
@@ -50,7 +52,7 @@ export function HouseholdView() {
             </div>
             <div className="rounded-3xl bg-white/12 p-4 backdrop-blur-md">
               <Gift className="mb-2 h-5 w-5 text-white" />
-              <p className="text-sm text-white/72">Liste bebe</p>
+              <p className="text-sm text-white/72">Liste bébé</p>
               <p className="text-2xl font-semibold">
                 {state.profile.household.isExpectingBaby ? state.birthListItems.length : 0}
               </p>
@@ -68,44 +70,9 @@ export function HouseholdView() {
                 <div className="rounded-2xl bg-[rgba(109,94,244,0.12)] p-3 text-[var(--brand-primary)]">
                   <House className="h-5 w-5" />
                 </div>
-                <div>
-                  <h3 className="text-xl font-semibold">Membres et preferences</h3>
-                  <p className="text-sm text-[var(--foreground-muted)]">
-                    Disponibilites, categories favorites et charge compatible avec le contexte du foyer.
-                  </p>
-                </div>
+                <div className="flex-1" />
               </div>
-              <div className="grid gap-4">
-                {state.profile.members.map((member) => (
-                  <div key={member.id} className="rounded-3xl border border-[var(--border)] bg-white p-4">
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-3">
-                        <span
-                          className="h-10 w-10 rounded-full"
-                          style={{ backgroundColor: member.avatarColor }}
-                        />
-                        <div>
-                          <p className="font-semibold">{member.name}</p>
-                          <p className="text-sm text-[var(--foreground-muted)]">
-                            {member.role}, {member.age} ans
-                          </p>
-                        </div>
-                      </div>
-                      <Badge variant="outline">
-                        {member.availabilityHoursPerWeek} h / semaine
-                      </Badge>
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {member.favoriteCategories.map((category) => (
-                        <Badge key={category} variant="mint">
-                          {category}
-                        </Badge>
-                      ))}
-                      {member.isPregnant ? <Badge variant="coral">Grossesse</Badge> : null}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <MemberManager householdId={state.profile.household.id} />
             </div>
           </Card>
 
@@ -119,7 +86,7 @@ export function HouseholdView() {
                   <div>
                     <h3 className="text-xl font-semibold">Grossesse et naissance</h3>
                     <p className="text-sm text-[var(--foreground-muted)]">
-                      Espace dedie pour preparer l'arrivee du bebe et partager la liste de naissance.
+                      Espace dédié pour préparer l'arrivée du bébé et partager la liste de naissance.
                     </p>
                   </div>
                 </div>
@@ -127,7 +94,7 @@ export function HouseholdView() {
                   <Button asChild>
                     <Link href="/app/assistant">
                       <BrainCircuit className="mr-2 h-4 w-4" />
-                      Faire mon planning personnalise
+                      Faire mon planning personnalisé
                     </Link>
                   </Button>
                   <Button asChild variant="secondary">
