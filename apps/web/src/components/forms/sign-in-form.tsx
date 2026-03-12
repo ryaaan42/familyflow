@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -21,11 +21,15 @@ const schema = z.object({
 
 type SignInValues = z.infer<typeof schema>;
 
-export function SignInForm() {
+type SignInFormProps = {
+  nextPath?: string;
+  authErrorCode?: string | null;
+};
+
+export function SignInForm({ nextPath, authErrorCode }: SignInFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [authError, setAuthError] = useState<string | null>(
-    searchParams.get("error") === "auth_callback_failed"
+    authErrorCode === "auth_callback_failed"
       ? "La connexion n'a pas pu etre finalisee. Reessaie."
       : null
   );
@@ -36,7 +40,7 @@ export function SignInForm() {
       password: ""
     }
   });
-  const nextPath = getSafeNextPath(searchParams.get("next"), "/app");
+  const safeNextPath = getSafeNextPath(nextPath, "/app");
 
   const onSubmit = form.handleSubmit(async (values) => {
     setAuthError(null);
@@ -52,7 +56,7 @@ export function SignInForm() {
       return;
     }
 
-    router.push(nextPath);
+    router.push(safeNextPath);
     router.refresh();
   });
 
@@ -63,7 +67,7 @@ export function SignInForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: buildAuthCallbackUrl(nextPath)
+        redirectTo: buildAuthCallbackUrl(safeNextPath)
       }
     });
 

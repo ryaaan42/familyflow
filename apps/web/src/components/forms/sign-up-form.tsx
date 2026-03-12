@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -22,9 +22,12 @@ const schema = z.object({
 
 type SignUpValues = z.infer<typeof schema>;
 
-export function SignUpForm() {
+type SignUpFormProps = {
+  nextPath?: string;
+};
+
+export function SignUpForm({ nextPath }: SignUpFormProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [authError, setAuthError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const form = useForm<SignUpValues>({
@@ -35,7 +38,7 @@ export function SignUpForm() {
       password: ""
     }
   });
-  const nextPath = getSafeNextPath(searchParams.get("next"), "/app");
+  const safeNextPath = getSafeNextPath(nextPath, "/app");
 
   const onSubmit = form.handleSubmit(async (values) => {
     setAuthError(null);
@@ -46,7 +49,7 @@ export function SignUpForm() {
       email: values.email,
       password: values.password,
       options: {
-        emailRedirectTo: buildAuthCallbackUrl(nextPath),
+        emailRedirectTo: buildAuthCallbackUrl(safeNextPath),
         data: {
           display_name: values.displayName
         }
@@ -59,7 +62,7 @@ export function SignUpForm() {
     }
 
     if (data.session) {
-      router.push(nextPath);
+      router.push(safeNextPath);
       router.refresh();
       return;
     }
@@ -80,7 +83,7 @@ export function SignUpForm() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: buildAuthCallbackUrl(nextPath)
+        redirectTo: buildAuthCallbackUrl(safeNextPath)
       }
     });
 
