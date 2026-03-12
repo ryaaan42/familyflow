@@ -10,6 +10,8 @@ export interface CreateHouseholdInput {
   childrenCount: number;
   hasPets: boolean;
   city?: string;
+  isExpectingBaby?: boolean;
+  pregnancyDueDate?: string;
   objective?: string;
 }
 
@@ -19,6 +21,7 @@ export interface CreateMemberInput {
   role: "parent" | "adulte" | "ado" | "enfant" | "autre";
   avatarColor: string;
   isAdmin?: boolean;
+  isPregnant?: boolean;
 }
 
 export interface CreateHouseholdResult {
@@ -37,9 +40,10 @@ export async function createHouseholdWithMembers(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return { householdId: null, error: "Non authentifie" };
+    return { householdId: null, error: "Non authentifié" };
   }
 
+  // Vérifier si un household existe déjà (idempotent)
   const { data: existingHousehold } = await supabase
     .from("households")
     .select("id")
@@ -51,49 +55,39 @@ export async function createHouseholdWithMembers(
     return { householdId: existingHousehold.id as string, error: null };
   }
 
-  const { data: newHousehold, error: householdError } = await supabase
-    .from("households")
-    .insert({
-      owner_user_id: user.id,
-      name: household.name,
-      housing_type: household.housingType,
-      surface_sqm: household.surfaceSqm,
-      rooms: household.rooms,
-      children_count: household.childrenCount,
-      has_pets: household.hasPets,
-      city: household.city ?? null
-    })
-    .select("id")
-    .single();
-
-  if (householdError || !newHousehold) {
-    return { householdId: null, error: householdError?.message ?? "Erreur creation foyer" };
-  }
-
-  const householdId = newHousehold.id as string;
-
-  if (members.length > 0) {
-    const memberRows = members.map((m, index) => ({
-      household_id: householdId,
-      user_id: index === 0 ? user.id : null,
-      display_name: m.displayName,
-      age: m.age,
-      role: m.role,
-      avatar_color: m.avatarColor,
-      availability_hours_per_week: 10,
-      is_admin: index === 0 ? true : (m.isAdmin ?? false)
-    }));
-
-    const { error: membersError } = await supabase
-      .from("household_members")
-      .insert(memberRows);
-
-    if (membersError) {
-      return { householdId, error: membersError.message };
+  // Utiliser la fonction RPC pour créer le foyer + membres en une seule transaction.
+  // Le RPC bypasse le cache schema PostgREST et garantit l'atomicité.
+  const { data: householdId, error: rpcError } = await supabase.rpc(
+    "create_household_with_members",
+    {
+      p_name: household.name,
+      p_housing_type: household.housingType,
+      p_surface_sqm: household.surfaceSqm,
+      p_rooms: household.rooms,
+      p_children_count: household.childrenCount,
+      p_has_pets: household.hasPets,
+      p_city: household.city ?? "",
+      p_is_expecting_baby: household.isExpectingBaby ?? false,
+      p_pregnancy_due_date: household.pregnancyDueDate ?? null,
+      p_members: members.map((m, i) => ({
+        displayName: m.displayName,
+        age: m.age,
+        role: m.role,
+        avatarColor: m.avatarColor,
+        isAdmin: i === 0,
+        isPregnant: m.isPregnant ?? false
+      }))
     }
+  );
+
+  if (rpcError || !householdId) {
+    return {
+      householdId: null,
+      error: rpcError?.message ?? "Erreur lors de la création du foyer"
+    };
   }
 
-  return { householdId, error: null };
+  return { householdId: householdId as string, error: null };
 }
 
 export async function addHouseholdMember(
@@ -111,7 +105,8 @@ export async function addHouseholdMember(
       role: member.role,
       avatar_color: member.avatarColor,
       availability_hours_per_week: 10,
-      is_admin: member.isAdmin ?? false
+      is_admin: member.isAdmin ?? false,
+      is_pregnant: member.isPregnant ?? false
     })
     .select("id")
     .single();
@@ -130,6 +125,7 @@ export async function updateHouseholdMember(
     age: number;
     role: "parent" | "adulte" | "ado" | "enfant" | "autre";
     avatarColor: string;
+    isPregnant: boolean;
   }>
 ): Promise<{ error: string | null }> {
   const supabase = await createSupabaseServerClient();
@@ -139,6 +135,7 @@ export async function updateHouseholdMember(
   if (updates.age !== undefined) dbUpdates.age = updates.age;
   if (updates.role !== undefined) dbUpdates.role = updates.role;
   if (updates.avatarColor !== undefined) dbUpdates.avatar_color = updates.avatarColor;
+  if (updates.isPregnant !== undefined) dbUpdates.is_pregnant = updates.isPregnant;
 
   const { error } = await supabase
     .from("household_members")

@@ -28,11 +28,12 @@ const householdStep = z.object({
   name: z.string().min(2, "Minimum 2 caractères"),
   housingType: z.enum(["appartement", "maison"]),
   city: z.string().optional(),
-  surfaceSqm: z.coerce.number().min(15).max(700),
-  rooms: z.coerce.number().min(1).max(20),
+  surfaceSqm: z.coerce.number().min(15, "Minimum 15 m²").max(700),
+  rooms: z.coerce.number().min(1, "Minimum 1 pièce").max(20),
   childrenCount: z.coerce.number().min(0).max(12),
   hasPets: z.boolean(),
-  objective: z.string().optional()
+  isExpectingBaby: z.boolean(),
+  pregnancyDueDate: z.string().optional()
 });
 
 const membersStep = z.object({
@@ -42,7 +43,8 @@ const membersStep = z.object({
         displayName: z.string().min(2, "Minimum 2 caractères"),
         age: z.coerce.number().min(0).max(120),
         role: z.enum(["parent", "adulte", "ado", "enfant", "autre"]),
-        avatarColor: z.string()
+        avatarColor: z.string(),
+        isPregnant: z.boolean()
       })
     )
     .min(1, "Ajoutez au moins un membre")
@@ -72,6 +74,8 @@ const ROLE_LABELS: Record<string, string> = {
   autre: "Autre"
 };
 
+const PREGNANT_ROLES = new Set(["parent", "adulte"]);
+
 export function OnboardingWizard({ displayName }: { displayName: string }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -90,9 +94,12 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
       rooms: 3,
       childrenCount: 0,
       hasPets: false,
-      objective: "tasks"
+      isExpectingBaby: false,
+      pregnancyDueDate: ""
     }
   });
+
+  const isExpectingBaby = householdForm.watch("isExpectingBaby");
 
   const membersForm = useForm<MembersValues>({
     resolver: zodResolver(membersStep),
@@ -102,7 +109,8 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
           displayName: displayName || "",
           age: 30,
           role: "parent",
-          avatarColor: AVATAR_COLORS[0]
+          avatarColor: AVATAR_COLORS[0],
+          isPregnant: false
         }
       ]
     }
@@ -139,6 +147,8 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
         childrenCount: householdData.childrenCount,
         hasPets: householdData.hasPets,
         city: householdData.city,
+        isExpectingBaby: householdData.isExpectingBaby,
+        pregnancyDueDate: householdData.pregnancyDueDate || undefined,
         objective: selectedObjective
       },
       membersValues.members.map((m, i) => ({
@@ -146,7 +156,8 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
         age: m.age,
         role: m.role,
         avatarColor: m.avatarColor,
-        isAdmin: i === 0
+        isAdmin: i === 0,
+        isPregnant: m.isPregnant
       }))
     );
 
@@ -163,7 +174,7 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Step indicators */}
+      {/* Indicateurs d'étapes */}
       <div className="flex items-center justify-center gap-2">
         {STEPS.map((s, i) => {
           const Icon = s.icon;
@@ -197,7 +208,7 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
         })}
       </div>
 
-      {/* Step 1 — Household */}
+      {/* Étape 1 — Foyer */}
       {step === 1 && (
         <Card className="overflow-hidden">
           <form className="space-y-5 p-7" onSubmit={handleHouseholdNext}>
@@ -255,6 +266,9 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
                   min={1}
                   {...householdForm.register("rooms")}
                 />
+                {householdForm.formState.errors.rooms && (
+                  <p className="text-sm text-rose-600">{householdForm.formState.errors.rooms.message}</p>
+                )}
               </div>
             </div>
 
@@ -276,6 +290,27 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
               </div>
             </div>
 
+            {/* Question grossesse au niveau du foyer */}
+            <div className="space-y-3 rounded-2xl border border-[rgba(255,126,107,0.3)] bg-[rgba(255,126,107,0.04)] p-4">
+              <label className="flex cursor-pointer items-center gap-3 text-sm font-medium">
+                <input type="checkbox" {...householdForm.register("isExpectingBaby")} />
+                Un des parents est enceinte
+              </label>
+              {isExpectingBaby && (
+                <div className="space-y-1.5 pl-7">
+                  <Label htmlFor="pregnancyDueDate" className="text-sm">
+                    Date de terme estimée
+                  </Label>
+                  <Input
+                    id="pregnancyDueDate"
+                    type="date"
+                    className="max-w-[220px]"
+                    {...householdForm.register("pregnancyDueDate")}
+                  />
+                </div>
+              )}
+            </div>
+
             <Button type="submit" className="w-full">
               Continuer
               <ChevronRight className="ml-2 h-4 w-4" />
@@ -284,7 +319,7 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
         </Card>
       )}
 
-      {/* Step 2 — Members */}
+      {/* Étape 2 — Membres */}
       {step === 2 && (
         <Card className="overflow-hidden">
           <form className="space-y-5 p-7" onSubmit={handleMembersNext}>
@@ -296,88 +331,104 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
             </div>
 
             <div className="space-y-4">
-              {fields.map((field, index) => (
-                <div
-                  key={field.id}
-                  className="rounded-2xl border border-[var(--border)] bg-[rgba(109,94,244,0.04)] p-4 space-y-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm font-semibold text-[var(--foreground-muted)]">
-                      {index === 0 ? "Vous (admin)" : `Membre ${index + 1}`}
-                    </p>
-                    {index > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => remove(index)}
-                        className="rounded-xl p-1.5 text-rose-400 hover:bg-rose-50"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    )}
-                  </div>
+              {fields.map((field, index) => {
+                const role = membersForm.watch(`members.${index}.role`);
+                const canBePregnant = PREGNANT_ROLES.has(role);
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <Label>Prénom *</Label>
-                      <Input
-                        placeholder="Prénom"
-                        {...membersForm.register(`members.${index}.displayName`)}
-                      />
-                      {membersForm.formState.errors.members?.[index]?.displayName && (
-                        <p className="text-xs text-rose-600">
-                          {membersForm.formState.errors.members[index]?.displayName?.message}
-                        </p>
+                return (
+                  <div
+                    key={field.id}
+                    className="rounded-2xl border border-[var(--border)] bg-[rgba(109,94,244,0.04)] p-4 space-y-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-semibold text-[var(--foreground-muted)]">
+                        {index === 0 ? "Vous (admin)" : `Membre ${index + 1}`}
+                      </p>
+                      {index > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => remove(index)}
+                          className="rounded-xl p-1.5 text-rose-400 hover:bg-rose-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       )}
                     </div>
-                    <div className="space-y-1.5">
-                      <Label>Âge *</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        max={120}
-                        {...membersForm.register(`members.${index}.age`)}
-                      />
-                    </div>
-                  </div>
 
-                  <div className="space-y-1.5">
-                    <Label>Rôle *</Label>
-                    <select
-                      className="flex h-11 w-full rounded-2xl border border-[var(--border)] bg-white px-4 text-sm"
-                      {...membersForm.register(`members.${index}.role`)}
-                    >
-                      {Object.entries(ROLE_LABELS).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <Label>Couleur d'avatar</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {AVATAR_COLORS.map((color) => (
-                        <button
-                          key={color}
-                          type="button"
-                          onClick={() =>
-                            membersForm.setValue(`members.${index}.avatarColor`, color)
-                          }
-                          className="h-8 w-8 rounded-full border-2 transition-transform hover:scale-110"
-                          style={{
-                            backgroundColor: color,
-                            borderColor:
-                              membersForm.watch(`members.${index}.avatarColor`) === color
-                                ? "#111"
-                                : "transparent"
-                          }}
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div className="space-y-1.5">
+                        <Label>Prénom *</Label>
+                        <Input
+                          placeholder="Prénom"
+                          {...membersForm.register(`members.${index}.displayName`)}
                         />
-                      ))}
+                        {membersForm.formState.errors.members?.[index]?.displayName && (
+                          <p className="text-xs text-rose-600">
+                            {membersForm.formState.errors.members[index]?.displayName?.message}
+                          </p>
+                        )}
+                      </div>
+                      <div className="space-y-1.5">
+                        <Label>Âge *</Label>
+                        <Input
+                          type="number"
+                          min={0}
+                          max={120}
+                          {...membersForm.register(`members.${index}.age`)}
+                        />
+                      </div>
                     </div>
+
+                    <div className="space-y-1.5">
+                      <Label>Rôle *</Label>
+                      <select
+                        className="flex h-11 w-full rounded-2xl border border-[var(--border)] bg-white px-4 text-sm"
+                        {...membersForm.register(`members.${index}.role`)}
+                      >
+                        {Object.entries(ROLE_LABELS).map(([value, label]) => (
+                          <option key={value} value={value}>
+                            {label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label>Couleur d'avatar</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {AVATAR_COLORS.map((color) => (
+                          <button
+                            key={color}
+                            type="button"
+                            onClick={() =>
+                              membersForm.setValue(`members.${index}.avatarColor`, color)
+                            }
+                            className="h-8 w-8 rounded-full border-2 transition-transform hover:scale-110"
+                            style={{
+                              backgroundColor: color,
+                              borderColor:
+                                membersForm.watch(`members.${index}.avatarColor`) === color
+                                  ? "#111"
+                                  : "transparent"
+                            }}
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Grossesse — visible uniquement pour parent / adulte */}
+                    {canBePregnant && (
+                      <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[rgba(255,126,107,0.3)] bg-[rgba(255,126,107,0.04)] px-4 py-3 text-sm">
+                        <input
+                          type="checkbox"
+                          {...membersForm.register(`members.${index}.isPregnant`)}
+                        />
+                        Ce membre est enceinte
+                      </label>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
 
               {membersForm.formState.errors.members?.root && (
                 <p className="text-sm text-rose-600">
@@ -393,7 +444,8 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
                   displayName: "",
                   age: 25,
                   role: "adulte",
-                  avatarColor: AVATAR_COLORS[fields.length % AVATAR_COLORS.length]
+                  avatarColor: AVATAR_COLORS[fields.length % AVATAR_COLORS.length],
+                  isPregnant: false
                 })
               }
               className="flex w-full items-center justify-center gap-2 rounded-2xl border border-dashed border-[var(--border)] py-3 text-sm text-[var(--foreground-muted)] transition hover:border-[#6D5EF4] hover:text-[#6D5EF4]"
@@ -415,7 +467,7 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
         </Card>
       )}
 
-      {/* Step 3 — Objective */}
+      {/* Étape 3 — Objectif */}
       {step === 3 && (
         <Card className="overflow-hidden">
           <div className="space-y-5 p-7">
@@ -449,7 +501,9 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
             </div>
 
             {serverError && (
-              <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">{serverError}</p>
+              <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                {serverError}
+              </p>
             )}
 
             <div className="flex gap-3">
