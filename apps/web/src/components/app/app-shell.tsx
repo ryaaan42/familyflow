@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 import { usePathname } from "next/navigation";
 import {
   Baby,
@@ -15,6 +16,7 @@ import {
   ListTodo
 } from "lucide-react";
 import { useFamilyFlowStore } from "@familyflow/shared";
+import type { HouseholdProfile, UserProfile } from "@familyflow/shared";
 
 import { Badge } from "@/components/ui/badge";
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -104,11 +106,42 @@ const navItems = [
   }
 ];
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+interface AppShellProps {
+  children: React.ReactNode;
+  userProfile: UserProfile | null;
+  householdProfile: HouseholdProfile;
+}
+
+export function AppShell({ children, userProfile, householdProfile }: AppShellProps) {
   const pathname = usePathname();
-  const state = useFamilyFlowStore();
+  const initialized = useRef(false);
+
+  // Initialize store synchronously on first render with real user data (no demo data)
+  if (!initialized.current) {
+    initialized.current = true;
+    useFamilyFlowStore.setState({
+      user: userProfile ?? {
+        id: "",
+        email: "",
+        displayName: "",
+        locale: "fr-FR",
+        currency: "EUR",
+        plan: "free"
+      },
+      profile: householdProfile,
+      tasks: [],
+      completions: [],
+      budgetItems: [],
+      savingsScenarios: [],
+      birthListItems: [],
+      hydratedFromDemo: false,
+      ready: true
+    });
+  }
+
+  const profile = useFamilyFlowStore((s) => s.profile);
   const visibleItems = navItems.filter(
-    (item) => !item.requiresExpectingBaby || state.profile.household.isExpectingBaby
+    (item) => !item.requiresExpectingBaby || profile.household.isExpectingBaby
   );
 
   return (
@@ -122,7 +155,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className="mt-3 flex items-center gap-2">
             <div className="h-2 w-2 rounded-full bg-emerald-300" />
             <span className="text-xs font-semibold text-white/70">
-              {state.profile.household.name}
+              {profile.household.name}
             </span>
           </div>
         </div>

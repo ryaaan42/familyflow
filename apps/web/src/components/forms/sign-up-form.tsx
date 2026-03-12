@@ -38,7 +38,7 @@ export function SignUpForm({ nextPath }: SignUpFormProps) {
       password: ""
     }
   });
-  const safeNextPath = getSafeNextPath(nextPath, "/app");
+  const safeNextPath = getSafeNextPath(nextPath, "/onboarding");
 
   const onSubmit = form.handleSubmit(async (values) => {
     setAuthError(null);

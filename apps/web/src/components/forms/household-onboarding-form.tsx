@@ -1,9 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { householdSchema } from "@familyflow/shared";
+import { useFamilyFlowStore } from "@familyflow/shared";
 import { z } from "zod";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -13,27 +16,88 @@ import { Label } from "@/components/ui/label";
 type HouseholdFormValues = z.input<typeof householdSchema>;
 
 export function HouseholdOnboardingForm() {
+  const profile = useFamilyFlowStore((s) => s.profile);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const form = useForm<HouseholdFormValues>({
     resolver: zodResolver(householdSchema),
     defaultValues: {
-      name: "Famille Martin",
-      housingType: "maison",
-      surfaceSqm: 118,
-      rooms: 6,
-      childrenCount: 2,
-      city: "Lyon",
-      isExpectingBaby: true,
-      pregnancyDueDate: "2026-07-18",
-      birthListShareSlug: "martin-baby-jules"
+      name: profile.household.name,
+      housingType: profile.household.housingType,
+      surfaceSqm: profile.household.surfaceSqm,
+      rooms: profile.household.rooms,
+      childrenCount: profile.household.childrenCount,
+      city: profile.household.city ?? "",
+      isExpectingBaby: profile.household.isExpectingBaby ?? false,
+      pregnancyDueDate: profile.household.pregnancyDueDate ?? "",
+      birthListShareSlug: profile.household.birthListShareSlug ?? ""
     }
+  });
+
+  const onSubmit = form.handleSubmit(async (values) => {
+    setSaving(true);
+    setError(null);
+    setSaved(false);
+
+    const supabase = createSupabaseBrowserClient();
+    const { error: dbError } = await supabase
+      .from("households")
+      .update({
+        name: values.name,
+        housing_type: values.housingType,
+        surface_sqm: values.surfaceSqm,
+        rooms: values.rooms,
+        children_count: values.childrenCount,
+        city: values.city ?? null,
+        is_expecting_baby: values.isExpectingBaby,
+        pregnancy_due_date: values.pregnancyDueDate ?? null,
+        birth_list_share_slug: values.birthListShareSlug ?? null
+      })
+      .eq("id", profile.household.id);
+
+    setSaving(false);
+
+    if (dbError) {
+      setError(dbError.message);
+      return;
+    }
+
+    useFamilyFlowStore.setState((state) => ({
+      profile: {
+        ...state.profile,
+        household: {
+          ...state.profile.household,
+          name: values.name,
+          housingType: values.housingType,
+          surfaceSqm: values.surfaceSqm,
+          rooms: values.rooms,
+          childrenCount: values.childrenCount,
+          city: values.city,
+          isExpectingBaby: values.isExpectingBaby,
+          pregnancyDueDate: values.pregnancyDueDate,
+          birthListShareSlug: values.birthListShareSlug
+        }
+      }
+    }));
+
+    setSaved(true);
+    setTimeout(() => setSaved(false), 3000);
   });
 
   return (
     <Card>
-      <form className="grid gap-4 p-6 md:grid-cols-2">
+      <form className="grid gap-4 p-6 md:grid-cols-2" onSubmit={onSubmit}>
+        <div className="space-y-2 md:col-span-2">
+          <h3 className="text-xl font-semibold">Informations du foyer</h3>
+        </div>
         <div className="space-y-2 md:col-span-2">
           <Label htmlFor="name">Nom du foyer</Label>
           <Input id="name" {...form.register("name")} />
+          {form.formState.errors.name ? (
+            <p className="text-sm text-rose-600">{form.formState.errors.name.message}</p>
+          ) : null}
         </div>
         <div className="space-y-2">
           <Label htmlFor="housingType">Type de logement</Label>
@@ -51,33 +115,44 @@ export function HouseholdOnboardingForm() {
           <Input id="city" {...form.register("city")} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="surface">Surface approx. (m2)</Label>
-          <Input id="surface" type="number" {...form.register("surfaceSqm")} />
+          <Label htmlFor="surface">Surface approx. (m²)</Label>
+          <Input id="surface" type="number" min={15} {...form.register("surfaceSqm")} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="rooms">Nombre de pieces</Label>
-          <Input id="rooms" type="number" {...form.register("rooms")} />
+          <Label htmlFor="rooms">Nombre de pièces</Label>
+          <Input id="rooms" type="number" min={1} {...form.register("rooms")} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="children">Nombre d'enfants</Label>
-          <Input id="children" type="number" {...form.register("childrenCount")} />
+          <Input id="children" type="number" min={0} {...form.register("childrenCount")} />
         </div>
         <div className="space-y-2 md:col-span-2">
-          <label className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm">
+          <label className="flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-white px-4 py-3 text-sm cursor-pointer">
             <input type="checkbox" {...form.register("isExpectingBaby")} />
             Une maman du foyer est actuellement enceinte
           </label>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="dueDate">Terme estime</Label>
-          <Input id="dueDate" type="date" {...form.register("pregnancyDueDate")} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="shareSlug">Slug partage liste de naissance</Label>
-          <Input id="shareSlug" {...form.register("birthListShareSlug")} />
-        </div>
+        {form.watch("isExpectingBaby") ? (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="dueDate">Terme estimé</Label>
+              <Input id="dueDate" type="date" {...form.register("pregnancyDueDate")} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="shareSlug">Slug partage liste de naissance</Label>
+              <Input id="shareSlug" {...form.register("birthListShareSlug")} />
+            </div>
+          </>
+        ) : null}
+        {error ? (
+          <div className="md:col-span-2">
+            <p className="rounded-2xl bg-rose-50 px-4 py-2 text-sm text-rose-600">{error}</p>
+          </div>
+        ) : null}
         <div className="md:col-span-2">
-          <Button type="button">Enregistrer le foyer</Button>
+          <Button type="submit" disabled={saving}>
+            {saving ? "Enregistrement..." : saved ? "Enregistré !" : "Enregistrer le foyer"}
+          </Button>
         </div>
       </form>
     </Card>
