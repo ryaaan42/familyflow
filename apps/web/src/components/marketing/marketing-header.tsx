@@ -1,35 +1,52 @@
 import Link from "next/link";
-import { Sparkles, House } from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 export function MarketingHeader() {
   return (
-    <header className="sticky top-0 z-40 mx-auto flex w-full max-w-7xl items-center justify-between rounded-full border border-white/50 bg-[rgba(255,250,246,0.82)] px-5 py-3 backdrop-blur xl:px-8">
-      <Link href="/" className="flex items-center gap-3 text-sm font-semibold">
-        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(109,94,244,0.12)] text-[var(--brand-primary)]">
-          <House className="h-5 w-5" />
+    <header className="sticky top-0 z-40 mx-auto flex w-full max-w-7xl items-center justify-between rounded-full border border-white/60 bg-white/80 px-5 py-3 shadow-[0_4px_24px_rgba(24,53,123,0.08)] backdrop-blur-xl xl:px-8">
+      {/* Logo */}
+      <Link href="/" className="flex items-center gap-2.5 text-sm font-bold tracking-tight">
+        <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#6D5EF4,#3559e6,#00a9ff)] shadow-[0_8px_20px_rgba(53,89,230,0.32)]">
+          <span className="text-base leading-none text-white">🏠</span>
         </span>
-        FamilyFlow
+        <span className="text-[var(--foreground)]">FamilyFlow</span>
+        <span className="hidden rounded-full bg-[rgba(46,197,161,0.18)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[var(--brand-mint-strong)] sm:inline">
+          Beta
+        </span>
       </Link>
-      <nav className="hidden items-center gap-8 text-sm text-[var(--foreground-muted)] md:flex">
-        <Link href="#fonctionnalites">Fonctionnalites</Link>
-        <Link href="#modules">Modules</Link>
-        <Link href="#temoignages">Temoignages</Link>
-        <Link href="#faq">FAQ</Link>
+
+      {/* Nav */}
+      <nav className="hidden items-center gap-7 text-sm font-medium text-[var(--foreground-muted)] md:flex">
+        {[
+          { href: "#fonctionnalites", label: "Fonctionnalités" },
+          { href: "#modules", label: "Modules" },
+          { href: "#temoignages", label: "Témoignages" },
+          { href: "#faq", label: "FAQ" }
+        ].map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="relative transition hover:text-[var(--foreground)] after:absolute after:-bottom-0.5 after:left-0 after:h-px after:w-0 after:bg-[var(--brand-primary)] after:transition-all hover:after:w-full"
+          >
+            {item.label}
+          </Link>
+        ))}
       </nav>
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" asChild>
+
+      {/* CTAs */}
+      <div className="flex items-center gap-2.5">
+        <Button variant="ghost" size="sm" asChild className="hidden sm:inline-flex">
           <Link href="/auth/sign-in">Connexion</Link>
         </Button>
-        <Button asChild>
+        <Button size="sm" asChild>
           <Link href="/app">
-            <Sparkles className="mr-2 h-4 w-4" />
-            Ouvrir la demo
+            <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+            Essayer gratuitement
           </Link>
         </Button>
       </div>
     </header>
   );
 }
-
