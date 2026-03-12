@@ -139,8 +139,8 @@ Le schema complet est dans [supabase/migrations/20260311170500_init_familyflow.s
 
 ### Prerequis
 
-- Node.js 20+
-- pnpm
+- Node.js 20.11.1 (recommande pour eviter les erreurs pnpm `ERR_INVALID_THIS` observees sur Node 22 selon les environnements)
+- pnpm 10.6.2
 - Supabase CLI
 - compte Vercel pour le web
 - compte Expo / EAS pour le mobile

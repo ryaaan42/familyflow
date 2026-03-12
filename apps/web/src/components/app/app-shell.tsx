@@ -10,6 +10,7 @@ import {
   Home,
   LayoutDashboard,
   Settings,
+  ShieldCheck,
   Sparkles,
   Users
 } from "lucide-react";
@@ -27,7 +28,8 @@ const navItems = [
   { href: "/app/budget", label: "Budget", icon: Coins },
   { href: "/app/savings", label: "Economies", icon: Sparkles },
   { href: "/app/exports", label: "PDF", icon: FileSpreadsheet },
-  { href: "/app/settings", label: "Parametres", icon: Settings }
+  { href: "/app/settings", label: "Parametres", icon: Settings },
+  { href: "/app/admin", label: "Admin", icon: ShieldCheck }
 ];
 
 export function AppShell({ children }: { children: React.ReactNode }) {

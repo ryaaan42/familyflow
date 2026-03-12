@@ -1,5 +1,10 @@
 # Deploiement FamilyFlow
 
+## Runtime recommande
+
+- Node.js `20.11.1` (important: evite les erreurs pnpm `ERR_INVALID_THIS` observees avec Node 22 sur certains environnements CI).
+- pnpm `10.6.2` (via `packageManager` du repo).
+
 ## Web
 
 1. Creer un projet Supabase.
@@ -7,8 +12,9 @@
 3. Injecter des donnees de seed uniquement sur environnements de demo ou preview.
 4. Configurer Google et Apple dans Supabase Auth.
 5. Creer un projet Vercel pointe sur `apps/web`.
-6. Definir les variables d'environnement du fichier `.env.example`.
-7. Activer `NEXT_PUBLIC_ENABLE_DEMO_MODE=false` pour la production connectee.
+6. Forcer `NODE_VERSION=20.11.1` dans Vercel (Project Settings > Environment Variables).
+7. Definir les variables d'environnement du fichier `.env.example`.
+8. Activer `NEXT_PUBLIC_ENABLE_DEMO_MODE=false` pour la production connectee.
 
 ## Mobile
 
