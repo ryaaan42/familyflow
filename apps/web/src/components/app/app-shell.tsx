@@ -17,6 +17,7 @@ import {
 import { useFamilyFlowStore } from "@familyflow/shared";
 
 import { Badge } from "@/components/ui/badge";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -174,6 +175,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           >
             Découvrir le Premium
           </button>
+
+          <SignOutButton />
         </div>
       </aside>
       <main className="min-w-0 space-y-5">{children}</main>

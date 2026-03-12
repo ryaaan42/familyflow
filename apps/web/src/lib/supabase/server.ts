@@ -10,8 +10,15 @@ export const createSupabaseServerClient = async () => {
     {
       cookies: {
         getAll: () => cookieStore.getAll(),
-        // The current V1 does not persist auth mutations from server components yet.
-        setAll: () => {}
+        setAll: (cookiesToSet) => {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
+          } catch {
+            // Server components cannot always mutate cookies. Route handlers and middleware can.
+          }
+        }
       }
     }
   );
