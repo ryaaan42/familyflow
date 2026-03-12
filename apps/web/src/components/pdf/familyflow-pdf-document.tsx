@@ -26,6 +26,7 @@ const themeMap: Record<
     text: string;
     muted: string;
     panel: string;
+    border: string;
   }
 > = {
   minimal: {
@@ -34,7 +35,8 @@ const themeMap: Record<
     page: "#F7FBFF",
     text: "#10213B",
     muted: "#5D708A",
-    panel: "#FFFFFF"
+    panel: "#FFFFFF",
+    border: "#DBEAFE"
   },
   "familial-kawaii": {
     accent: "#FF7E6B",
@@ -42,7 +44,8 @@ const themeMap: Record<
     page: "#FFF8F4",
     text: "#452D26",
     muted: "#8A635A",
-    panel: "#FFFFFF"
+    panel: "#FFFFFF",
+    border: "#FDDCCC"
   },
   premium: {
     accent: "#6D5EF4",
@@ -50,7 +53,8 @@ const themeMap: Record<
     page: "#FAF8FF",
     text: "#171329",
     muted: "#696482",
-    panel: "#FFFFFF"
+    panel: "#FFFFFF",
+    border: "#E4E0FF"
   },
   print: {
     accent: "#222222",
@@ -58,30 +62,32 @@ const themeMap: Record<
     page: "#FFFFFF",
     text: "#111111",
     muted: "#5A5A5A",
-    panel: "#FFFFFF"
+    panel: "#FFFFFF",
+    border: "#DDDDDD"
   }
 };
 
 const styles = StyleSheet.create({
   pageLandscape: {
-    paddingTop: 22,
-    paddingRight: 24,
-    paddingBottom: 20,
-    paddingLeft: 24,
-    fontSize: 10,
+    paddingTop: 20,
+    paddingRight: 22,
+    paddingBottom: 18,
+    paddingLeft: 22,
+    fontSize: 9,
     fontFamily: "Helvetica"
   },
   pagePortrait: {
-    padding: 28,
-    fontSize: 10,
+    padding: 26,
+    fontSize: 9,
     fontFamily: "Helvetica"
   },
+  /* ── Header ribbon ── */
   headerRibbon: {
-    borderRadius: 22,
-    paddingTop: 18,
-    paddingRight: 20,
-    paddingBottom: 18,
-    paddingLeft: 20
+    borderRadius: 18,
+    paddingTop: 14,
+    paddingRight: 18,
+    paddingBottom: 14,
+    paddingLeft: 18
   },
   headerTopRow: {
     flexDirection: "row",
@@ -89,244 +95,263 @@ const styles = StyleSheet.create({
     alignItems: "flex-start"
   },
   eyebrow: {
-    fontSize: 9,
+    fontSize: 8,
     textTransform: "uppercase",
-    letterSpacing: 1.3
+    letterSpacing: 1.2
   },
   title: {
-    fontSize: 25,
+    fontSize: 22,
     fontWeight: 700,
-    marginTop: 6
+    marginTop: 5
   },
   subtitle: {
-    fontSize: 10,
-    marginTop: 6,
+    fontSize: 9,
+    marginTop: 5,
     lineHeight: 1.5
   },
+  /* ── Hero metrics ── */
   heroMetrics: {
     flexDirection: "row",
-    marginTop: 16
+    marginTop: 12
   },
   heroMetric: {
     flex: 1,
-    borderRadius: 16,
-    paddingTop: 10,
-    paddingRight: 12,
-    paddingBottom: 10,
-    paddingLeft: 12,
-    marginRight: 10
+    borderRadius: 12,
+    paddingTop: 8,
+    paddingRight: 10,
+    paddingBottom: 8,
+    paddingLeft: 10,
+    marginRight: 8
   },
   heroMetricLast: {
     marginRight: 0
   },
   metricLabel: {
-    fontSize: 9
+    fontSize: 8
   },
   metricValue: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 700,
-    marginTop: 4
+    marginTop: 3
   },
+  /* ── Section titles ── */
   sectionTitleRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 16,
-    marginBottom: 10
+    marginTop: 14,
+    marginBottom: 8
   },
   sectionTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 700
   },
   sectionNote: {
-    fontSize: 9
+    fontSize: 8
   },
-  routinesWrap: {
-    flexDirection: "row",
-    flexWrap: "wrap"
-  },
-  routineCard: {
-    width: "31.5%",
-    borderRadius: 16,
-    paddingTop: 10,
-    paddingRight: 12,
-    paddingBottom: 10,
-    paddingLeft: 12,
-    marginRight: "2.75%",
-    marginBottom: 8
-  },
-  routineCardThird: {
-    marginRight: 0
-  },
-  routineTitle: {
-    fontSize: 10,
-    fontWeight: 700
-  },
-  routineMeta: {
-    fontSize: 8,
-    marginTop: 4,
-    lineHeight: 1.4
-  },
+  /* ── Weekly grid ── */
   weeklyGrid: {
     flexDirection: "row",
-    marginTop: 8
+    marginTop: 6
   },
   dayColumn: {
     flex: 1,
-    borderRadius: 18,
-    paddingTop: 12,
-    paddingRight: 9,
-    paddingBottom: 12,
-    paddingLeft: 9,
-    marginRight: 8,
-    minHeight: 328
+    borderRadius: 14,
+    paddingTop: 10,
+    paddingRight: 7,
+    paddingBottom: 10,
+    paddingLeft: 7,
+    marginRight: 6,
+    minHeight: 310
   },
   dayColumnLast: {
     marginRight: 0
   },
   dayTitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 700
   },
   dayDate: {
-    fontSize: 8,
+    fontSize: 7.5,
     marginTop: 2
   },
   dayDivider: {
     height: 1,
-    marginTop: 8,
-    marginBottom: 8
-  },
-  dayTask: {
-    borderRadius: 12,
-    paddingTop: 7,
-    paddingRight: 8,
-    paddingBottom: 7,
-    paddingLeft: 8,
+    marginTop: 7,
     marginBottom: 7
   },
+  dayTask: {
+    borderRadius: 10,
+    paddingTop: 6,
+    paddingRight: 7,
+    paddingBottom: 6,
+    paddingLeft: 7,
+    marginBottom: 6
+  },
   taskTitle: {
-    fontSize: 8.2,
+    fontSize: 7.5,
     fontWeight: 700,
-    lineHeight: 1.35
+    lineHeight: 1.3
   },
   taskMeta: {
-    fontSize: 7.2,
-    marginTop: 3,
-    lineHeight: 1.4
+    fontSize: 7,
+    marginTop: 2.5,
+    lineHeight: 1.35
   },
+  /* ── Legend ── */
   footerLegend: {
     flexDirection: "row",
     flexWrap: "wrap",
-    marginTop: 10
+    marginTop: 8
   },
   legendItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 12,
-    marginBottom: 6
+    marginRight: 10,
+    marginBottom: 5
   },
   legendDot: {
-    width: 7,
-    height: 7,
+    width: 6,
+    height: 6,
     borderRadius: 999,
-    marginRight: 5
+    marginRight: 4
   },
   legendText: {
-    fontSize: 8
+    fontSize: 7.5
   },
   smallNote: {
-    fontSize: 8,
-    marginTop: 6
+    fontSize: 7.5,
+    marginTop: 5
   },
+  /* ── Portrait page ── */
   portraitHeader: {
-    marginBottom: 18
+    marginBottom: 16
   },
   portraitTitle: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 700
   },
   portraitSubtitle: {
-    fontSize: 10,
-    marginTop: 4
+    fontSize: 9,
+    marginTop: 3
   },
   panel: {
-    borderRadius: 18,
-    paddingTop: 16,
-    paddingRight: 16,
-    paddingBottom: 16,
-    paddingLeft: 16,
-    marginTop: 12
+    borderRadius: 14,
+    paddingTop: 14,
+    paddingRight: 14,
+    paddingBottom: 14,
+    paddingLeft: 14,
+    marginTop: 10
   },
+  /* ── Routines ── */
+  routinesWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginTop: 8
+  },
+  routineCard: {
+    width: "31.5%",
+    borderRadius: 12,
+    paddingTop: 8,
+    paddingRight: 10,
+    paddingBottom: 8,
+    paddingLeft: 10,
+    marginRight: "2.75%",
+    marginBottom: 7
+  },
+  routineCardThird: {
+    marginRight: 0
+  },
+  routineTitle: {
+    fontSize: 9,
+    fontWeight: 700
+  },
+  routineMeta: {
+    fontSize: 7.5,
+    marginTop: 3,
+    lineHeight: 1.35
+  },
+  /* ── Members ── */
   memberRow: {
     flexDirection: "row",
     alignItems: "stretch",
-    marginTop: 10
+    marginTop: 8
   },
   memberPill: {
-    width: 112,
-    borderRadius: 16,
-    paddingTop: 10,
-    paddingRight: 10,
-    paddingBottom: 10,
-    paddingLeft: 10,
-    marginRight: 10
+    width: 100,
+    borderRadius: 14,
+    paddingTop: 8,
+    paddingRight: 9,
+    paddingBottom: 8,
+    paddingLeft: 9,
+    marginRight: 9
   },
   memberName: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 700
   },
   memberRole: {
-    fontSize: 8,
-    marginTop: 3
+    fontSize: 7.5,
+    marginTop: 2.5
   },
   memberTasks: {
     flex: 1
   },
   assignmentCard: {
-    borderRadius: 14,
-    paddingTop: 9,
-    paddingRight: 10,
-    paddingBottom: 9,
-    paddingLeft: 10,
-    marginBottom: 7
+    borderRadius: 11,
+    paddingTop: 7,
+    paddingRight: 9,
+    paddingBottom: 7,
+    paddingLeft: 9,
+    marginBottom: 6
   },
   assignmentMeta: {
-    fontSize: 8,
-    marginTop: 3
+    fontSize: 7.5,
+    marginTop: 2.5
   },
+  /* ── Budget ── */
   budgetRow: {
     flexDirection: "row",
-    marginTop: 10
+    marginTop: 8
   },
   budgetMetric: {
     flex: 1,
-    borderRadius: 16,
-    paddingTop: 12,
-    paddingRight: 12,
-    paddingBottom: 12,
-    paddingLeft: 12,
-    marginRight: 10
+    borderRadius: 12,
+    paddingTop: 10,
+    paddingRight: 11,
+    paddingBottom: 10,
+    paddingLeft: 11,
+    marginRight: 8
   },
   budgetMetricLast: {
     marginRight: 0
   },
   scenarioCard: {
-    borderRadius: 14,
-    paddingTop: 11,
-    paddingRight: 12,
-    paddingBottom: 11,
-    paddingLeft: 12,
-    marginTop: 8
+    borderRadius: 12,
+    paddingTop: 9,
+    paddingRight: 11,
+    paddingBottom: 9,
+    paddingLeft: 11,
+    marginTop: 7
   },
   scenarioTitle: {
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: 700
   },
   scenarioText: {
-    fontSize: 8.4,
-    marginTop: 3,
-    lineHeight: 1.45
+    fontSize: 8,
+    marginTop: 2.5,
+    lineHeight: 1.4
+  },
+  /* ── Progress bar ── */
+  progressTrack: {
+    height: 4,
+    borderRadius: 99,
+    marginTop: 6
+  },
+  progressFill: {
+    height: 4,
+    borderRadius: 99
   }
 });
 
@@ -348,7 +373,7 @@ const startOfWeekMonday = (date: Date) => {
 };
 
 const getMemberName = (data: DemoDataset, memberId?: string) =>
-  data.profile.members.find((member) => member.id === memberId)?.name ?? "A attribuer";
+  data.profile.members.find((member) => member.id === memberId)?.name ?? "À attribuer";
 
 const getWeekStart = (data: DemoDataset) => {
   const referenceTaskDate = data.tasks[0] ? new Date(data.tasks[0].dueDate) : new Date();
@@ -367,12 +392,8 @@ const getWeeklyBuckets = (data: DemoDataset) => {
     const date = addDaysNative(weekStart, index);
     const tasks = data.tasks
       .filter((task) => {
-        if (task.frequency === "quotidienne") {
-          return false;
-        }
-
+        if (task.frequency === "quotidienne") return false;
         const dueDate = new Date(task.dueDate);
-
         return (
           dueDate.getFullYear() === date.getFullYear() &&
           dueDate.getMonth() === date.getMonth() &&
@@ -401,48 +422,69 @@ export function FamilyFlowPdfDocument({
 
   return (
     <Document>
-      <Page size="A4" orientation="landscape" style={{ ...styles.pageLandscape, backgroundColor: palette.page, color: palette.text }}>
+      {/* ══════════════════════════════════════════════════════════
+          PAGE 1 — Planning hebdomadaire (Paysage A4)
+      ══════════════════════════════════════════════════════════ */}
+      <Page
+        size="A4"
+        orientation="landscape"
+        style={{ ...styles.pageLandscape, backgroundColor: palette.page, color: palette.text }}
+        wrap={false}
+      >
+        {/* Header ribbon */}
         <View style={{ ...styles.headerRibbon, backgroundColor: palette.soft }}>
           <View style={styles.headerTopRow}>
-            <View style={{ maxWidth: "68%" }}>
-              <Text style={{ ...styles.eyebrow, color: palette.accent }}>FamilyFlow - Edition frigo</Text>
-              <Text style={styles.title}>Planning hebdomadaire a accrocher</Text>
+            <View style={{ maxWidth: "65%" }}>
+              <Text style={{ ...styles.eyebrow, color: palette.accent }}>FamilyFlow — Édition frigo</Text>
+              <Text style={styles.title}>Planning hebdomadaire</Text>
               <Text style={{ ...styles.subtitle, color: palette.muted }}>
-                {data.profile.household.name} | semaine du {formatDateLabel(weekStart)} au {formatDateLabel(weekEnd)}
+                {data.profile.household.name} — semaine du {formatDateLabel(weekStart)} au {formatDateLabel(weekEnd)}
               </Text>
             </View>
-            <View style={{ width: 150 }}>
+            <View style={{ width: 140 }}>
               <Text style={{ ...styles.eyebrow, color: palette.muted }}>Mode</Text>
-              <Text style={{ fontSize: 12, fontWeight: 700, marginTop: 6 }}>Organisation + economies</Text>
+              <Text style={{ fontSize: 11, fontWeight: 700, marginTop: 5 }}>Organisation + économies</Text>
               <Text style={{ ...styles.subtitle, color: palette.muted }}>
-                Vue claire pour les routines, les taches de la semaine et les couts evites.
+                Routines, tâches de la semaine et coûts évités.
               </Text>
             </View>
           </View>
 
           <View style={styles.heroMetrics}>
-            <View style={{ ...styles.heroMetric, backgroundColor: palette.panel }}>
+            <View style={{ ...styles.heroMetric, backgroundColor: palette.panel, borderWidth: 1, borderColor: palette.border }}>
               <Text style={{ ...styles.metricLabel, color: palette.muted }}>Membres</Text>
-              <Text style={styles.metricValue}>{data.profile.members.length}</Text>
+              <Text style={{ ...styles.metricValue, color: palette.text }}>{data.profile.members.length}</Text>
             </View>
-            <View style={{ ...styles.heroMetric, backgroundColor: palette.panel }}>
-              <Text style={{ ...styles.metricLabel, color: palette.muted }}>Score d'equite</Text>
-              <Text style={styles.metricValue}>{data.profile.household.balanceScore}/100</Text>
+            <View style={{ ...styles.heroMetric, backgroundColor: palette.panel, borderWidth: 1, borderColor: palette.border }}>
+              <Text style={{ ...styles.metricLabel, color: palette.muted }}>Score d'équité</Text>
+              <Text style={{ ...styles.metricValue, color: palette.text }}>{data.profile.household.balanceScore}/100</Text>
             </View>
-            <View style={{ ...styles.heroMetric, ...styles.heroMetricLast, backgroundColor: palette.panel }}>
-              <Text style={{ ...styles.metricLabel, color: palette.muted }}>Economies potentielles</Text>
-              <Text style={styles.metricValue}>{Math.round(savings.monthlySavings)} EUR/mois</Text>
+            <View
+              style={{
+                ...styles.heroMetric,
+                ...styles.heroMetricLast,
+                backgroundColor: palette.panel,
+                borderWidth: 1,
+                borderColor: palette.border
+              }}
+            >
+              <Text style={{ ...styles.metricLabel, color: palette.muted }}>Économies potentielles</Text>
+              <Text style={{ ...styles.metricValue, color: palette.accent }}>
+                {Math.round(savings.monthlySavings)} €/mois
+              </Text>
             </View>
           </View>
         </View>
 
+        {/* Section title */}
         <View style={styles.sectionTitleRow}>
-          <Text style={styles.sectionTitle}>Tableau semaine</Text>
+          <Text style={styles.sectionTitle}>Tableau de la semaine</Text>
           <Text style={{ ...styles.sectionNote, color: palette.muted }}>
-            Pleine largeur, cases a cocher et lisibilite renforcee pour impression
+            Cases à cocher — impression pleine largeur
           </Text>
         </View>
 
+        {/* Weekly grid — each day is a column */}
         <View style={styles.weeklyGrid}>
           {weeklyBuckets.map((bucket, index) => (
             <View
@@ -450,64 +492,73 @@ export function FamilyFlowPdfDocument({
               style={{
                 ...styles.dayColumn,
                 ...(index === weeklyBuckets.length - 1 ? styles.dayColumnLast : {}),
-                backgroundColor: bucket.tasks.length > 0 ? "#FFFFFF" : palette.soft,
+                backgroundColor: bucket.tasks.length > 0 ? palette.panel : palette.soft,
                 borderWidth: 1,
-                borderColor: "#E7E2FF"
+                borderColor: palette.border
               }}
             >
-              <Text style={styles.dayTitle}>{bucket.label}</Text>
+              <Text style={{ ...styles.dayTitle, color: palette.text }}>{bucket.label}</Text>
               <Text style={{ ...styles.dayDate, color: palette.muted }}>{formatDateLabel(bucket.date)}</Text>
               <View style={{ ...styles.dayDivider, backgroundColor: palette.soft }} />
+
               {bucket.tasks.length === 0 ? (
                 <Text style={{ ...styles.taskMeta, color: palette.muted }}>
-                  Pas de tache ciblee ce jour-la. Laisser une place libre pour les imprevus.
+                  Jour léger — marge pour les imprévus.
                 </Text>
               ) : (
-                bucket.tasks.slice(0, 3).map((task) => (
+                bucket.tasks.slice(0, 4).map((task) => (
                   <View key={task.id} style={{ ...styles.dayTask, backgroundColor: palette.soft }}>
-                    <Text style={styles.taskTitle}>[ ] {task.title}</Text>
+                    <Text style={{ ...styles.taskTitle, color: palette.text }}>☐ {task.title}</Text>
                     <Text style={{ ...styles.taskMeta, color: palette.muted }}>
-                      {getMemberName(data, task.assignedMemberId)} | {task.estimatedMinutes} min
+                      {getMemberName(data, task.assignedMemberId)} · {task.estimatedMinutes} min
                     </Text>
                     <Text style={{ ...styles.taskMeta, color: palette.muted }}>
-                      {categoryLabels[task.category]} | difficulte {task.difficulty}/5
+                      {categoryLabels[task.category]} · niveau {task.difficulty}/5
                     </Text>
                   </View>
                 ))
               )}
-              {bucket.tasks.length > 3 ? (
+              {bucket.tasks.length > 4 ? (
                 <Text style={{ ...styles.taskMeta, color: palette.muted }}>
-                  + {bucket.tasks.length - 3} autre(s) tache(s) dans l'app FamilyFlow.
+                  +{bucket.tasks.length - 4} autre(s) dans l'app
                 </Text>
               ) : null}
             </View>
           ))}
         </View>
 
+        {/* Footer */}
         <Text style={{ ...styles.smallNote, color: palette.muted }}>
-          Astuce impression : choisir le theme Noir & blanc pour un rendu plus net et economique en encre.
+          Astuce : choisissez le thème Noir & blanc pour un rendu économique en encre.
         </Text>
 
         <View style={styles.footerLegend}>
           {Object.entries(categoryLabels).map(([key, label]) => (
             <View key={key} style={styles.legendItem}>
               <View style={{ ...styles.legendDot, backgroundColor: categoryColors[key] }} />
-              <Text style={styles.legendText}>{label}</Text>
+              <Text style={{ ...styles.legendText, color: palette.muted }}>{label}</Text>
             </View>
           ))}
         </View>
       </Page>
 
-      <Page size="A4" style={{ ...styles.pagePortrait, backgroundColor: palette.page, color: palette.text }}>
+      {/* ══════════════════════════════════════════════════════════
+          PAGE 2 — Routines & Répartition (Portrait A4)
+      ══════════════════════════════════════════════════════════ */}
+      <Page
+        size="A4"
+        style={{ ...styles.pagePortrait, backgroundColor: palette.page, color: palette.text }}
+      >
         <View style={styles.portraitHeader}>
-          <Text style={styles.portraitTitle}>Repartition et economies</Text>
+          <Text style={{ ...styles.portraitTitle, color: palette.text }}>Répartition et économies</Text>
           <Text style={{ ...styles.portraitSubtitle, color: palette.muted }}>
-            Deuxieme page pour suivre la charge par membre et les leviers budgetaires.
+            Charge par membre et leviers budgétaires — page 2/2
           </Text>
         </View>
 
-        <View style={{ ...styles.panel, backgroundColor: palette.soft }}>
-          <Text style={styles.sectionTitle}>Routines quotidiennes</Text>
+        {/* Routines quotidiennes — max 6 pour tenir sur la page */}
+        <View style={{ ...styles.panel, backgroundColor: palette.soft }} wrap={false}>
+          <Text style={{ ...styles.sectionTitle, color: palette.text }}>Routines quotidiennes</Text>
           <View style={styles.routinesWrap}>
             {dailyTasks.slice(0, 6).map((task, index) => (
               <View
@@ -515,41 +566,50 @@ export function FamilyFlowPdfDocument({
                 style={{
                   ...styles.routineCard,
                   ...(index % 3 === 2 ? styles.routineCardThird : {}),
-                  backgroundColor: "#FFFFFF",
+                  backgroundColor: palette.panel,
                   borderWidth: 1,
-                  borderColor: "#E7E2FF"
+                  borderColor: palette.border
                 }}
               >
-                <Text style={styles.routineTitle}>[ ] {task.title}</Text>
+                <Text style={{ ...styles.routineTitle, color: palette.text }}>☐ {task.title}</Text>
                 <Text style={{ ...styles.routineMeta, color: palette.muted }}>
-                  {getMemberName(data, task.assignedMemberId)} | {task.estimatedMinutes} min
+                  {getMemberName(data, task.assignedMemberId)} · {task.estimatedMinutes} min
                 </Text>
               </View>
             ))}
           </View>
         </View>
 
+        {/* Répartition par membre — chaque membre dans un bloc séparé */}
         <View style={{ ...styles.panel, backgroundColor: palette.soft }}>
-          <Text style={styles.sectionTitle}>Repartition par membre</Text>
+          <Text style={{ ...styles.sectionTitle, color: palette.text }}>Répartition par membre</Text>
           {data.profile.members.map((member) => {
             const memberTasks = data.tasks
               .filter((task) => task.assignedMemberId === member.id)
               .sort((left, right) => left.estimatedMinutes - right.estimatedMinutes);
 
             return (
-              <View key={member.id} style={styles.memberRow}>
+              <View key={member.id} style={{ ...styles.memberRow }} wrap={false}>
                 <View style={{ ...styles.memberPill, backgroundColor: member.avatarColor }}>
                   <Text style={{ ...styles.memberName, color: "#FFFFFF" }}>{member.name}</Text>
                   <Text style={{ ...styles.memberRole, color: "#F7F4FF" }}>
-                    {member.role} | {member.availabilityHoursPerWeek} h / semaine
+                    {member.role} · {member.availabilityHoursPerWeek} h/sem
                   </Text>
                 </View>
                 <View style={styles.memberTasks}>
                   {memberTasks.slice(0, 2).map((task) => (
-                    <View key={task.id} style={{ ...styles.assignmentCard, backgroundColor: "#FFFFFF" }}>
-                      <Text style={styles.taskTitle}>{task.title}</Text>
+                    <View
+                      key={task.id}
+                      style={{
+                        ...styles.assignmentCard,
+                        backgroundColor: palette.panel,
+                        borderWidth: 1,
+                        borderColor: palette.border
+                      }}
+                    >
+                      <Text style={{ ...styles.taskTitle, color: palette.text }}>{task.title}</Text>
                       <Text style={{ ...styles.assignmentMeta, color: palette.muted }}>
-                        {categoryLabels[task.category]} | {task.estimatedMinutes} min | {task.smartReason}
+                        {categoryLabels[task.category]} · {task.estimatedMinutes} min · {task.smartReason}
                       </Text>
                     </View>
                   ))}
@@ -559,32 +619,62 @@ export function FamilyFlowPdfDocument({
           })}
         </View>
 
-        <View style={{ ...styles.panel, backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#E8E2FF" }}>
-          <Text style={styles.sectionTitle}>Budget et projections</Text>
+        {/* Budget et projections */}
+        <View
+          style={{
+            ...styles.panel,
+            backgroundColor: palette.panel,
+            borderWidth: 1,
+            borderColor: palette.border
+          }}
+          wrap={false}
+        >
+          <Text style={{ ...styles.sectionTitle, color: palette.text }}>Budget et projections</Text>
           <View style={styles.budgetRow}>
             <View style={{ ...styles.budgetMetric, backgroundColor: palette.soft }}>
-              <Text style={{ ...styles.metricLabel, color: palette.muted }}>Objectif d'epargne</Text>
-              <Text style={styles.metricValue}>{data.budget.targetSavings} EUR</Text>
+              <Text style={{ ...styles.metricLabel, color: palette.muted }}>Objectif d'épargne</Text>
+              <Text style={{ ...styles.metricValue, color: palette.text }}>{data.budget.targetSavings} €</Text>
             </View>
             <View style={{ ...styles.budgetMetric, backgroundColor: palette.soft }}>
               <Text style={{ ...styles.metricLabel, color: palette.muted }}>Gain mensuel</Text>
-              <Text style={styles.metricValue}>{Math.round(savings.monthlySavings)} EUR</Text>
+              <Text style={{ ...styles.metricValue, color: palette.accent }}>
+                {Math.round(savings.monthlySavings)} €
+              </Text>
             </View>
             <View style={{ ...styles.budgetMetric, ...styles.budgetMetricLast, backgroundColor: palette.soft }}>
               <Text style={{ ...styles.metricLabel, color: palette.muted }}>Gain annuel</Text>
-              <Text style={styles.metricValue}>{Math.round(savings.annualSavings)} EUR</Text>
+              <Text style={{ ...styles.metricValue, color: palette.accent }}>
+                {Math.round(savings.annualSavings)} €
+              </Text>
             </View>
           </View>
 
-          {data.savingsScenarios.slice(0, 3).map((scenario) => (
-            <View key={scenario.id} style={{ ...styles.scenarioCard, backgroundColor: palette.soft }}>
-              <Text style={styles.scenarioTitle}>{scenario.title}</Text>
-              <Text style={{ ...styles.scenarioText, color: palette.muted }}>{scenario.description}</Text>
-              <Text style={{ ...styles.scenarioText, color: palette.muted }}>
-                Cout actuel {scenario.monthlyCost} EUR/mois | cible {scenario.improvedMonthlyCost} EUR/mois
-              </Text>
-            </View>
-          ))}
+          {data.savingsScenarios.slice(0, 3).map((scenario) => {
+            const pct =
+              scenario.monthlyCost > 0
+                ? Math.round(
+                    ((scenario.monthlyCost - scenario.improvedMonthlyCost) / scenario.monthlyCost) * 100
+                  )
+                : 0;
+            return (
+              <View key={scenario.id} style={{ ...styles.scenarioCard, backgroundColor: palette.soft }}>
+                <Text style={{ ...styles.scenarioTitle, color: palette.text }}>{scenario.title}</Text>
+                <Text style={{ ...styles.scenarioText, color: palette.muted }}>{scenario.description}</Text>
+                <View style={{ ...styles.progressTrack, backgroundColor: "#E5E7EB" }}>
+                  <View
+                    style={{
+                      ...styles.progressFill,
+                      backgroundColor: palette.accent,
+                      width: `${Math.min(pct, 100)}%`
+                    }}
+                  />
+                </View>
+                <Text style={{ ...styles.scenarioText, color: palette.muted }}>
+                  {scenario.monthlyCost} €/mois → {scenario.improvedMonthlyCost} €/mois · économie : {scenario.monthlyCost - scenario.improvedMonthlyCost} €
+                </Text>
+              </View>
+            );
+          })}
         </View>
       </Page>
     </Document>
