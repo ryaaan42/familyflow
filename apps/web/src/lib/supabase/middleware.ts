@@ -3,6 +3,12 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { getSafeNextPath } from "@/lib/auth";
 
+type CookieMutation = {
+  name: string;
+  value: string;
+  options?: Parameters<NextResponse["cookies"]["set"]>[2];
+};
+
 export const updateSession = async (request: NextRequest) => {
   let response = NextResponse.next({
     request
@@ -14,7 +20,7 @@ export const updateSession = async (request: NextRequest) => {
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
-        setAll: (cookiesToSet) => {
+        setAll: (cookiesToSet: CookieMutation[]) => {
           cookiesToSet.forEach(({ name, value }) => {
             request.cookies.set(name, value);
           });
