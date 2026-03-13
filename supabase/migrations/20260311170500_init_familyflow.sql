@@ -345,6 +345,8 @@ create or replace function public.is_household_member(target_household uuid)
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select exists (
     select 1
@@ -365,6 +367,8 @@ create or replace function public.is_household_admin(target_household uuid)
 returns boolean
 language sql
 stable
+security definer
+set search_path = public
 as $$
   select exists (
     select 1
