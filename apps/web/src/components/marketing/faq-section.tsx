@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 
 const faq = [
   {
-    q: "FamilyFlow est-il vraiment gratuit ?",
+    q: "Planille est-il vraiment gratuit ?",
     a: "Oui, vous pouvez démarrer gratuitement sans carte bleue. Le plan gratuit couvre les tâches, le planning et la répartition équitable pour toute la famille. Les fonctionnalités premium (exports PDF, projections 12 mois, suggestions IA avancées) sont disponibles en upgrade à tout moment.",
     category: "Tarifs"
   },
@@ -17,13 +17,13 @@ const faq = [
     category: "Foyer"
   },
   {
-    q: "FamilyFlow fonctionne-t-il pour les gardes alternées ?",
+    q: "Planille fonctionne-t-il pour les gardes alternées ?",
     a: "Oui, c'est l'un de nos cas d'usage les plus populaires. Vous pouvez gérer deux foyers distincts, synchroniser les calendriers et visualiser qui fait quoi et quand sur chaque période de garde.",
     category: "Organisation"
   },
   {
     q: "Comment les économies sont-elles calculées ?",
-    a: "FamilyFlow analyse vos habitudes réelles (courses, repas livrés, sorties non planifiées) et les traduit en euros avec des projections sur 3, 6 et 12 mois. Chaque scénario est concret et actionnable — pas des estimations génériques.",
+    a: "Planille analyse vos habitudes réelles (courses, repas livrés, sorties non planifiées) et les traduit en euros avec des projections sur 3, 6 et 12 mois. Chaque scénario est concret et actionnable — pas des estimations génériques.",
     category: "Budget"
   },
   {
@@ -33,11 +33,11 @@ const faq = [
   },
   {
     q: "Mes données sont-elles privées et sécurisées ?",
-    a: "Vos données restent privées et ne sont jamais partagées ou revendues. FamilyFlow est 100 % conforme RGPD. Les données de votre foyer ne sont visibles que par les membres que vous invitez explicitement.",
+    a: "Vos données restent privées et ne sont jamais partagées ou revendues. Planille est 100 % conforme RGPD. Les données de votre foyer ne sont visibles que par les membres que vous invitez explicitement.",
     category: "Confidentialité"
   },
   {
-    q: "Puis-je utiliser FamilyFlow sur téléphone ?",
+    q: "Puis-je utiliser Planille sur téléphone ?",
     a: "Oui. L'application web est entièrement responsive et optimisée mobile. Une application native iOS / Android (via Expo) est également en cours de développement et sera disponible prochainement.",
     category: "Mobile"
   },
@@ -122,7 +122,7 @@ export function FaqSection() {
         </div>
         <p className="max-w-xs text-sm leading-7 text-[var(--foreground-muted)]">
           Une question qui n&apos;est pas listée ?{" "}
-          <a href="mailto:hello@familyflow.app" className="font-semibold text-[var(--brand-primary)] underline-offset-2 hover:underline">
+          <a href="mailto:hello@planille.app" className="font-semibold text-[var(--brand-primary)] underline-offset-2 hover:underline">
             Écrivez-nous
           </a>
         </p>

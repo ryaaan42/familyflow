@@ -1,6 +1,6 @@
-# FamilyFlow
+# Planille
 
-FamilyFlow est une base monorepo moderne pour une application familiale multi-plateforme:
+Planille est une base monorepo moderne pour une application familiale multi-plateforme:
 
 - web app marketing + application SaaS
 - application iOS via Expo
@@ -13,7 +13,7 @@ Le produit aide une famille a mieux repartir les taches, piloter son budget, est
 
 ### Resume
 
-FamilyFlow relie trois besoins quotidiens qui sont souvent disperses:
+Planille relie trois besoins quotidiens qui sont souvent disperses:
 
 - organisation du foyer
 - charge mentale / repartition des taches
@@ -184,8 +184,8 @@ pnpm dev:mobile
 
 Apres seed local:
 
-- `emma@familyflow.app`
-- `lucas@familyflow.app`
+- `emma@planille.app`
+- `lucas@planille.app`
 - mot de passe: `password123`
 
 ## 5. Scripts utiles

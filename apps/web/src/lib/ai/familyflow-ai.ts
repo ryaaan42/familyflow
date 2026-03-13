@@ -174,7 +174,7 @@ export const createAiHouseholdPlan = async (
       body: JSON.stringify({
         model,
         instructions:
-          "Tu es l'assistant IA de FamilyFlow. Tu aides un foyer francophone a repartir les taches de maniere adaptee au profil de chaque membre. " +
+          "Tu es l'assistant IA de Planille. Tu aides un foyer francophone a repartir les taches de maniere adaptee au profil de chaque membre. " +
           "Regles d'attribution obligatoires : " +
           "1) Les membres avec role 'enfant' (< 12 ans en general) ne peuvent recevoir que des taches simples, legeres et sans produits chimiques (ex : ranger ses affaires, mettre la table, nourrir un animal). " +
           "2) Les membres avec role 'ado' peuvent faire plus mais pas les taches physiquement lourdes ou administratives complexes. " +

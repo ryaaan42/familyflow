@@ -406,7 +406,7 @@ const getWeeklyBuckets = (data: DemoDataset) => {
   });
 };
 
-export function FamilyFlowPdfDocument({
+export function PlanillePdfDocument({
   data,
   theme
 }: {
@@ -435,7 +435,7 @@ export function FamilyFlowPdfDocument({
         <View style={{ ...styles.headerRibbon, backgroundColor: palette.soft }}>
           <View style={styles.headerTopRow}>
             <View style={{ maxWidth: "65%" }}>
-              <Text style={{ ...styles.eyebrow, color: palette.accent }}>FamilyFlow — Édition frigo</Text>
+              <Text style={{ ...styles.eyebrow, color: palette.accent }}>Planille — Édition frigo</Text>
               <Text style={styles.title}>Planning hebdomadaire</Text>
               <Text style={{ ...styles.subtitle, color: palette.muted }}>
                 {data.profile.household.name} — semaine du {formatDateLabel(weekStart)} au {formatDateLabel(weekEnd)}
@@ -681,7 +681,7 @@ export function FamilyFlowPdfDocument({
   );
 }
 
-export const createFamilyFlowPdfDocument = (
+export const createPlanillePdfDocument = (
   data: DemoDataset,
   theme: PdfTheme
-): React.ReactElement<DocumentProps> => <FamilyFlowPdfDocument data={data} theme={theme} />;
+ ): React.ReactElement<DocumentProps> => <PlanillePdfDocument data={data} theme={theme} />;

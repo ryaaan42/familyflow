@@ -474,7 +474,7 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
             <div>
               <h2 className="text-2xl font-semibold tracking-[-0.03em]">Votre objectif principal</h2>
               <p className="mt-1 text-sm text-[var(--foreground-muted)]">
-                Qu'est-ce qui vous a amené sur FamilyFlow ?
+                Qu'est-ce qui vous a amené sur Planille ?
               </p>
             </div>
 
@@ -522,7 +522,7 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
                 onClick={handleFinish}
                 disabled={submitting}
               >
-                {submitting ? "Création en cours..." : "Lancer FamilyFlow"}
+                {submitting ? "Création en cours..." : "Lancer Planille"}
                 {!submitting && <ChevronRight className="ml-2 h-4 w-4" />}
               </Button>
             </div>

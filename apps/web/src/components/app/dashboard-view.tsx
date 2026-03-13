@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   categoryColors,
@@ -11,6 +12,7 @@ import {
   CheckCircle2,
   Clock3,
   ListTodo,
+  Settings2,
   Sparkles,
   Users,
   Wallet
@@ -42,6 +44,26 @@ const weeklyProgress = [
   { day: "Sam", rate: 0 },
   { day: "Dim", rate: 0 }
 ];
+
+const DASHBOARD_WIDGETS = [
+  { id: "focus", label: "Focus du jour" },
+  { id: "progress", label: "Progression hebdomadaire" },
+  { id: "categories", label: "Répartition des catégories" },
+  { id: "metrics", label: "KPIs du foyer" },
+  { id: "insights", label: "Insights organisation" },
+  { id: "notes", label: "Bloc-notes rapide" }
+] as const;
+
+type DashboardWidgetId = (typeof DASHBOARD_WIDGETS)[number]["id"];
+
+const createDefaultWidgets = (): Record<DashboardWidgetId, boolean> => ({
+  focus: true,
+  progress: true,
+  categories: true,
+  metrics: true,
+  insights: true,
+  notes: true
+});
 
 function EmptyDashboard({ householdName, userName }: { householdName: string; userName: string }) {
   return (
@@ -115,6 +137,34 @@ export function DashboardView() {
   const summary = selectDashboardSummary(state);
 
   const hasTasks = state.tasks.length > 0;
+  const [widgets, setWidgets] = useState<Record<DashboardWidgetId, boolean>>(createDefaultWidgets);
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    const rawWidgets = window.localStorage.getItem("planille-dashboard-widgets");
+    const rawNotes = window.localStorage.getItem("planille-dashboard-notes");
+
+    if (rawWidgets) {
+      try {
+        const parsed = JSON.parse(rawWidgets) as Partial<Record<DashboardWidgetId, boolean>>;
+        setWidgets({ ...createDefaultWidgets(), ...parsed });
+      } catch {
+        setWidgets(createDefaultWidgets());
+      }
+    }
+
+    if (rawNotes) {
+      setNotes(rawNotes);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem("planille-dashboard-widgets", JSON.stringify(widgets));
+  }, [widgets]);
+
+  useEffect(() => {
+    window.localStorage.setItem("planille-dashboard-notes", notes);
+  }, [notes]);
 
   if (!hasTasks && state.budgetItems.length === 0) {
     return (
@@ -140,6 +190,10 @@ export function DashboardView() {
   const smartTasks = state.tasks.filter((task) => task.origin === "smart").length;
 
   const chartData = hasTasks ? weeklyProgress : weeklyProgress;
+  const activeWidgets = useMemo(
+    () => DASHBOARD_WIDGETS.filter((widget) => widgets[widget.id]),
+    [widgets]
+  );
 
   return (
     <div className="space-y-5">
@@ -233,7 +287,7 @@ export function DashboardView() {
               </div>
               <BarChart3 className="h-5 w-5 text-[var(--brand-primary)]" />
             </div>
-            {state.tasks.length > 0 ? (
+            {widgets.focus && state.tasks.length > 0 ? (
               <div className="grid gap-3">
                 {state.tasks.slice(0, 5).map((task) => (
                   <div
@@ -260,7 +314,7 @@ export function DashboardView() {
                   </div>
                 ))}
               </div>
-            ) : (
+            ) : widgets.focus ? (
               <div className="flex flex-col items-center justify-center gap-3 rounded-[24px] border border-dashed border-[var(--border)] py-10 text-center">
                 <ListTodo className="h-8 w-8 text-[var(--foreground-subtle)]" />
                 <p className="text-sm text-[var(--foreground-muted)]">Aucune tâche pour l'instant</p>
@@ -268,12 +322,50 @@ export function DashboardView() {
                   <Link href="/app/tasks">Créer une tâche</Link>
                 </Button>
               </div>
+            ) : (
+              <p className="text-sm text-[var(--foreground-muted)]">Widget désactivé dans la configuration.</p>
             )}
           </div>
         </Card>
       </section>
 
+      <Card>
+        <div className="space-y-4 p-6">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-xl font-semibold">Widgets du dashboard</h3>
+              <p className="text-sm text-[var(--foreground-muted)]">Activez uniquement les blocs utiles pour votre foyer.</p>
+            </div>
+            <Badge variant="outline" className="gap-2">
+              <Settings2 className="h-4 w-4" />
+              {activeWidgets.length} actifs
+            </Badge>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {DASHBOARD_WIDGETS.map((widget) => (
+              <label
+                key={widget.id}
+                className="flex items-center justify-between rounded-[20px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,244,255,0.92))] px-4 py-3"
+              >
+                <span className="text-sm font-medium">{widget.label}</span>
+                <input
+                  type="checkbox"
+                  checked={widgets[widget.id]}
+                  onChange={(event) =>
+                    setWidgets((current) => ({
+                      ...current,
+                      [widget.id]: event.target.checked
+                    }))
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+      </Card>
+
       <section className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
+        {widgets.progress ? (
         <Card>
           <div className="space-y-4 p-7">
             <div className="flex items-center gap-3">
@@ -311,7 +403,9 @@ export function DashboardView() {
             </div>
           </div>
         </Card>
+        ) : null}
 
+        {widgets.categories ? (
         <Card>
           <div className="space-y-4 p-7">
             <div className="flex items-center gap-3">
@@ -364,8 +458,10 @@ export function DashboardView() {
             )}
           </div>
         </Card>
+        ) : null}
       </section>
 
+      {widgets.metrics ? (
       <section className="grid gap-5 md:grid-cols-3">
         <MetricCard
           label="Tâches en retard"
@@ -385,8 +481,12 @@ export function DashboardView() {
           tone="mint"
         />
       </section>
+      ) : null}
 
+      {widgets.insights || widgets.notes ? (
       <section className="grid gap-5 md:grid-cols-3">
+        {widgets.insights ? (
+        <>
         <Card className="overflow-hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,240,255,0.92))]">
           <div className="space-y-4 p-6">
             <Clock3 className="h-5 w-5 text-[var(--brand-primary)]" />
@@ -416,7 +516,25 @@ export function DashboardView() {
             </p>
           </div>
         </Card>
+        </>
+        ) : null}
+        {widgets.notes ? (
+          <Card className="overflow-hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,252,245,0.94))] md:col-span-3">
+            <div className="space-y-4 p-6">
+              <h3 className="text-lg font-semibold">Bloc-notes du foyer</h3>
+              <p className="text-sm text-[var(--foreground-muted)]">Idéal pour noter les imprévus, courses urgentes et rappels scolaires.</p>
+              <textarea
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
+                rows={4}
+                className="w-full rounded-2xl border border-[var(--border)] bg-white/90 p-3 text-sm outline-none focus:border-[var(--brand-primary)]"
+                placeholder="Ex: Jeudi 18h -> rendez-vous pédiatre, penser à prendre le carnet de santé."
+              />
+            </div>
+          </Card>
+        ) : null}
       </section>
+      ) : null}
     </div>
   );
 }

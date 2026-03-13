@@ -15,7 +15,7 @@ const serif = Cormorant_Garamond({
 });
 
 export const metadata: Metadata = {
-  title: "FamilyFlow",
+  title: "Planille",
   description:
     "Application familiale pour organiser les taches, piloter le budget et visualiser les economies."
 };

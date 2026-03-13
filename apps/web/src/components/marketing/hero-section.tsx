@@ -66,7 +66,7 @@ export function HeroSection() {
               <span className="font-serif italic">ensemble</span>.
             </h1>
             <p className="max-w-xl text-lg leading-8 text-[var(--foreground-muted)]">
-              FamilyFlow aide les familles à planifier les routines, distribuer les tâches
+              Planille aide les familles à planifier les routines, distribuer les tâches
               équitablement, maîtriser le budget et transformer les mauvaises habitudes en
               économies concrètes.
             </p>

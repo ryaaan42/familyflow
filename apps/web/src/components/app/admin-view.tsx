@@ -176,7 +176,7 @@ export function AdminView() {
             </div>
             <h1 className="text-3xl font-semibold tracking-[-0.03em] md:text-4xl">Panel Admin</h1>
             <p className="max-w-xl text-sm leading-6 text-white/78">
-              Console centralisée pour administrer FamilyFlow — utilisateurs, paiements, feature flags,
+              Console centralisée pour administrer Planille — utilisateurs, paiements, feature flags,
               configuration produit et supervision système.
             </p>
           </div>
@@ -550,8 +550,8 @@ export function AdminView() {
               </div>
               <div className="space-y-3">
                 {[
-                  { label: "Nom de l'application", value: "FamilyFlow" },
-                  { label: "URL publique", value: "familyflow.app" },
+                  { label: "Nom de l'application", value: "Planille" },
+                  { label: "URL publique", value: "planille.app" },
                   { label: "Langue par défaut", value: "Français (fr)" },
                   { label: "Devise par défaut", value: "EUR €" },
                   { label: "Fuseau horaire", value: "Europe/Paris" }
@@ -580,8 +580,8 @@ export function AdminView() {
                 {[
                   { label: "Message de bienvenue", value: "Bienvenue dans votre foyer connecté" },
                   { label: "Texte bannière", value: "—" },
-                  { label: "Email expéditeur", value: "hello@familyflow.app" },
-                  { label: "Footer légal", value: "FamilyFlow SAS, Paris" }
+                  { label: "Email expéditeur", value: "hello@planille.app" },
+                  { label: "Footer légal", value: "Planille SAS, Paris" }
                 ].map((item) => (
                   <div key={item.label} className="rounded-2xl bg-[var(--card-muted)] px-4 py-3">
                     <p className="text-xs font-semibold text-[var(--foreground-subtle)]">{item.label}</p>
