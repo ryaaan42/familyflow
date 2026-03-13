@@ -100,6 +100,7 @@ const navItems = [
     href: "/app/admin",
     label: "Admin",
     icon: ShieldCheck,
+    requiresAdmin: true,
     activeColor: "text-red-600",
     activeBg: "bg-red-100",
     activeGradient: "from-red-500/20 to-rose-500/10"
@@ -126,7 +127,8 @@ export function AppShell({ children, userProfile, householdProfile }: AppShellPr
         displayName: "",
         locale: "fr-FR",
         currency: "EUR",
-        plan: "free"
+        plan: "free",
+        isAdmin: false
       },
       profile: householdProfile,
       tasks: [],
@@ -140,9 +142,12 @@ export function AppShell({ children, userProfile, householdProfile }: AppShellPr
   }
 
   const profile = useFamilyFlowStore((s) => s.profile);
-  const visibleItems = navItems.filter(
-    (item) => !item.requiresExpectingBaby || profile.household.isExpectingBaby
-  );
+  const user = useFamilyFlowStore((s) => s.user);
+  const visibleItems = navItems.filter((item) => {
+    if (item.requiresExpectingBaby && !profile.household.isExpectingBaby) return false;
+    if (item.requiresAdmin && !user?.isAdmin) return false;
+    return true;
+  });
 
   return (
     <div className="mx-auto grid min-h-screen w-full max-w-[1600px] gap-5 px-3 py-4 md:px-5 lg:py-6 xl:grid-cols-[308px_minmax(0,1fr)] xl:gap-6 xl:px-6">

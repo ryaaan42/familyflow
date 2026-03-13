@@ -42,6 +42,42 @@ export interface UserProfile {
   locale: string;
   currency: string;
   plan: SubscriptionPlan;
+  isAdmin: boolean;
+}
+
+export interface AdminUserRow {
+  id: string;
+  email: string;
+  displayName: string;
+  plan: SubscriptionPlan;
+  isAdmin: boolean;
+  createdAt: string;
+  householdName?: string;
+}
+
+export interface SiteContent {
+  key: string;
+  label: string;
+  value: string;
+  section: string;
+  updatedAt: string;
+}
+
+export interface FeatureFlag {
+  key: string;
+  label: string;
+  description: string;
+  category: string;
+  enabled: boolean;
+  updatedAt: string;
+}
+
+export interface AdminStats {
+  totalUsers: number;
+  totalHouseholds: number;
+  totalTasks: number;
+  totalExports: number;
+  planBreakdown: Record<SubscriptionPlan, number>;
 }
 
 export interface Household {

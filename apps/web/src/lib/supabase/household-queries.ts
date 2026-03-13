@@ -127,6 +127,7 @@ export async function getUserProfile(): Promise<UserProfile | null> {
     displayName: userProfile.display_name as string,
     locale: (userProfile.locale as string) ?? "fr-FR",
     currency: (userProfile.currency as string) ?? "EUR",
-    plan: (userProfile.plan as UserProfile["plan"]) ?? "free"
+    plan: (userProfile.plan as UserProfile["plan"]) ?? "free",
+    isAdmin: (userProfile.is_admin as boolean) ?? false
   };
 }
