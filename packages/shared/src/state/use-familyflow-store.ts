@@ -102,6 +102,8 @@ interface FamilyFlowState {
   removeMember: (memberId: string) => void;
   setPdfTheme: (theme: PdfTheme) => void;
   addBirthListItem: (item: BirthListItem) => void;
+  removeBudgetItem: (id: string) => void;
+  setTargetSavings: (amount: number) => void;
 }
 
 export const useFamilyFlowStore = create<FamilyFlowState>((set, get) => ({
@@ -210,6 +212,16 @@ export const useFamilyFlowStore = create<FamilyFlowState>((set, get) => ({
   addBirthListItem: (item) =>
     set((state) => ({
       birthListItems: [...state.birthListItems, item]
+    })),
+
+  removeBudgetItem: (id) =>
+    set((state) => ({
+      budgetItems: state.budgetItems.filter((item) => item.id !== id)
+    })),
+
+  setTargetSavings: (amount) =>
+    set((state) => ({
+      budget: { ...state.budget, targetSavings: amount }
     }))
 }));
 
