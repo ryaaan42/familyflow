@@ -13,7 +13,10 @@ import {
   ShieldCheck,
   Sparkles,
   Users,
-  ListTodo
+  ListTodo,
+  ShoppingCart,
+  UtensilsCrossed,
+  CreditCard
 } from "lucide-react";
 import { useFamilyFlowStore } from "@familyflow/shared";
 import type { HouseholdProfile, UserProfile } from "@familyflow/shared";
@@ -73,6 +76,23 @@ const navItems = [
     activeBg: "bg-blue-100",
     activeGradient: "from-blue-500/20 to-sky-500/10"
   },
+
+  {
+    href: "/app/meals",
+    label: "Repas",
+    icon: UtensilsCrossed,
+    activeColor: "text-orange-600",
+    activeBg: "bg-orange-100",
+    activeGradient: "from-orange-500/20 to-amber-500/10"
+  },
+  {
+    href: "/app/shopping",
+    label: "Courses",
+    icon: ShoppingCart,
+    activeColor: "text-lime-700",
+    activeBg: "bg-lime-100",
+    activeGradient: "from-lime-500/20 to-emerald-500/10"
+  },
   {
     href: "/app/savings",
     label: "Économies",
@@ -88,6 +108,15 @@ const navItems = [
     activeColor: "text-amber-600",
     activeBg: "bg-amber-100",
     activeGradient: "from-amber-500/20 to-orange-500/10"
+  },
+
+  {
+    href: "/app/subscription",
+    label: "Abonnement",
+    icon: CreditCard,
+    activeColor: "text-indigo-700",
+    activeBg: "bg-indigo-100",
+    activeGradient: "from-indigo-500/20 to-violet-500/10"
   },
   {
     href: "/app/settings",
