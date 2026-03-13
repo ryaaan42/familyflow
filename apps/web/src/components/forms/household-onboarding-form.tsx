@@ -52,7 +52,7 @@ export function HouseholdOnboardingForm() {
         children_count: values.childrenCount,
         city: values.city ?? null,
         is_expecting_baby: values.isExpectingBaby,
-        pregnancy_due_date: values.pregnancyDueDate ?? null,
+        pregnancy_due_date: values.pregnancyDueDate || null,
         birth_list_share_slug: values.birthListShareSlug ?? null
       })
       .eq("id", profile.household.id);
@@ -76,7 +76,7 @@ export function HouseholdOnboardingForm() {
           childrenCount: values.childrenCount,
           city: values.city,
           isExpectingBaby: values.isExpectingBaby,
-          pregnancyDueDate: values.pregnancyDueDate,
+          pregnancyDueDate: values.pregnancyDueDate || undefined,
           birthListShareSlug: values.birthListShareSlug
         }
       }

@@ -68,7 +68,7 @@ export async function createHouseholdWithMembers(
       p_has_pets: household.hasPets,
       p_city: household.city ?? "",
       p_is_expecting_baby: household.isExpectingBaby ?? false,
-      p_pregnancy_due_date: household.pregnancyDueDate ?? null,
+      p_pregnancy_due_date: household.pregnancyDueDate || null,
       p_members: members.map((m, i) => ({
         displayName: m.displayName,
         age: m.age,
