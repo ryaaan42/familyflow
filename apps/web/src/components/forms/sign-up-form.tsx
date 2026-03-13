@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+
+import { LoaderCircle } from "lucide-react";
 
 import { buildAuthCallbackUrl, getSafeNextPath } from "@/lib/auth";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -27,16 +28,12 @@ type SignUpFormProps = {
 };
 
 export function SignUpForm({ nextPath }: SignUpFormProps) {
-  const router = useRouter();
+  const [oauthLoading, setOauthLoading] = useState<"google" | "apple" | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const form = useForm<SignUpValues>({
     resolver: zodResolver(schema),
-    defaultValues: {
-      displayName: "",
-      email: "",
-      password: ""
-    }
+    defaultValues: { displayName: "", email: "", password: "" }
   });
   const safeNextPath = getSafeNextPath(nextPath, "/onboarding");
 
@@ -62,8 +59,7 @@ export function SignUpForm({ nextPath }: SignUpFormProps) {
     }
 
     if (data.session) {
-      router.push(safeNextPath);
-      router.refresh();
+      window.location.href = safeNextPath;
       return;
     }
 
@@ -78,17 +74,23 @@ export function SignUpForm({ nextPath }: SignUpFormProps) {
   const handleOAuthSignUp = async (provider: "google" | "apple") => {
     setAuthError(null);
     setSuccessMessage(null);
+    setOauthLoading(provider);
 
-    const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: buildAuthCallbackUrl(safeNextPath)
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: buildAuthCallbackUrl(safeNextPath)
+        }
+      });
+
+      if (error) {
+        setAuthError(error.message);
+        setOauthLoading(null);
       }
-    });
-
-    if (error) {
-      setAuthError(error.message);
+    } catch {
+      setOauthLoading(null);
     }
   };
 
@@ -125,18 +127,30 @@ export function SignUpForm({ nextPath }: SignUpFormProps) {
         {authError ? <p className="text-sm text-rose-600">{authError}</p> : null}
         {successMessage ? <p className="text-sm text-emerald-600">{successMessage}</p> : null}
         <div className="grid gap-3">
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Creation..." : "Creer mon foyer"}
+          <Button type="submit" disabled={form.formState.isSubmitting || oauthLoading !== null}>
+            {form.formState.isSubmitting ? (
+              <><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />Création...</>
+            ) : "Créer mon foyer"}
           </Button>
           <Button
             type="button"
             variant="secondary"
+            disabled={form.formState.isSubmitting || oauthLoading !== null}
             onClick={() => handleOAuthSignUp("google")}
           >
-            S'inscrire avec Google
+            {oauthLoading === "google" ? (
+              <><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />Redirection...</>
+            ) : "S'inscrire avec Google"}
           </Button>
-          <Button type="button" variant="outline" onClick={() => handleOAuthSignUp("apple")}>
-            S'inscrire avec Apple
+          <Button
+            type="button"
+            variant="outline"
+            disabled={form.formState.isSubmitting || oauthLoading !== null}
+            onClick={() => handleOAuthSignUp("apple")}
+          >
+            {oauthLoading === "apple" ? (
+              <><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />Redirection...</>
+            ) : "S'inscrire avec Apple"}
           </Button>
         </div>
         <div className="text-sm text-[var(--foreground-muted)]">

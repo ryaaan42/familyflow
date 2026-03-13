@@ -174,12 +174,18 @@ export const createAiHouseholdPlan = async (
       body: JSON.stringify({
         model,
         instructions:
-          "Tu es l'assistant IA de FamilyFlow. Tu aides un foyer francophone a repartir les taches, reduire les depenses evitables et, si une grossesse est presente, prioriser une liste de naissance. Reponds en JSON strict uniquement, sans markdown.",
+          "Tu es l'assistant IA de FamilyFlow. Tu aides un foyer francophone a repartir les taches de maniere adaptee au profil de chaque membre. " +
+          "Regles d'attribution obligatoires : " +
+          "1) Les membres avec role 'enfant' (< 12 ans en general) ne peuvent recevoir que des taches simples, legeres et sans produits chimiques (ex : ranger ses affaires, mettre la table, nourrir un animal). " +
+          "2) Les membres avec role 'ado' peuvent faire plus mais pas les taches physiquement lourdes ou administratives complexes. " +
+          "3) Les membres avec isPregnant=true ne doivent pas se voir assigner de taches physiquement epuisantes ou exposant a des produits chimiques (menage lourd, port de charges, bricolage). Privilegie les taches administratives, cuisine legere, coordination. " +
+          "4) Tiens compte de l'age : un enfant de moins de 8 ans ne fait que des micro-taches (< 10 min). " +
+          "Reponds en JSON strict uniquement, sans markdown.",
         input:
-          `Analyse ce foyer et genere un plan utile, court et actionnable. ` +
-          `Donne 3 a 5 priorites de taches, 3 a 5 routines, 3 a 5 economies et, si le foyer attend un bebe, 1 a 5 suggestions de liste de naissance.\n\n` +
+          `Analyse ce foyer et genere un plan concret, court et actionnable. ` +
+          `Donne 3 a 5 priorites de taches (avec attribution adaptee aux profils), 3 a 5 routines, 3 a 5 economies et, si le foyer attend un bebe, 1 a 5 suggestions de liste de naissance.\n\n` +
           `Contexte:\n${JSON.stringify(compactContext)}`,
-        max_output_tokens: 1200
+        max_output_tokens: 1400
       })
     });
   } catch {
