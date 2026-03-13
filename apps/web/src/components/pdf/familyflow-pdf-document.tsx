@@ -17,6 +17,17 @@ import {
 
 const weekdayLabels = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 
+
+const mealIdeas = [
+  "Lundi: Pâtes légumes / Soupe maison",
+  "Mardi: Poulet riz / Omelette salade",
+  "Mercredi: Curry doux / Gratin",
+  "Jeudi: Poisson vapeur / Tacos maison",
+  "Vendredi: Bowl quinoa / Pizza maison"
+];
+
+const shoppingChecklist = ["Lait", "Oeufs", "Légumes", "Fruits", "Pâtes", "Riz", "Pain", "Yaourts"];
+
 const themeMap: Record<
   PdfTheme,
   {
@@ -617,6 +628,18 @@ export function PlanillePdfDocument({
               </View>
             );
           })}
+        </View>
+
+
+
+        <View style={{ ...styles.panel, backgroundColor: palette.soft }}>
+          <Text style={{ ...styles.sectionTitle, color: palette.text }}>Repas & courses (ajoutés au PDF)</Text>
+          <Text style={{ ...styles.smallNote, color: palette.muted }}>Plan repas hebdomadaire</Text>
+          {mealIdeas.map((meal) => (
+            <Text key={meal} style={{ ...styles.scenarioText, color: palette.text }}>{meal}</Text>
+          ))}
+          <Text style={{ ...styles.smallNote, color: palette.muted, marginTop: 8 }}>Liste de courses suggérée</Text>
+          <Text style={{ ...styles.scenarioText, color: palette.text }}>{shoppingChecklist.join(' · ')}</Text>
         </View>
 
         {/* Budget et projections */}

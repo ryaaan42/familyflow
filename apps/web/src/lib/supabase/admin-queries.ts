@@ -1,4 +1,4 @@
-import type { AdminStats, AdminUserRow, FeatureFlag, SiteContent, SubscriptionPlan } from "@familyflow/shared";
+import type { AdminSetting, AdminStats, AdminUserRow, FeatureFlag, PromoCode, SiteContent, SubscriptionPlan, SubscriptionPlanConfig } from "@familyflow/shared";
 
 import { createSupabaseServerClient } from "./server";
 
@@ -100,5 +100,50 @@ export async function getFeatureFlags(): Promise<FeatureFlag[]> {
     category: row.category as string,
     enabled: row.enabled as boolean,
     updatedAt: row.updated_at as string
+  }));
+}
+
+
+export async function getAdminSettings(): Promise<AdminSetting[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.from("site_settings").select("*").order("section").order("key");
+  if (error || !data) return [];
+  return data.map((row) => ({
+    key: row.key as string,
+    label: row.label as string,
+    value: row.value as string,
+    section: row.section as string,
+    isSecret: Boolean(row.is_secret)
+  }));
+}
+
+export async function getPromoCodes(): Promise<PromoCode[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.from("promo_codes").select("*").order("created_at", { ascending: false });
+  if (error || !data) return [];
+  return data.map((row) => ({
+    id: row.id as string,
+    code: row.code as string,
+    discountPercent: (row.discount_percent as number | null) ?? undefined,
+    discountAmount: (row.discount_amount as number | null) ?? undefined,
+    maxRedemptions: (row.max_redemptions as number | null) ?? undefined,
+    redeemedCount: (row.redeemed_count as number) ?? 0,
+    validUntil: (row.valid_until as string | null) ?? undefined,
+    active: Boolean(row.active)
+  }));
+}
+
+export async function getSubscriptionPlansConfig(): Promise<SubscriptionPlanConfig[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.from("subscription_plans").select("*").order("monthly_price_cents");
+  if (error || !data) return [];
+  return data.map((row) => ({
+    key: row.key as string,
+    label: row.label as string,
+    stripePriceId: (row.stripe_price_id as string | null) ?? undefined,
+    monthlyPriceCents: (row.monthly_price_cents as number) ?? 0,
+    description: row.description as string,
+    features: (row.features as string[]) ?? [],
+    active: Boolean(row.active)
   }));
 }
