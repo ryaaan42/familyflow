@@ -93,6 +93,7 @@ interface FamilyFlowState {
   initialize: (payload: InitializePayload) => void;
   toggleTask: (taskId: string) => void;
   assignTask: (taskId: string, memberId: string) => void;
+  unassignTask: (taskId: string) => void;
   rebalanceAssignments: () => void;
   addBudgetItem: (item: BudgetItem) => void;
   addScenario: (scenario: SavingsScenario) => void;
@@ -146,6 +147,13 @@ export const useFamilyFlowStore = create<FamilyFlowState>((set, get) => ({
     set((state) => ({
       tasks: state.tasks.map((task) =>
         task.id === taskId ? { ...task, assignedMemberId: memberId } : task
+      )
+    })),
+
+  unassignTask: (taskId) =>
+    set((state) => ({
+      tasks: state.tasks.map((task) =>
+        task.id === taskId ? { ...task, assignedMemberId: undefined } : task
       )
     })),
 

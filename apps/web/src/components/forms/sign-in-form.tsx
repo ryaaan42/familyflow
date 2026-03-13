@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+
+import { LoaderCircle } from "lucide-react";
 
 import { buildAuthCallbackUrl, getSafeNextPath } from "@/lib/auth";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
@@ -27,7 +28,7 @@ type SignInFormProps = {
 };
 
 export function SignInForm({ nextPath, authErrorCode }: SignInFormProps) {
-  const router = useRouter();
+  const [oauthLoading, setOauthLoading] = useState<"google" | "apple" | null>(null);
   const [authError, setAuthError] = useState<string | null>(
     authErrorCode === "auth_callback_failed"
       ? "La connexion n'a pas pu etre finalisee. Reessaie."
@@ -56,23 +57,29 @@ export function SignInForm({ nextPath, authErrorCode }: SignInFormProps) {
       return;
     }
 
-    router.push(safeNextPath);
-    router.refresh();
+    window.location.href = safeNextPath;
   });
 
   const handleOAuthSignIn = async (provider: "google" | "apple") => {
     setAuthError(null);
+    setOauthLoading(provider);
 
-    const supabase = createSupabaseBrowserClient();
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: buildAuthCallbackUrl(safeNextPath)
+    try {
+      const supabase = createSupabaseBrowserClient();
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: buildAuthCallbackUrl(safeNextPath)
+        }
+      });
+
+      if (error) {
+        setAuthError(error.message);
+        setOauthLoading(null);
       }
-    });
-
-    if (error) {
-      setAuthError(error.message);
+      // On success the browser redirects — no need to reset loading
+    } catch {
+      setOauthLoading(null);
     }
   };
 
@@ -101,18 +108,30 @@ export function SignInForm({ nextPath, authErrorCode }: SignInFormProps) {
         </div>
         {authError ? <p className="text-sm text-rose-600">{authError}</p> : null}
         <div className="grid gap-3">
-          <Button type="submit" disabled={form.formState.isSubmitting}>
-            {form.formState.isSubmitting ? "Connexion..." : "Se connecter"}
+          <Button type="submit" disabled={form.formState.isSubmitting || oauthLoading !== null}>
+            {form.formState.isSubmitting ? (
+              <><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />Connexion...</>
+            ) : "Se connecter"}
           </Button>
           <Button
             type="button"
             variant="secondary"
+            disabled={form.formState.isSubmitting || oauthLoading !== null}
             onClick={() => handleOAuthSignIn("google")}
           >
-            Continuer avec Google
+            {oauthLoading === "google" ? (
+              <><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />Redirection...</>
+            ) : "Continuer avec Google"}
           </Button>
-          <Button type="button" variant="outline" onClick={() => handleOAuthSignIn("apple")}>
-            Continuer avec Apple
+          <Button
+            type="button"
+            variant="outline"
+            disabled={form.formState.isSubmitting || oauthLoading !== null}
+            onClick={() => handleOAuthSignIn("apple")}
+          >
+            {oauthLoading === "apple" ? (
+              <><LoaderCircle className="mr-2 h-4 w-4 animate-spin" />Redirection...</>
+            ) : "Continuer avec Apple"}
           </Button>
         </div>
         <div className="flex items-center justify-between text-sm text-[var(--foreground-muted)]">

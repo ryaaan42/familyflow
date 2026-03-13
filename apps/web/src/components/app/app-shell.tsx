@@ -21,6 +21,7 @@ import type { HouseholdProfile, UserProfile } from "@familyflow/shared";
 import { Badge } from "@/components/ui/badge";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { cn } from "@/lib/utils";
+import { AppHeader } from "./app-header";
 
 const navItems = [
   {
@@ -217,7 +218,10 @@ export function AppShell({ children, userProfile, householdProfile }: AppShellPr
           <SignOutButton />
         </div>
       </aside>
-      <main className="min-w-0 space-y-5">{children}</main>
+      <main className="min-w-0 space-y-5">
+        <AppHeader />
+        {children}
+      </main>
     </div>
   );
 }
