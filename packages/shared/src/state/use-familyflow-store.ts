@@ -101,6 +101,7 @@ interface FamilyFlowState {
   updateMember: (memberId: string, updates: Partial<HouseholdMember>) => void;
   removeMember: (memberId: string) => void;
   setPdfTheme: (theme: PdfTheme) => void;
+  addBirthListItem: (item: BirthListItem) => void;
 }
 
 export const useFamilyFlowStore = create<FamilyFlowState>((set, get) => ({
@@ -204,6 +205,11 @@ export const useFamilyFlowStore = create<FamilyFlowState>((set, get) => ({
         ...state.pdfPreferences,
         theme
       }
+    })),
+
+  addBirthListItem: (item) =>
+    set((state) => ({
+      birthListItems: [...state.birthListItems, item]
     }))
 }));
 
