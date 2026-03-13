@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useFamilyFlowStore } from "@familyflow/shared";
 import type { AiHouseholdPlan } from "@familyflow/shared";
@@ -22,6 +22,7 @@ export function AssistantView() {
   const [plan, setPlan] = useState<AiHouseholdPlan | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [openAiStatus, setOpenAiStatus] = useState<{ configured: boolean; model: string } | null>(null);
   const ready = Boolean(
     state.profile.household.name &&
       state.profile.household.housingType &&
@@ -29,6 +30,21 @@ export function AssistantView() {
       state.tasks.length > 0
   );
 
+
+
+  useEffect(() => {
+    fetch("/api/ai/status")
+      .then((response) => response.json())
+      .then((payload) => {
+        setOpenAiStatus({
+          configured: Boolean(payload.configured),
+          model: String(payload.model ?? "gpt-5-mini")
+        });
+      })
+      .catch(() => {
+        setOpenAiStatus(null);
+      });
+  }, []);
   const runAssistant = async () => {
     setIsLoading(true);
     setError(null);
@@ -74,6 +90,11 @@ export function AssistantView() {
                 L'assistant analyse votre foyer, vos taches, votre budget, les animaux et, si une grossesse est declaree,
                 la liste de naissance. Il retourne un plan concret, actionnable et lisible.
               </p>
+              {openAiStatus ? (
+                <p className="text-sm text-white/80">
+                  IA {openAiStatus.configured ? "connectée à OpenAI" : "en mode fallback"} · modèle {openAiStatus.model}
+                </p>
+              ) : null}
             </div>
             <div className="flex flex-wrap gap-3">
               <Button type="button" onClick={runAssistant} disabled={!ready || isLoading}>

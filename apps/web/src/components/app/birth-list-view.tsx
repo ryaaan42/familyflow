@@ -98,7 +98,7 @@ export function BirthListView() {
               Une liste elegante, partageable et raccord avec le reste du foyer.
             </h2>
             <p className="max-w-3xl text-[15px] leading-7 text-white/78">
-              Quand une grossesse est declaree, FamilyFlow ouvre un espace dedie pour suivre les essentiels,
+              Quand une grossesse est declaree, Planille ouvre un espace dedie pour suivre les essentiels,
               les reservations et la page partage publique.
             </p>
             <div className="flex flex-wrap gap-3">

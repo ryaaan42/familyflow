@@ -3,8 +3,8 @@ import { Settings } from "lucide-react";
 import { Card } from "@/components/ui/card";
 
 const globalSettings = [
-  { label: "Nom de l'application", value: "FamilyFlow" },
-  { label: "URL publique", value: "familyflow.app" },
+  { label: "Nom de l'application", value: "Planille" },
+  { label: "URL publique", value: "planille.app" },
   { label: "Langue par défaut", value: "Français (fr-FR)" },
   { label: "Devise par défaut", value: "EUR €" },
   { label: "Fuseau horaire", value: "Europe/Paris" }

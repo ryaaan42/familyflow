@@ -1,6 +1,6 @@
 import { TaskTemplate } from "./types";
 
-export const APP_NAME = "FamilyFlow";
+export const APP_NAME = "Planille";
 
 export const taskTemplates: TaskTemplate[] = [
   {
