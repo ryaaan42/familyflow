@@ -22,7 +22,8 @@ export const createDemoDataset = (): DemoDataset => {
     displayName: "Emma Martin",
     locale: "fr-FR",
     currency: "EUR",
-    plan: "plus" as const
+    plan: "plus" as const,
+    isAdmin: false
   };
 
   const profile: HouseholdProfile = {

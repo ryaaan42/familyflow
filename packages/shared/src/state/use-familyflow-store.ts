@@ -55,7 +55,8 @@ const emptyUser: UserProfile = {
   displayName: "",
   locale: "fr-FR",
   currency: "EUR",
-  plan: "free"
+  plan: "free",
+  isAdmin: false
 };
 
 const emptyBudget: BudgetMonth = {
