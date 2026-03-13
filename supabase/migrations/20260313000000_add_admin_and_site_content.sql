@@ -5,7 +5,23 @@ alter table public.users
   add column if not exists is_admin boolean not null default false;
 
 -- ─────────────────────────────────────────────────────
--- 2. Table site_content (textes éditables du site)
+-- 2. Fonction SECURITY DEFINER pour éviter la récursion RLS
+-- ─────────────────────────────────────────────────────
+create or replace function public.is_app_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (
+    select 1 from public.users
+    where id = auth.uid() and is_admin = true
+  );
+$$;
+
+-- ─────────────────────────────────────────────────────
+-- 3. Table site_content (textes éditables du site)
 -- ─────────────────────────────────────────────────────
 create table if not exists public.site_content (
   key        text primary key,
@@ -29,15 +45,10 @@ create policy "site_content_read_all"
 
 create policy "site_content_admin_write"
   on public.site_content for all
-  using (
-    exists (
-      select 1 from public.users
-      where id = auth.uid() and is_admin = true
-    )
-  );
+  using (public.is_app_admin());
 
 -- ─────────────────────────────────────────────────────
--- 3. Table feature_flags
+-- 4. Table feature_flags
 -- ─────────────────────────────────────────────────────
 create table if not exists public.feature_flags (
   key         text primary key,
@@ -60,38 +71,21 @@ create policy "feature_flags_read_all"
 
 create policy "feature_flags_admin_write"
   on public.feature_flags for all
-  using (
-    exists (
-      select 1 from public.users
-      where id = auth.uid() and is_admin = true
-    )
-  );
+  using (public.is_app_admin());
 
 -- ─────────────────────────────────────────────────────
--- 4. Politique RLS : admin peut lire TOUS les users
+-- 5. Politiques RLS : admin peut lire et modifier tous les users
 -- ─────────────────────────────────────────────────────
--- On ajoute une politique additive pour la lecture admin
 create policy "users_admin_read_all"
   on public.users for select
-  using (
-    exists (
-      select 1 from public.users u2
-      where u2.id = auth.uid() and u2.is_admin = true
-    )
-  );
+  using (public.is_app_admin());
 
--- Admin peut mettre à jour le plan et is_admin de n'importe quel user
 create policy "users_admin_update"
   on public.users for update
-  using (
-    exists (
-      select 1 from public.users u2
-      where u2.id = auth.uid() and u2.is_admin = true
-    )
-  );
+  using (public.is_app_admin());
 
 -- ─────────────────────────────────────────────────────
--- 5. Données initiales — site_content
+-- 6. Données initiales — site_content
 -- ─────────────────────────────────────────────────────
 insert into public.site_content (key, label, value, section) values
   -- Hero
@@ -126,7 +120,7 @@ insert into public.site_content (key, label, value, section) values
 on conflict (key) do nothing;
 
 -- ─────────────────────────────────────────────────────
--- 6. Données initiales — feature_flags
+-- 7. Données initiales — feature_flags
 -- ─────────────────────────────────────────────────────
 insert into public.feature_flags (key, label, description, category, enabled) values
   ('ai_assistant',    'Assistant IA',           'Génération de plannings via LLM',            'IA',        true),
