@@ -290,6 +290,7 @@ export interface AiHouseholdPlan {
   routines: string[];
   savingsMoves: string[];
   birthListSuggestions: AiBirthListSuggestion[];
+  notes?: string[];
   usedFallback: boolean;
 }
 
