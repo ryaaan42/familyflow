@@ -15,7 +15,7 @@ const toDateFromDayOfWeek = (dayOfWeek: number) => {
 type AssignmentRow = {
   task_id: string;
   member_id: string;
-  day_of_week: number;
+  day_of_week?: number;
   status: Task["status"];
   scheduled_for: string;
 };
@@ -42,8 +42,12 @@ const toTask = (row: Record<string, unknown>, assignment?: AssignmentRow): Task 
   difficulty: Number(row.difficulty ?? 1) as Task["difficulty"],
   indirectCostPerMonth: row.indirect_cost_per_month != null ? Number(row.indirect_cost_per_month) : undefined,
   assignedMemberId: assignment?.member_id,
-  // Prefer assignment day, then tasks.day_of_week (if migration applied), then compute from due_date (UTC-safe)
-  dayOfWeek: (assignment?.day_of_week ?? row.day_of_week ?? utcDayOfWeek(row.due_date as string)) as Task["dayOfWeek"],
+  // Prefer assignment scheduled_for, then tasks.day_of_week (int, if migration applied), then compute from due_date
+  dayOfWeek: (assignment?.scheduled_for
+    ? utcDayOfWeek(assignment.scheduled_for)
+    : typeof row.day_of_week === "number"
+      ? (row.day_of_week as Task["dayOfWeek"])
+      : utcDayOfWeek(row.due_date as string)) as Task["dayOfWeek"],
   templateId: (row.template_id as string | null) ?? undefined,
   minimumAge: (row.minimum_age as number | null) ?? undefined,
   recommendedRoles: (row.recommended_roles as Task["recommendedRoles"]) ?? [],
@@ -68,7 +72,7 @@ export async function listTasksForCurrentUser() {
   const { data: assignments } = taskIds.length
     ? await supabase
         .from("task_assignments")
-        .select("task_id, member_id, day_of_week, status, scheduled_for")
+        .select("task_id, member_id, status, scheduled_for")
         .in("task_id", taskIds)
     : { data: [] as AssignmentRow[] };
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { categoryLabels, useFamilyFlowStore } from "@familyflow/shared";
 import type { Task } from "@familyflow/shared";
 import {
@@ -118,6 +118,18 @@ export function TasksWeeklyBoard() {
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dragOverDay, setDragOverDay] = useState<number | null>(null);
   const [showDeleteAll, setShowDeleteAll] = useState(false);
+
+  // Fetch fresh tasks from the API on every mount to bypass RSC router cache
+  useEffect(() => {
+    fetch("/api/tasks")
+      .then((res) => res.json())
+      .then((payload) => {
+        if (Array.isArray(payload)) {
+          useFamilyFlowStore.setState({ tasks: payload });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const quickTemplates = useMemo(() => getTaskTemplatesForPets(state.profile.pets), [state.profile.pets]);
   const todayDow = currentDayOfWeek();

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
 import { listTasksForCurrentUser } from "@/lib/supabase/task-actions";
 
@@ -79,7 +79,8 @@ export async function POST(request: NextRequest) {
 
   if (body.data.assignedMemberId) {
     const dayOfWeek = body.data.dayOfWeek ?? (((new Date().getDay() + 6) % 7) + 1);
-    const { error: assignError } = await supabase.from("task_assignments").insert({
+    const serviceClient = createSupabaseServiceClient();
+    const { error: assignError } = await serviceClient.from("task_assignments").insert({
       task_id: data.id,
       member_id: body.data.assignedMemberId,
       scheduled_for: toDateFromDayOfWeek(dayOfWeek),
