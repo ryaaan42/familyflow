@@ -184,10 +184,10 @@ export function GoalsView() {
   return (
     <div className="space-y-5">
       {/* Hero */}
-      <Card className="premium-shell overflow-hidden bg-[linear-gradient(135deg,rgba(18,18,48,0.96),rgba(68,60,167,0.92),rgba(46,197,161,0.82),rgba(86,199,161,0.78))] text-white hero-glow">
+      <Card className="overflow-hidden hero-blue text-white hero-glow premium-shell">
         <div className="grid gap-6 p-7 md:grid-cols-[1.3fr_0.7fr] md:p-8">
           <div className="space-y-4">
-            <Badge className="w-fit bg-white/14 text-white shadow-none">Objectifs & Défis</Badge>
+            <Badge variant="white">Objectifs & Défis</Badge>
             <h2 className="text-3xl font-semibold tracking-[-0.04em] md:text-5xl">Fixez vos ambitions familiales</h2>
             <p className="max-w-2xl text-[15px] leading-7 text-white/78">
               Définissez des objectifs concrets pour {householdName} et suivez leur progression ensemble : budget, santé, écologie, organisation…

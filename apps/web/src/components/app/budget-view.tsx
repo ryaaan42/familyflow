@@ -440,10 +440,10 @@ export function BudgetView({ initialBudget, initialItems }: BudgetViewProps) {
 
       <div className="space-y-5">
         {/* ── Hero ── */}
-        <Card className="overflow-hidden bg-[linear-gradient(135deg,rgba(20,18,50,0.96),rgba(53,89,230,0.88),rgba(46,197,161,0.78))] text-white">
+        <Card className="overflow-hidden hero-mint text-white hero-glow-mint premium-shell">
           <div className="flex flex-col gap-4 p-7 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-2">
-              <Badge className="w-fit bg-white/14 text-white shadow-none">Budget mensuel</Badge>
+              <Badge variant="white">Budget mensuel</Badge>
               <h2 className="text-3xl font-semibold tracking-[-0.03em]">Pilotez vos finances</h2>
               <p className="max-w-xl text-sm leading-6 text-white/78">
                 Ajoutez vos revenus et charges pour avoir une vision claire de votre reste à vivre.

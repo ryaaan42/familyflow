@@ -68,26 +68,26 @@ export function SavingsView() {
   return (
     <div className="space-y-5">
       {/* ── Hero ── */}
-      <Card className="overflow-hidden bg-[linear-gradient(135deg,rgba(20,18,50,0.96),rgba(109,94,244,0.9),rgba(0,169,255,0.84),rgba(46,197,161,0.76))] text-white">
-        <div className="flex flex-col gap-4 p-7 sm:flex-row sm:items-center sm:justify-between">
+      <Card className="overflow-hidden hero-aurora text-white hero-glow premium-shell">
+        <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between md:p-8">
           <div className="space-y-3">
-            <Badge className="w-fit bg-white/14 text-white shadow-none">Scénarios intelligents</Badge>
-            <h2 className="text-3xl font-semibold tracking-[-0.03em]">Économisez chaque mois</h2>
-            <p className="max-w-xl text-sm leading-6 text-white/78">
-              FamilyFlow identifie vos habitudes coûteuses et vous propose des ajustements concrets.
+            <Badge variant="white">Scénarios intelligents</Badge>
+            <h2 className="text-3xl font-bold tracking-tight md:text-4xl">Économisez chaque mois</h2>
+            <p className="max-w-xl text-sm leading-6 text-white/75">
+              Planille identifie vos habitudes coûteuses et vous propose des ajustements concrets.
               Chaque scénario est calé sur votre profil de foyer réel.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3 sm:w-64">
-            <div className="rounded-[22px] border border-white/16 bg-white/10 p-4 backdrop-blur-md">
+            <div className="rounded-[18px] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
               <p className="text-xs text-white/60">Gain mensuel</p>
               <p className="mt-1 text-2xl font-bold">{formatCurrency(summary.monthlySavings)}</p>
             </div>
-            <div className="rounded-[22px] border border-white/16 bg-white/10 p-4 backdrop-blur-md">
+            <div className="rounded-[18px] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
               <p className="text-xs text-white/60">Gain annuel</p>
               <p className="mt-1 text-2xl font-bold">{formatCurrency(summary.annualSavings)}</p>
             </div>
-            <div className="col-span-2 rounded-[22px] border border-white/16 bg-white/10 p-4 backdrop-blur-md">
+            <div className="col-span-2 rounded-[18px] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
               <p className="text-xs text-white/60">Impact routines non tenues</p>
               <p className="mt-1 text-lg font-semibold">{formatCurrency(summary.taskWasteMonthly)} / mois</p>
             </div>

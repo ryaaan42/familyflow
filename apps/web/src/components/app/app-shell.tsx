@@ -22,7 +22,6 @@ import {
 import { useFamilyFlowStore } from "@familyflow/shared";
 import type { HouseholdProfile, UserProfile } from "@familyflow/shared";
 
-import { Badge } from "@/components/ui/badge";
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { cn } from "@/lib/utils";
 import { AppHeader } from "./app-header";
@@ -32,117 +31,143 @@ const navItems = [
     href: "/app",
     label: "Dashboard",
     icon: LayoutDashboard,
-    activeColor: "text-violet-600",
-    activeBg: "bg-violet-100",
-    activeGradient: "from-violet-500/20 to-purple-500/10"
+    color: "text-indigo-600",
+    bg: "bg-indigo-100",
+    activeBorder: "border-indigo-200",
+    activeGradient: "from-indigo-50 to-violet-50",
+    dot: "bg-indigo-500"
   },
   {
     href: "/app/assistant",
     label: "Assistant IA",
     icon: BrainCircuit,
-    activeColor: "text-blue-600",
-    activeBg: "bg-blue-100",
-    activeGradient: "from-blue-500/20 to-cyan-500/10"
+    color: "text-violet-600",
+    bg: "bg-violet-100",
+    activeBorder: "border-violet-200",
+    activeGradient: "from-violet-50 to-purple-50",
+    dot: "bg-violet-500"
   },
   {
     href: "/app/household",
     label: "Foyer",
     icon: Users,
-    activeColor: "text-pink-600",
-    activeBg: "bg-pink-100",
-    activeGradient: "from-pink-500/20 to-rose-500/10"
+    color: "text-pink-600",
+    bg: "bg-pink-100",
+    activeBorder: "border-pink-200",
+    activeGradient: "from-pink-50 to-rose-50",
+    dot: "bg-pink-500"
   },
   {
     href: "/app/birth-list",
     label: "Naissance",
     icon: Baby,
     requiresExpectingBaby: true,
-    activeColor: "text-rose-600",
-    activeBg: "bg-rose-100",
-    activeGradient: "from-rose-500/20 to-pink-500/10"
+    color: "text-rose-600",
+    bg: "bg-rose-100",
+    activeBorder: "border-rose-200",
+    activeGradient: "from-rose-50 to-pink-50",
+    dot: "bg-rose-500"
   },
   {
     href: "/app/tasks",
     label: "Tâches",
     icon: ListTodo,
-    activeColor: "text-violet-600",
-    activeBg: "bg-violet-100",
-    activeGradient: "from-violet-500/20 to-indigo-500/10"
+    color: "text-blue-600",
+    bg: "bg-blue-100",
+    activeBorder: "border-blue-200",
+    activeGradient: "from-blue-50 to-indigo-50",
+    dot: "bg-blue-500"
   },
   {
     href: "/app/budget",
     label: "Budget",
     icon: Coins,
-    activeColor: "text-blue-600",
-    activeBg: "bg-blue-100",
-    activeGradient: "from-blue-500/20 to-sky-500/10"
+    color: "text-emerald-600",
+    bg: "bg-emerald-100",
+    activeBorder: "border-emerald-200",
+    activeGradient: "from-emerald-50 to-teal-50",
+    dot: "bg-emerald-500"
   },
-
   {
     href: "/app/meals",
     label: "Repas",
     icon: UtensilsCrossed,
-    activeColor: "text-orange-600",
-    activeBg: "bg-orange-100",
-    activeGradient: "from-orange-500/20 to-amber-500/10"
+    color: "text-orange-600",
+    bg: "bg-orange-100",
+    activeBorder: "border-orange-200",
+    activeGradient: "from-orange-50 to-amber-50",
+    dot: "bg-orange-500"
   },
   {
     href: "/app/shopping",
     label: "Courses",
     icon: ShoppingCart,
-    activeColor: "text-lime-700",
-    activeBg: "bg-lime-100",
-    activeGradient: "from-lime-500/20 to-emerald-500/10"
+    color: "text-lime-700",
+    bg: "bg-lime-100",
+    activeBorder: "border-lime-200",
+    activeGradient: "from-lime-50 to-green-50",
+    dot: "bg-lime-600"
   },
   {
     href: "/app/goals",
     label: "Objectifs",
     icon: Target,
-    activeColor: "text-green-600",
-    activeBg: "bg-green-100",
-    activeGradient: "from-green-500/20 to-emerald-500/10"
+    color: "text-teal-600",
+    bg: "bg-teal-100",
+    activeBorder: "border-teal-200",
+    activeGradient: "from-teal-50 to-cyan-50",
+    dot: "bg-teal-500"
   },
   {
     href: "/app/savings",
     label: "Économies",
     icon: Sparkles,
-    activeColor: "text-emerald-600",
-    activeBg: "bg-emerald-100",
-    activeGradient: "from-emerald-500/20 to-teal-500/10"
+    color: "text-amber-600",
+    bg: "bg-amber-100",
+    activeBorder: "border-amber-200",
+    activeGradient: "from-amber-50 to-yellow-50",
+    dot: "bg-amber-500"
   },
   {
     href: "/app/exports",
     label: "PDF",
     icon: FileSpreadsheet,
-    activeColor: "text-amber-600",
-    activeBg: "bg-amber-100",
-    activeGradient: "from-amber-500/20 to-orange-500/10"
+    color: "text-cyan-600",
+    bg: "bg-cyan-100",
+    activeBorder: "border-cyan-200",
+    activeGradient: "from-cyan-50 to-sky-50",
+    dot: "bg-cyan-500"
   },
-
   {
     href: "/app/subscription",
     label: "Abonnement",
     icon: CreditCard,
-    activeColor: "text-indigo-700",
-    activeBg: "bg-indigo-100",
-    activeGradient: "from-indigo-500/20 to-violet-500/10"
+    color: "text-purple-600",
+    bg: "bg-purple-100",
+    activeBorder: "border-purple-200",
+    activeGradient: "from-purple-50 to-violet-50",
+    dot: "bg-purple-500"
   },
   {
     href: "/app/settings",
     label: "Paramètres",
     icon: Settings,
-    activeColor: "text-gray-600",
-    activeBg: "bg-gray-100",
-    activeGradient: "from-gray-400/20 to-slate-400/10"
+    color: "text-gray-600",
+    bg: "bg-gray-100",
+    activeBorder: "border-gray-200",
+    activeGradient: "from-gray-50 to-slate-50",
+    dot: "bg-gray-500"
   },
   {
     href: "/app/admin",
     label: "Admin",
     icon: ShieldCheck,
     requiresAdmin: true,
-    activeColor: "text-red-600",
-    activeBg: "bg-red-100",
-    activeGradient: "from-red-500/20 to-rose-500/10"
+    color: "text-red-600",
+    bg: "bg-red-100",
+    activeBorder: "border-red-200",
+    activeGradient: "from-red-50 to-rose-50",
+    dot: "bg-red-500"
   }
 ];
 
@@ -156,7 +181,6 @@ export function AppShell({ children, userProfile, householdProfile }: AppShellPr
   const pathname = usePathname();
   const initialized = useRef(false);
 
-  // Initialize store synchronously on first render with real user data (no demo data)
   if (!initialized.current) {
     initialized.current = true;
     useFamilyFlowStore.setState({
@@ -189,74 +213,83 @@ export function AppShell({ children, userProfile, householdProfile }: AppShellPr
   });
 
   return (
-    <div className="mx-auto grid min-h-screen w-full max-w-[1600px] gap-5 px-3 py-4 md:px-5 lg:py-6 xl:grid-cols-[308px_minmax(0,1fr)] xl:gap-6 xl:px-6">
-      <aside className="premium-shell sticky top-4 h-fit rounded-[30px] border border-[#d9e6ff] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(239,247,255,0.94))] p-4 shadow-[0_26px_70px_rgba(24,53,123,0.14)] backdrop-blur-xl md:p-5">
-        {/* Brand header */}
-        <div className="mb-5 rounded-[24px] border border-white/60 bg-[linear-gradient(140deg,rgba(53,89,230,0.92),rgba(109,94,244,0.86),rgba(0,169,255,0.82),rgba(46,197,161,0.76))] p-4 text-white shadow-[0_16px_40px_rgba(53,89,230,0.28)]">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Planille</p>
-          <h1 className="mt-2 text-2xl font-bold tracking-[-0.03em]">Control Center</h1>
-          <p className="mt-1.5 text-sm text-white/80">Pilotez votre vie de famille au quotidien.</p>
-          <div className="mt-3 flex items-center gap-2">
-            <div className="h-2 w-2 rounded-full bg-emerald-300" />
-            <span className="text-xs font-semibold text-white/70">
-              {profile.household.name}
-            </span>
+    <div className="mx-auto grid min-h-screen w-full max-w-[1640px] gap-4 px-3 py-3 md:px-4 lg:py-4 xl:grid-cols-[272px_minmax(0,1fr)] xl:gap-5 xl:px-5">
+      {/* ── Sidebar ── */}
+      <aside className="sticky top-3 h-fit xl:top-4">
+        <div className="rounded-[26px] border border-white/80 bg-white/90 p-3 shadow-[0_8px_32px_rgba(79,70,229,0.1),0_2px_8px_rgba(79,70,229,0.06)] backdrop-blur-xl">
+          {/* Brand header */}
+          <div className="mb-3 overflow-hidden rounded-[20px] bg-[linear-gradient(140deg,#1e1b4b_0%,#4338ca_35%,#7c3aed_60%,#0ea5e9_100%)] p-4 text-white shadow-[0_8px_24px_rgba(79,70,229,0.36)]">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
+                <span className="text-base font-black">P</span>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/60">Planille</p>
+                <p className="text-sm font-bold leading-tight">Control Center</p>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+              <span className="text-xs font-medium text-white/75 truncate">{profile.household.name}</span>
+            </div>
           </div>
-        </div>
 
-        {/* Navigation */}
-        <nav className="flex gap-2 overflow-x-auto pb-1 xl:grid xl:overflow-visible">
-          {visibleItems.map((item) => {
-            const Icon = item.icon;
-            const active = pathname === item.href;
+          {/* Navigation — scrollable on mobile, grid on xl */}
+          <nav className="flex gap-1.5 overflow-x-auto pb-1 xl:grid xl:overflow-visible">
+            {visibleItems.map((item) => {
+              const Icon = item.icon;
+              const active = pathname === item.href;
 
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "group flex shrink-0 items-center gap-3 rounded-2xl border px-3 py-2.5 text-sm font-semibold transition-all duration-200",
-                  active
-                    ? `border-transparent bg-gradient-to-r ${item.activeGradient} ${item.activeColor} shadow-[0_8px_20px_rgba(0,0,0,0.08)]`
-                    : "border-transparent text-[var(--foreground-muted)] hover:border-[#d9e6ff] hover:bg-white/90"
-                )}
-              >
-                <span
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
                   className={cn(
-                    "rounded-xl p-2 transition-all duration-200",
+                    "group flex shrink-0 items-center gap-2.5 rounded-[14px] border px-3 py-2 text-sm font-medium transition-all duration-150",
                     active
-                      ? `${item.activeBg} ${item.activeColor}`
-                      : "bg-[#f1f6ff] text-[var(--foreground-subtle)] group-hover:bg-white"
+                      ? `border-transparent bg-gradient-to-r ${item.activeGradient} ${item.color} font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.06)]`
+                      : "border-transparent text-[#6b7280] hover:bg-gray-50 hover:text-[#1f2937] hover:border-[#f3f4f6]"
                   )}
                 >
-                  <Icon className="h-4 w-4" />
-                </span>
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
+                  <span
+                    className={cn(
+                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-[10px] transition-all duration-150",
+                      active
+                        ? `${item.bg} ${item.color}`
+                        : "bg-gray-100 text-[#9ca3af] group-hover:bg-gray-200 group-hover:text-[#6b7280]"
+                    )}
+                  >
+                    <Icon className="h-3.5 w-3.5" />
+                  </span>
+                  <span className="truncate">{item.label}</span>
+                  {active && (
+                    <span className={cn("ml-auto h-1.5 w-1.5 shrink-0 rounded-full", item.dot)} />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* Plan upgrade card */}
-        <div className="mt-5 rounded-[22px] border border-[#d6e4ff] bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(235,245,255,0.92))] p-4 md:mt-6">
-          <div className="flex items-center justify-between gap-2">
-            <p className="text-sm font-bold">Plan Premium</p>
-            <Badge variant="mint">Beta</Badge>
+          {/* Footer */}
+          <div className="mt-3 space-y-1.5">
+            <div className="rounded-[16px] border border-[#e0e7ff] bg-gradient-to-br from-indigo-50 to-violet-50 p-3.5">
+              <div className="flex items-center gap-2">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#4f46e5,#7c3aed)] text-xs font-bold text-white shadow-[0_4px_12px_rgba(79,70,229,0.3)]">
+                  {(user.displayName || "?").charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-xs font-semibold text-[#1f2937]">{user.displayName || "Utilisateur"}</p>
+                  <p className="truncate text-[10px] text-[#9ca3af]">{user.email}</p>
+                </div>
+              </div>
+            </div>
+            <SignOutButton />
           </div>
-          <p className="mt-2 text-xs leading-5 text-[var(--foreground-muted)]">
-            Exports avancés, thèmes personnalisés et recommandations IA enrichies.
-          </p>
-          <button
-            type="button"
-            className="mt-3 w-full rounded-xl bg-[linear-gradient(135deg,#3559e6,#00a9ff)] px-3 py-2 text-xs font-bold text-white shadow-[0_8px_20px_rgba(53,89,230,0.26)] transition hover:-translate-y-0.5"
-          >
-            Découvrir le Premium
-          </button>
-
-          <SignOutButton />
         </div>
       </aside>
-      <main className="min-w-0 space-y-5">
+
+      {/* ── Main content ── */}
+      <main className="min-w-0 space-y-4">
         <AppHeader />
         {children}
       </main>

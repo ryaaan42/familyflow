@@ -68,15 +68,15 @@ const createDefaultWidgets = (): Record<DashboardWidgetId, boolean> => ({
 function EmptyDashboard({ householdName, userName }: { householdName: string; userName: string }) {
   return (
     <div className="space-y-5">
-      <Card className="premium-shell overflow-hidden bg-[linear-gradient(135deg,rgba(18,18,48,0.96),rgba(68,60,167,0.92),rgba(67,139,230,0.86),rgba(86,199,161,0.78))] text-white hero-glow">
-        <div className="p-7 md:p-8 space-y-4">
+      <Card className="overflow-hidden hero-indigo text-white hero-glow premium-shell">
+        <div className="p-6 md:p-8 space-y-4">
           <div className="space-y-2">
-            <Badge className="w-fit bg-white/14 text-white shadow-none">Dashboard familial</Badge>
-            <h2 className="text-3xl font-semibold tracking-[-0.04em] md:text-5xl">
+            <Badge variant="white">Dashboard familial</Badge>
+            <h2 className="text-3xl font-bold tracking-tight md:text-5xl">
               Bienvenue, {userName.split(" ")[0]} !
             </h2>
           </div>
-          <p className="max-w-2xl text-[15px] leading-7 text-white/78">
+          <p className="max-w-2xl text-sm leading-7 text-white/75">
             Votre foyer <strong className="text-white">{householdName}</strong> est prêt. Commencez par ajouter vos membres et configurer vos premières tâches.
           </p>
         </div>
@@ -198,94 +198,87 @@ export function DashboardView() {
   return (
     <div className="space-y-5">
       <section className="grid gap-5 xl:grid-cols-[1.18fr_0.82fr]">
-        <Card className="premium-shell overflow-hidden bg-[linear-gradient(135deg,rgba(18,18,48,0.96),rgba(68,60,167,0.92),rgba(67,139,230,0.86),rgba(86,199,161,0.78))] text-white hero-glow">
-          <div className="grid gap-8 p-7 md:grid-cols-[1.08fr_0.92fr] md:p-8">
-            <div className="space-y-5">
+        <Card className="overflow-hidden hero-indigo text-white hero-glow premium-shell">
+          <div className="grid gap-6 p-6 md:grid-cols-[1.1fr_0.9fr] md:p-8">
+            <div className="space-y-4">
               <div className="space-y-2">
-                <Badge className="w-fit bg-white/14 text-white shadow-none">Dashboard familial</Badge>
-                <h2 className="text-3xl font-semibold tracking-[-0.04em] md:text-5xl">
-                  Bonjour {(state.user.displayName || "").split(" ")[0]}, votre foyer est mieux orchestré cette semaine.
+                <Badge variant="white">Dashboard familial</Badge>
+                <h2 className="text-3xl font-bold tracking-tight md:text-4xl lg:text-5xl">
+                  Bonjour {(state.user.displayName || "").split(" ")[0]} !
                 </h2>
               </div>
-              <p className="max-w-3xl text-[15px] leading-7 text-white/78">
+              <p className="max-w-2xl text-sm leading-7 text-white/75">
                 {hasTasks
-                  ? `Bravo, ${summary.completionRate} % des tâches sont déjà terminées.`
+                  ? `${summary.completionRate} % des tâches sont déjà terminées.`
                   : "Commencez à ajouter vos tâches pour suivre votre progression."}{" "}
                 {summary.savings.annualSavings > 0
-                  ? `En réduisant une sortie cinéma par mois, vous gardez environ ${formatCurrency(summary.savings.annualSavings)} sur l'année.`
+                  ? `Potentiel d'économie : ${formatCurrency(summary.savings.annualSavings)}/an.`
                   : ""}
               </p>
-              <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-[28px] border border-white/18 bg-white/10 p-5 backdrop-blur-md">
-                  <p className="text-sm text-white/64">Tâches intelligentes</p>
-                  <p className="mt-3 text-3xl font-semibold">{smartTasks}</p>
-                  <p className="mt-2 text-sm text-white/72">proposées automatiquement</p>
-                </div>
-                <div className="rounded-[28px] border border-white/18 bg-white/10 p-5 backdrop-blur-md">
-                  <p className="text-sm text-white/64">Routines quotidiennes</p>
-                  <p className="mt-3 text-3xl font-semibold">{dailyRoutines}</p>
-                  <p className="mt-2 text-sm text-white/72">à afficher sur le frigo</p>
-                </div>
-                <div className="rounded-[28px] border border-white/18 bg-white/10 p-5 backdrop-blur-md">
-                  <p className="text-sm text-white/64">Budget restant</p>
-                  <p className="mt-3 text-3xl font-semibold">
-                    {summary.disposableIncome !== 0 ? formatCurrency(summary.disposableIncome) : "—"}
-                  </p>
-                  <p className="mt-2 text-sm text-white/72">après charges mensuelles</p>
-                </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {[
+                  { label: "Tâches IA", value: smartTasks, sub: "proposées auto" },
+                  { label: "Routines", value: dailyRoutines, sub: "quotidiennes" },
+                  { label: "Reste à vivre", value: summary.disposableIncome !== 0 ? formatCurrency(summary.disposableIncome) : "—", sub: "après charges" },
+                ].map((s) => (
+                  <div key={s.label} className="rounded-[18px] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
+                    <p className="text-xs text-white/60">{s.label}</p>
+                    <p className="mt-1.5 text-2xl font-bold">{s.value}</p>
+                    <p className="text-xs text-white/55">{s.sub}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="grid gap-4">
-              <div className="rounded-[30px] border border-white/18 bg-white/12 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] backdrop-blur-md">
+            <div className="grid gap-3">
+              <div className="rounded-[18px] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-white/66">Membre le plus chargé</p>
-                    <p className="mt-2 text-2xl font-semibold">
+                    <p className="text-xs text-white/60">Membre le plus chargé</p>
+                    <p className="mt-1 text-xl font-bold">
                       {summary.busiestMember?.member.name ?? "Aucun"}
                     </p>
                   </div>
-                  <Badge className="bg-white/12 text-white shadow-none">
-                    {hasTasks ? `${summary.completionRate} % terminés` : "0 %"}
+                  <Badge variant="white">
+                    {hasTasks ? `${summary.completionRate} %` : "0 %"}
                   </Badge>
                 </div>
-                <p className="mt-3 text-sm leading-6 text-white/74">
+                <p className="mt-2 text-xs leading-5 text-white/65">
                   {summary.busiestMember
-                    ? `${summary.busiestMember.load} minutes attribuées cette semaine.`
-                    : "Ajoutez des tâches pour voir la répartition de la charge."}
+                    ? `${summary.busiestMember.load} min attribuées cette semaine.`
+                    : "Ajoutez des tâches pour voir la répartition."}
                 </p>
               </div>
-
-              <div className="rounded-[30px] border border-white/18 bg-white/12 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)] backdrop-blur-md">
+              <div className="rounded-[18px] border border-white/15 bg-white/10 p-4 backdrop-blur-sm">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-white/66">Économies potentielles</p>
-                    <p className="mt-2 text-2xl font-semibold">
-                      {summary.savings.monthlySavings > 0
-                        ? formatCurrency(summary.savings.monthlySavings)
-                        : "—"}
+                    <p className="text-xs text-white/60">Économies potentielles</p>
+                    <p className="mt-1 text-xl font-bold">
+                      {summary.savings.monthlySavings > 0 ? formatCurrency(summary.savings.monthlySavings) : "—"}
                     </p>
                   </div>
-                  <Sparkles className="h-5 w-5 text-white/86" />
+                  <Sparkles className="h-4 w-4 text-white/70" />
                 </div>
-                <p className="mt-3 text-sm leading-6 text-white/74">
+                <p className="mt-2 text-xs leading-5 text-white/65">
                   {summary.savings.monthlySavings > 0
-                    ? "Les scénarios liés aux repas, courses et sorties restent les leviers les plus rapides à actionner."
-                    : "Ajoutez des scénarios d'économies pour visualiser vos potentiels gains."}
+                    ? "Repas, courses et sorties : leviers les plus rapides."
+                    : "Ajoutez des scénarios d'économies pour visualiser vos gains."}
                 </p>
               </div>
             </div>
           </div>
         </Card>
 
-        <Card className="overflow-hidden bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(244,248,255,0.94))]">
-          <div className="space-y-5 p-7">
+        <Card>
+          <div className="space-y-4 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <Badge>Focus du jour</Badge>
-                <h3 className="mt-2 text-2xl font-semibold tracking-[-0.03em]">Priorités à surveiller</h3>
+                <h3 className="mt-2 text-xl font-bold">Priorités à surveiller</h3>
               </div>
-              <BarChart3 className="h-5 w-5 text-[var(--brand-primary)]" />
+              <div className="rounded-[12px] bg-indigo-100 p-2 text-indigo-600">
+                <BarChart3 className="h-4 w-4" />
+              </div>
             </div>
             {widgets.focus && state.tasks.length > 0 ? (
               <div className="grid gap-3">
@@ -341,11 +334,11 @@ export function DashboardView() {
               {activeWidgets.length} actifs
             </Badge>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {DASHBOARD_WIDGETS.map((widget) => (
               <label
                 key={widget.id}
-                className="flex items-center justify-between rounded-[20px] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(247,244,255,0.92))] px-4 py-3"
+                className="flex cursor-pointer items-center justify-between rounded-[14px] border border-[#e0e7ff] bg-[#f8f7ff] px-4 py-3 transition hover:bg-indigo-50"
               >
                 <span className="text-sm font-medium">{widget.label}</span>
                 <input

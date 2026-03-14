@@ -77,10 +77,10 @@ export function AssistantView() {
 
   return (
     <div className="space-y-5">
-      <Card className="premium-shell overflow-hidden bg-[linear-gradient(135deg,rgba(18,18,48,0.96),rgba(79,65,180,0.9),rgba(70,140,228,0.84),rgba(86,199,161,0.76))] text-white hero-glow">
+      <Card className="overflow-hidden hero-galaxy text-white hero-glow-violet premium-shell">
         <div className="grid gap-8 p-7 md:grid-cols-[1.12fr_0.88fr] md:p-8">
           <div className="space-y-5">
-            <Badge className="w-fit bg-white/14 text-white shadow-none">Assistant IA</Badge>
+            <Badge variant="white">Assistant IA</Badge>
             <div className="space-y-3">
               <h2 className="text-3xl font-semibold tracking-[-0.04em] md:text-5xl">
                 Une fois les infos du foyer remplies, fais mon planning personnalise.
