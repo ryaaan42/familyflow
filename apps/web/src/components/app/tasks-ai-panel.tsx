@@ -160,11 +160,13 @@ export function TasksAiPanel() {
   const budgetSuggs = suggestions.filter((s) => s.suggestion_type === "budget");
   const hasSuggestions = suggestions.length > 0;
 
-  const tabs: Array<{ key: PlanTab; label: string; count: number; activeClass: string }> = [
-    { key: "tasks", label: "Tâches", count: taskSuggs.length, activeClass: "bg-[#6D5EF4] text-white shadow-[0_2px_8px_rgba(109,94,244,0.4)]" },
-    { key: "routines", label: "Routines", count: routineSuggs.length, activeClass: "bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]" },
-    { key: "savings", label: "Budget", count: budgetSuggs.length, activeClass: "bg-amber-500 text-white shadow-[0_2px_8px_rgba(245,158,11,0.3)]" }
-  ].filter((t) => t.count > 0);
+  const tabs: Array<{ key: PlanTab; label: string; count: number; activeClass: string }> = (
+    [
+      { key: "tasks" as PlanTab, label: "Tâches", count: taskSuggs.length, activeClass: "bg-[#6D5EF4] text-white shadow-[0_2px_8px_rgba(109,94,244,0.4)]" },
+      { key: "routines" as PlanTab, label: "Routines", count: routineSuggs.length, activeClass: "bg-emerald-500 text-white shadow-[0_2px_8px_rgba(16,185,129,0.3)]" },
+      { key: "savings" as PlanTab, label: "Budget", count: budgetSuggs.length, activeClass: "bg-amber-500 text-white shadow-[0_2px_8px_rgba(245,158,11,0.3)]" }
+    ] satisfies Array<{ key: PlanTab; label: string; count: number; activeClass: string }>
+  ).filter((t) => t.count > 0);
 
   return (
     <div className="overflow-hidden rounded-[24px] border border-[#e8e4f8] bg-white shadow-[0_8px_32px_rgba(79,70,229,0.08)]">
