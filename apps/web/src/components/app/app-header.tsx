@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFamilyFlowStore } from "@familyflow/shared";
 import { Bell, Clock3, Sparkles } from "lucide-react";
 
@@ -27,6 +27,14 @@ export function AppHeader() {
   const profile = useFamilyFlowStore((s) => s.profile);
   const tasks   = useFamilyFlowStore((s) => s.tasks);
 
+  const [greeting, setGreeting] = useState("");
+  const [dateStr, setDateStr] = useState("");
+
+  useEffect(() => {
+    setGreeting(getGreeting());
+    setDateStr(formatDate());
+  }, []);
+
   const pendingCount = useMemo(
     () => tasks.filter((t) => t.status !== "done").length,
     [tasks]
@@ -49,14 +57,14 @@ export function AppHeader() {
         </div>
         <div>
           <p className="text-sm font-bold text-[#0f0e1a]">
-            {getGreeting()}
+            {greeting}
             {firstName ? (
               <span className="ml-1 bg-[linear-gradient(90deg,#4f46e5,#7c3aed)] bg-clip-text text-transparent">
                 {firstName}
               </span>
             ) : null}
           </p>
-          <p className="text-[11px] capitalize text-[#9ca3af]">{formatDate()}</p>
+          <p className="text-[11px] capitalize text-[#9ca3af]">{dateStr}</p>
         </div>
       </div>
 
