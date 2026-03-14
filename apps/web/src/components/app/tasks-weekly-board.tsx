@@ -33,6 +33,16 @@ const statusColumns: Array<{ value: Task["status"]; label: string; description: 
   { value: "late", label: "En retard", description: "À rattraper" }
 ];
 
+const weekdays = [
+  { value: 1, label: "Lundi" },
+  { value: 2, label: "Mardi" },
+  { value: 3, label: "Mercredi" },
+  { value: 4, label: "Jeudi" },
+  { value: 5, label: "Vendredi" },
+  { value: 6, label: "Samedi" },
+  { value: 7, label: "Dimanche" }
+];
+
 type TaskEditorMode = { type: "create" } | { type: "edit"; task: Task } | null;
 
 type TaskFormState = {
@@ -220,15 +230,15 @@ export function TasksWeeklyBoard() {
     });
   };
 
-  const moveTaskToStatus = async (task: Task, status: Task["status"]) => {
-    if (task.status === status) return;
+  const moveTaskToDay = async (task: Task, dayOfWeek: number) => {
+    if ((task.dayOfWeek ?? weekdayFromDate(task.dueDate)) === dayOfWeek) return;
     await withBusyTask(task.id, async () => {
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          status,
-          dayOfWeek: task.dayOfWeek ?? weekdayFromDate(task.dueDate),
+          status: task.status,
+          dayOfWeek,
           assignedMemberId: task.assignedMemberId ?? null
         })
       });
@@ -284,37 +294,36 @@ export function TasksWeeklyBoard() {
         </button>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-4">
-        {statusColumns.map((column) => {
-          const columnTasks = state.tasks.filter((task) => task.status === column.value);
+      <div className="space-y-3">
+        {weekdays.map((day) => {
+          const dayTasks = state.tasks.filter((task) => (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) === day.value);
 
           return (
             <section
-              key={column.value}
+              key={day.value}
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
                 const taskId = event.dataTransfer.getData("text/task-id");
                 const task = state.tasks.find((t) => t.id === taskId);
-                if (task) void moveTaskToStatus(task, column.value);
+                if (task) void moveTaskToDay(task, day.value);
                 setDraggingTaskId(null);
               }}
-              className="rounded-3xl border border-[#d8e5ff] bg-[linear-gradient(180deg,#ffffff,#f8fbff)] p-4 shadow-[0_10px_24px_rgba(31,66,135,0.08)]"
+              className="w-full rounded-3xl border border-[#d8e5ff] bg-[linear-gradient(180deg,#ffffff,#f8fbff)] p-4 shadow-[0_10px_24px_rgba(31,66,135,0.08)]"
             >
-              <div className="mb-3">
-                <h3 className="text-base font-semibold">{column.label}</h3>
-                <p className="text-xs text-[var(--foreground-muted)]">{column.description}</p>
-                <p className="text-xs text-[var(--foreground-muted)]">{columnTasks.length} tâche(s)</p>
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <h3 className="text-base font-semibold">{day.label}</h3>
+                <p className="text-xs text-[var(--foreground-muted)]">{dayTasks.length} tâche(s)</p>
               </div>
 
               <div className="space-y-2">
-                {columnTasks.length === 0 ? (
+                {dayTasks.length === 0 ? (
                   <p className="rounded-2xl border border-dashed border-[#d5def2] px-3 py-5 text-center text-sm text-[var(--foreground-muted)]">
-                    Glissez une tâche ici.
+                    Glissez une tâche ici pour {day.label.toLowerCase()}.
                   </p>
                 ) : null}
 
-                {columnTasks.map((task) => {
+                {dayTasks.map((task) => {
                   const memberName =
                     state.profile.members.find((member) => member.id === task.assignedMemberId)?.name ?? "Non assigné";
                   const isBusy = busyTaskIds.includes(task.id);
@@ -359,7 +368,9 @@ export function TasksWeeklyBoard() {
                           </p>
                           <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--foreground-muted)]">
                             <span className="rounded-full bg-[#edf3ff] px-2 py-0.5">{categoryLabels[task.category]}</span>
-                            <span>•</span>
+                            <span className="rounded-full bg-[#f2f4f8] px-2 py-0.5">
+                              {statusColumns.find((column) => column.value === task.status)?.label}
+                            </span>
                             <span>{memberName}</span>
                           </div>
                         </div>
