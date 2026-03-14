@@ -147,7 +147,10 @@ async function buildRealDataset(): Promise<{ dataset: DemoDataset; mealPlans: Me
               ? Number(t.indirect_cost_per_month)
               : undefined,
             smartReason: t.smart_reason ?? undefined,
-            recurring: t.recurring ?? true
+            recurring: t.recurring ?? true,
+            dueDate: t.due_date ?? new Date().toISOString(),
+            difficulty: t.difficulty ?? 1,
+            createdAt: t.created_at ?? new Date().toISOString()
           }))
         : buildTaskSuggestions(householdProfile).slice(0, 20);
 
@@ -173,13 +176,8 @@ async function buildRealDataset(): Promise<{ dataset: DemoDataset; mealPlans: Me
         budgetItems,
         savingsScenarios: [],
         birthListItems,
-        pdfPreferences: { theme: "premium", includeBudgetSummary: true, includeBirthList: true },
-        notificationSettings: {
-          channels: [],
-          types: [],
-          budgetThreshold: 80,
-          taskReminderHours: 24
-        }
+        pdfPreferences: { theme: "premium", includeLegend: true, includeBudgetSummary: true, includeLogo: false, paperFormat: "A4" },
+        notificationSettings: { emailDigest: false, budgetReminder: false, weeklyPdfReminder: false, quietHoursStart: "22:00", quietHoursEnd: "07:00" }
       },
       mealPlans
     };
