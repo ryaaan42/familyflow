@@ -1,5 +1,4 @@
 import {
-  createDemoDataset,
   type BirthListItem,
   type BudgetItem,
   type BudgetMonth,
@@ -18,13 +17,12 @@ const toNumber = (value: unknown) => {
   return 0;
 };
 
-export async function buildPdfDatasetForCurrentUser(): Promise<DemoDataset> {
-  const fallback = createDemoDataset();
+export async function buildPdfDatasetForCurrentUser(): Promise<DemoDataset | null> {
   const supabase = await createSupabaseServerClient();
   const [profile, user] = await Promise.all([getUserHousehold(), getUserProfile()]);
 
   if (!profile || !user) {
-    return fallback;
+    return null;
   }
 
   const { data: tasksData } = await supabase
@@ -107,7 +105,7 @@ export async function buildPdfDatasetForCurrentUser(): Promise<DemoDataset> {
         month: budgetData.month as string,
         targetSavings: toNumber(budgetData.target_savings)
       }
-    : fallback.budget;
+    : { id: "", householdId: profile.household.id, month: new Date().toISOString().slice(0, 7) + "-01", targetSavings: 0 };
 
   const { data: budgetItemsData } = budgetData
     ? await supabase
@@ -173,13 +171,13 @@ export async function buildPdfDatasetForCurrentUser(): Promise<DemoDataset> {
   return {
     user,
     profile,
-    tasks: tasks.length > 0 ? tasks : fallback.tasks,
+    tasks,
     completions,
     budget,
     budgetItems,
     savingsScenarios,
     birthListItems,
-    pdfPreferences: fallback.pdfPreferences,
-    notificationSettings: fallback.notificationSettings
+    pdfPreferences: { theme: "premium", includeLegend: true, includeBudgetSummary: true, includeLogo: false, paperFormat: "A4" },
+    notificationSettings: { emailDigest: false, budgetReminder: false, weeklyPdfReminder: false, quietHoursStart: "22:00", quietHoursEnd: "07:00" }
   };
 }
