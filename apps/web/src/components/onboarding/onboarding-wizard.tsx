@@ -83,6 +83,7 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
   const [serverError, setServerError] = useState<string | null>(null);
   const [householdData, setHouseholdData] = useState<HouseholdValues | null>(null);
   const [selectedObjective, setSelectedObjective] = useState<string>("tasks");
+  const [finalizingMessage, setFinalizingMessage] = useState<string | null>(null);
 
   const householdForm = useForm<HouseholdValues>({
     resolver: zodResolver(householdStep),
@@ -171,7 +172,8 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
       return;
     }
 
-    await fetch("/api/onboarding/finalize", { method: "POST" });
+    setFinalizingMessage("Création de votre espace... génération IA en arrière-plan.");
+    fetch("/api/onboarding/finalize", { method: "POST", keepalive: true }).catch(() => undefined);
     router.push("/app/tasks");
     router.refresh();
   };
@@ -211,6 +213,8 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
           );
         })}
       </div>
+
+      {finalizingMessage ? (<p className="rounded-2xl border border-indigo-200 bg-indigo-50 px-4 py-2 text-sm text-indigo-700">{finalizingMessage}</p>) : null}
 
       {/* Étape 1 — Foyer */}
       {step === 1 && (

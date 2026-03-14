@@ -18,7 +18,21 @@ export const householdSchema = z.object({
   city: z.string().optional(),
   isExpectingBaby: z.boolean().default(false),
   pregnancyDueDate: z.string().optional(),
-  birthListShareSlug: z.string().optional()
+  birthListShareSlug: z.string().optional(),
+  aiContext: z.object({
+    housingDetails: z.string().max(500).optional(),
+    petsDetails: z.string().max(500).optional(),
+    childrenAges: z.string().max(200).optional(),
+    lifestyleRhythm: z.string().max(500).optional(),
+    preferredTaskDays: z.string().max(500).optional(),
+    mealPreferences: z.string().max(500).optional(),
+    foodConstraints: z.string().max(500).optional(),
+    organizationGoals: z.string().max(500).optional(),
+    scheduleConstraints: z.string().max(500).optional(),
+    routinesWanted: z.string().max(500).optional(),
+    weeklyBudget: z.coerce.number().min(0).max(5000).optional(),
+    monthlyBudget: z.coerce.number().min(0).max(20000).optional()
+  }).optional()
 });
 
 export const budgetItemSchema = z.object({

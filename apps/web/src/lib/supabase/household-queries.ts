@@ -14,6 +14,7 @@ export interface DbHousehold {
   is_expecting_baby?: boolean;
   pregnancy_due_date?: string | null;
   birth_list_share_slug?: string | null;
+  ai_context?: Record<string, unknown> | null;
   created_at: string;
 }
 
@@ -46,6 +47,7 @@ function mapHousehold(h: DbHousehold): HouseholdProfile["household"] {
     isExpectingBaby: h.is_expecting_baby,
     pregnancyDueDate: h.pregnancy_due_date ?? undefined,
     birthListShareSlug: h.birth_list_share_slug ?? undefined,
+    aiContext: (h.ai_context as HouseholdProfile["household"]["aiContext"] | null) ?? undefined,
     balanceScore: 0,
     createdAt: h.created_at
   };
