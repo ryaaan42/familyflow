@@ -26,8 +26,7 @@ export function AssistantView() {
   const ready = Boolean(
     state.profile.household.name &&
       state.profile.household.housingType &&
-      state.profile.members.length > 0 &&
-      state.tasks.length > 0
+      state.profile.members.length > 0
   );
 
 
@@ -116,7 +115,7 @@ export function AssistantView() {
             <div className="rounded-[28px] border border-white/18 bg-white/10 p-5 backdrop-blur-md">
               <p className="text-sm text-white/64">Foyer pret</p>
               <p className="mt-3 text-3xl font-semibold">{ready ? "Oui" : "Presque"}</p>
-              <p className="mt-2 text-sm text-white/72">nom, logement, membres et taches deja presents</p>
+              <p className="mt-2 text-sm text-white/72">nom, logement et membres deja presents</p>
             </div>
             <div className="rounded-[28px] border border-white/18 bg-white/10 p-5 backdrop-blur-md">
               <p className="text-sm text-white/64">Contexte pris en compte</p>

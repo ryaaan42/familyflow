@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFamilyFlowStore } from "@familyflow/shared";
 import type { BirthListItem } from "@familyflow/shared";
 import { Baby, CheckCircle2, Gift, Plus, Share2, ShoppingBag, X } from "lucide-react";
@@ -49,6 +49,35 @@ export function BirthListView() {
   const state = useFamilyFlowStore();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(defaultForm);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Load items from DB on mount
+  useEffect(() => {
+    fetch("/api/birth-list/items")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.items) {
+          // Map DB fields to store format
+          const mapped = data.items.map((item: Record<string, unknown>) => ({
+            id: item.id,
+            householdId: item.household_id,
+            title: item.title,
+            category: item.category,
+            priority: item.priority,
+            status: item.status,
+            quantity: item.quantity,
+            reservedQuantity: item.reserved_quantity,
+            estimatedPrice: item.estimated_price ?? undefined,
+            storeUrl: item.store_url ?? undefined,
+            description: item.description ?? undefined,
+            notes: item.notes ?? undefined
+          }));
+          useFamilyFlowStore.setState({ birthListItems: mapped });
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const stats = useMemo(() => {
     const total = state.birthListItems.length;
@@ -65,27 +94,54 @@ export function BirthListView() {
   const sharePath = `/birth-list/${state.profile.household.birthListShareSlug ?? ""}`;
   const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}${sharePath}`;
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.title.trim()) return;
 
-    const newItem: BirthListItem = {
-      id: crypto.randomUUID(),
-      householdId: state.profile.household.id,
-      title: form.title.trim(),
-      category: form.category,
-      priority: form.priority,
-      status: "wanted",
-      quantity: Math.max(1, parseInt(form.quantity) || 1),
-      reservedQuantity: 0,
-      estimatedPrice: form.estimatedPrice ? parseFloat(form.estimatedPrice) : undefined,
-      storeUrl: form.storeUrl.trim() || undefined,
-      description: form.description.trim() || undefined
-    };
+    setSubmitting(true);
+    setSubmitError(null);
 
-    state.addBirthListItem(newItem);
-    setForm(defaultForm);
-    setShowForm(false);
+    try {
+      const res = await fetch("/api/birth-list/items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title.trim(),
+          category: form.category,
+          priority: form.priority,
+          estimatedPrice: form.estimatedPrice || undefined,
+          quantity: form.quantity,
+          storeUrl: form.storeUrl.trim() || undefined,
+          description: form.description.trim() || undefined
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+
+      const saved = data.item;
+      const newItem: BirthListItem = {
+        id: saved.id,
+        householdId: saved.household_id,
+        title: saved.title,
+        category: saved.category,
+        priority: saved.priority,
+        status: saved.status,
+        quantity: saved.quantity,
+        reservedQuantity: saved.reserved_quantity,
+        estimatedPrice: saved.estimated_price ?? undefined,
+        storeUrl: saved.store_url ?? undefined,
+        description: saved.description ?? undefined
+      };
+
+      state.addBirthListItem(newItem);
+      setForm(defaultForm);
+      setShowForm(false);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Erreur inconnue.");
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -273,13 +329,17 @@ export function BirthListView() {
               />
             </div>
 
+            {submitError && (
+              <p className="rounded-2xl bg-rose-50 px-4 py-2 text-sm text-rose-600">{submitError}</p>
+            )}
+
             <div className="flex justify-end gap-3">
-              <Button type="button" variant="secondary" onClick={() => { setShowForm(false); setForm(defaultForm); }}>
+              <Button type="button" variant="secondary" onClick={() => { setShowForm(false); setForm(defaultForm); setSubmitError(null); }}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={!form.title.trim()}>
+              <Button type="submit" disabled={!form.title.trim() || submitting}>
                 <Plus className="mr-2 h-4 w-4" />
-                Ajouter a la liste
+                {submitting ? "Ajout..." : "Ajouter a la liste"}
               </Button>
             </div>
           </form>
