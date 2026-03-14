@@ -3,31 +3,43 @@
 import { useMemo, useState } from "react";
 import { categoryLabels, useFamilyFlowStore } from "@familyflow/shared";
 import type { Task } from "@familyflow/shared";
-import { CheckCircle2, Circle, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  Baby,
+  CheckCircle2,
+  Circle,
+  FileText,
+  Home,
+  Pencil,
+  Plus,
+  ShoppingCart,
+  ShowerHead,
+  Sparkles,
+  Trash2,
+  Utensils,
+  Wallet,
+  Wrench,
+  X,
+  type LucideIcon
+} from "lucide-react";
 
 import { getTaskTemplatesForPets } from "@/lib/task-library";
 
-const weekDays = [
-  { value: 1, label: "Lundi" },
-  { value: 2, label: "Mardi" },
-  { value: 3, label: "Mercredi" },
-  { value: 4, label: "Jeudi" },
-  { value: 5, label: "Vendredi" },
-  { value: 6, label: "Samedi" },
-  { value: 7, label: "Dimanche" }
-] as const;
-
 const categoryValues = Object.keys(categoryLabels) as Array<keyof typeof categoryLabels>;
 
-type DayOfWeek = (typeof weekDays)[number]["value"];
+const statusColumns: Array<{ value: Task["status"]; label: string; description: string }> = [
+  { value: "todo", label: "À faire", description: "Tâches à démarrer" },
+  { value: "in_progress", label: "En cours", description: "Tâches en traitement" },
+  { value: "done", label: "Terminé", description: "Tâches validées" },
+  { value: "late", label: "En retard", description: "À rattraper" }
+];
 
-type TaskEditorMode = { type: "create"; dayOfWeek: DayOfWeek } | { type: "edit"; task: Task } | null;
+type TaskEditorMode = { type: "create" } | { type: "edit"; task: Task } | null;
 
 type TaskFormState = {
   title: string;
   category: Task["category"];
   assignedMemberId: string | null;
-  dayOfWeek: DayOfWeek;
+  dayOfWeek: number;
   status: Task["status"];
   description: string;
   templateTitle: string;
@@ -36,23 +48,61 @@ type TaskFormState = {
 const weekdayFromDate = (dateLike: string) => {
   const date = new Date(dateLike);
   const day = date.getDay();
-  return (day === 0 ? 7 : day) as DayOfWeek;
+  return day === 0 ? 7 : day;
 };
 
-const createDefaultForm = (dayOfWeek: DayOfWeek): TaskFormState => ({
+const currentDayOfWeek = () => ((new Date().getDay() + 6) % 7) + 1;
+
+const createDefaultForm = (): TaskFormState => ({
   title: "",
   category: "routine",
   assignedMemberId: null,
-  dayOfWeek,
+  dayOfWeek: currentDayOfWeek(),
   status: "todo",
   description: "",
   templateTitle: ""
 });
 
+const titleIncludes = (title: string, values: string[]) => {
+  const normalized = title.toLowerCase();
+  return values.some((value) => normalized.includes(value));
+};
+
+const resolveTaskIcon = (task: Task): LucideIcon => {
+  if (titleIncludes(task.title, ["aspir", "vacuum", "ménage"])) return Sparkles;
+  if (titleIncludes(task.title, ["course", "courses", "shopping"])) return ShoppingCart;
+  if (titleIncludes(task.title, ["repas", "cuisine", "vaisselle", "déjeuner", "dîner"])) return Utensils;
+  if (titleIncludes(task.title, ["douche", "toilette", "hygiène", "lessive"])) return ShowerHead;
+  if (titleIncludes(task.title, ["papier", "admin", "facture", "document"])) return FileText;
+  if (titleIncludes(task.title, ["bricol", "répar", "jardin", "entretien"])) return Wrench;
+  if (titleIncludes(task.title, ["bébé", "enfant", "devoir", "école"])) return Baby;
+
+  switch (task.category) {
+    case "courses":
+      return ShoppingCart;
+    case "cuisine":
+      return Utensils;
+    case "hygiene":
+      return ShowerHead;
+    case "administratif":
+      return FileText;
+    case "budget":
+      return Wallet;
+    case "entretien":
+      return Wrench;
+    case "enfants":
+      return Baby;
+    case "menage":
+      return Sparkles;
+    default:
+      return Home;
+  }
+};
+
 export function TasksWeeklyBoard() {
   const state = useFamilyFlowStore();
   const [editor, setEditor] = useState<TaskEditorMode>(null);
-  const [form, setForm] = useState<TaskFormState>(createDefaultForm(1));
+  const [form, setForm] = useState<TaskFormState>(createDefaultForm());
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [busyTaskIds, setBusyTaskIds] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
@@ -60,10 +110,10 @@ export function TasksWeeklyBoard() {
 
   const quickTemplates = useMemo(() => getTaskTemplatesForPets(state.profile.pets), [state.profile.pets]);
 
-  const openCreateModal = (dayOfWeek: DayOfWeek) => {
+  const openCreateModal = () => {
     setFeedback(null);
-    setForm(createDefaultForm(dayOfWeek));
-    setEditor({ type: "create", dayOfWeek });
+    setForm(createDefaultForm());
+    setEditor({ type: "create" });
   };
 
   const openEditModal = (task: Task) => {
@@ -72,7 +122,7 @@ export function TasksWeeklyBoard() {
       title: task.title,
       category: task.category,
       assignedMemberId: task.assignedMemberId ?? null,
-      dayOfWeek: (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) as DayOfWeek,
+      dayOfWeek: task.dayOfWeek ?? weekdayFromDate(task.dueDate),
       status: task.status,
       description: task.description ?? "",
       templateTitle: ""
@@ -157,7 +207,7 @@ export function TasksWeeklyBoard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: task.status === "done" ? "todo" : "done",
-          dayOfWeek: (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) as DayOfWeek,
+          dayOfWeek: task.dayOfWeek ?? weekdayFromDate(task.dueDate),
           assignedMemberId: task.assignedMemberId ?? null
         })
       });
@@ -170,15 +220,19 @@ export function TasksWeeklyBoard() {
     });
   };
 
-
-
-  const moveTaskToDay = async (task: Task, dayOfWeek: DayOfWeek) => {
+  const moveTaskToStatus = async (task: Task, status: Task["status"]) => {
+    if (task.status === status) return;
     await withBusyTask(task.id, async () => {
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ dayOfWeek, assignedMemberId: task.assignedMemberId ?? null, status: task.status })
+        body: JSON.stringify({
+          status,
+          dayOfWeek: task.dayOfWeek ?? weekdayFromDate(task.dueDate),
+          assignedMemberId: task.assignedMemberId ?? null
+        })
       });
+
       if (!response.ok) {
         setFeedback({ type: "error", message: "Déplacement impossible." });
         return;
@@ -187,6 +241,7 @@ export function TasksWeeklyBoard() {
       setFeedback({ type: "success", message: "Tâche déplacée." });
     });
   };
+
   const changeAssignee = async (task: Task, memberId: string) => {
     await withBusyTask(task.id, async () => {
       const response = await fetch(`/api/tasks/${task.id}`, {
@@ -194,7 +249,7 @@ export function TasksWeeklyBoard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           assignedMemberId: memberId || null,
-          dayOfWeek: (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) as DayOfWeek,
+          dayOfWeek: task.dayOfWeek ?? weekdayFromDate(task.dueDate),
           status: task.status
         })
       });
@@ -219,60 +274,67 @@ export function TasksWeeklyBoard() {
         </p>
       ) : null}
 
-      <div className="grid gap-4 xl:grid-cols-2">
-        {weekDays.map((day) => {
-          const dayTasks = state.tasks.filter(
-            (task) => (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) === day.value
-          );
+      <div className="flex justify-end">
+        <button
+          type="button"
+          className="inline-flex items-center gap-1 rounded-xl bg-[var(--brand-primary)] px-3 py-1.5 text-xs font-semibold text-white"
+          onClick={openCreateModal}
+        >
+          <Plus className="h-3.5 w-3.5" /> Ajouter une tâche
+        </button>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-4">
+        {statusColumns.map((column) => {
+          const columnTasks = state.tasks.filter((task) => task.status === column.value);
 
           return (
             <section
-              key={day.value}
+              key={column.value}
               onDragOver={(event) => event.preventDefault()}
               onDrop={(event) => {
                 event.preventDefault();
                 const taskId = event.dataTransfer.getData("text/task-id");
                 const task = state.tasks.find((t) => t.id === taskId);
-                if (task) void moveTaskToDay(task, day.value);
+                if (task) void moveTaskToStatus(task, column.value);
                 setDraggingTaskId(null);
               }}
               className="rounded-3xl border border-[#d8e5ff] bg-[linear-gradient(180deg,#ffffff,#f8fbff)] p-4 shadow-[0_10px_24px_rgba(31,66,135,0.08)]"
             >
-              <div className="mb-3 flex items-center justify-between gap-2">
-                <div>
-                  <h3 className="text-base font-semibold">{day.label}</h3>
-                  <p className="text-xs text-[var(--foreground-muted)]">{dayTasks.length} tâche(s)</p>
-                </div>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-1 rounded-xl bg-[var(--brand-primary)] px-3 py-1.5 text-xs font-semibold text-white"
-                  onClick={() => openCreateModal(day.value)}
-                >
-                  <Plus className="h-3.5 w-3.5" /> Ajouter
-                </button>
+              <div className="mb-3">
+                <h3 className="text-base font-semibold">{column.label}</h3>
+                <p className="text-xs text-[var(--foreground-muted)]">{column.description}</p>
+                <p className="text-xs text-[var(--foreground-muted)]">{columnTasks.length} tâche(s)</p>
               </div>
 
               <div className="space-y-2">
-                {dayTasks.length === 0 ? (
+                {columnTasks.length === 0 ? (
                   <p className="rounded-2xl border border-dashed border-[#d5def2] px-3 py-5 text-center text-sm text-[var(--foreground-muted)]">
-                    Aucun élément pour ce jour.
+                    Glissez une tâche ici.
                   </p>
                 ) : null}
 
-                {dayTasks.map((task) => {
+                {columnTasks.map((task) => {
                   const memberName =
                     state.profile.members.find((member) => member.id === task.assignedMemberId)?.name ?? "Non assigné";
                   const isBusy = busyTaskIds.includes(task.id);
+                  const Icon = resolveTaskIcon(task);
 
                   return (
                     <article
                       key={task.id}
                       draggable
-                      onDragStart={(event) => { event.dataTransfer.setData("text/task-id", task.id); setDraggingTaskId(task.id); }}
+                      onDragStart={(event) => {
+                        event.dataTransfer.setData("text/task-id", task.id);
+                        setDraggingTaskId(task.id);
+                      }}
                       onDragEnd={() => setDraggingTaskId(null)}
-                      className={`rounded-2xl border border-[#e5ecfa] bg-white px-3 py-2.5 ${draggingTaskId === task.id ? "opacity-60" : ""}`}
+                      className={`rounded-2xl border border-[#e5ecfa] bg-white px-3 py-2.5 ${
+                        draggingTaskId === task.id ? "opacity-60" : ""
+                      }`}
                     >
                       <div className="flex items-center gap-2">
+                        <Icon className="h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
                         <button
                           type="button"
                           className="rounded-full p-1 text-[var(--brand-primary)]"
@@ -288,7 +350,11 @@ export function TasksWeeklyBoard() {
                         </button>
 
                         <div className="min-w-0 flex-1">
-                          <p className={`text-sm font-medium ${task.status === "done" ? "text-[var(--foreground-muted)] line-through" : ""}`}>
+                          <p
+                            className={`text-sm font-medium ${
+                              task.status === "done" ? "text-[var(--foreground-muted)] line-through" : ""
+                            }`}
+                          >
                             {task.title}
                           </p>
                           <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--foreground-muted)]">
@@ -354,7 +420,7 @@ export function TasksWeeklyBoard() {
                   {editor.type === "edit" ? "Modifier la tâche" : "Ajouter une tâche"}
                 </h4>
                 <p className="text-sm text-[var(--foreground-muted)]">
-                  Édition contextuelle légère pour garder la vue planning simple.
+                  Vue en cartes glissables avec icônes automatiques selon la tâche.
                 </p>
               </div>
               <button
@@ -401,7 +467,7 @@ export function TasksWeeklyBoard() {
                     className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
                     value={form.title}
                     onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-                    placeholder="Ex: Sortir les poubelles"
+                    placeholder="Ex: Passer l'aspirateur"
                   />
                 </div>
 
@@ -435,23 +501,6 @@ export function TasksWeeklyBoard() {
                     {state.profile.members.map((member) => (
                       <option key={member.id} value={member.id}>
                         {member.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Jour</label>
-                  <select
-                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
-                    value={form.dayOfWeek}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, dayOfWeek: Number(event.target.value) as DayOfWeek }))
-                    }
-                  >
-                    {weekDays.map((day) => (
-                      <option key={`editor-${day.value}`} value={day.value}>
-                        {day.label}
                       </option>
                     ))}
                   </select>

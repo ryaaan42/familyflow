@@ -36,7 +36,7 @@ const STATUS_LABEL: Record<GoalStatus, string> = {
 };
 
 interface AddGoalFormProps {
-  onSave: (data: { title: string; description?: string; targetValue?: number; unit?: string; category: GoalCategory; dueDate?: string }) => Promise<void>;
+  onSave: (data: { title: string; description?: string; targetValue?: number; unit?: string; category: GoalCategory; dueDate?: string }) => Promise<boolean>;
   onClose: () => void;
 }
 
@@ -53,7 +53,7 @@ function AddGoalForm({ onSave, onClose }: AddGoalFormProps) {
     if (!title.trim()) return;
     setSaving(true);
     try {
-      await onSave({
+      const saved = await onSave({
         title: title.trim(),
         description: description.trim() || undefined,
         targetValue: targetValue ? Number(targetValue) : undefined,
@@ -61,7 +61,7 @@ function AddGoalForm({ onSave, onClose }: AddGoalFormProps) {
         category,
         dueDate: dueDate || undefined
       });
-      onClose();
+      if (saved) onClose();
     } finally { setSaving(false); }
   };
 
@@ -153,11 +153,12 @@ export function GoalsView() {
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setFeedback(data.error ?? "Impossible de créer l'objectif.");
-      return;
+      return false;
     }
     const g: HouseholdGoal = await res.json();
     setGoals((prev) => [g, ...prev]);
     setFeedback("Objectif enregistré.");
+    return true;
   };
 
   const updateProgress = async (id: string, currentValue: number) => {
