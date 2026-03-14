@@ -43,6 +43,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (body.data.estimatedMinutes !== undefined) updates.estimated_minutes = body.data.estimatedMinutes;
   if (body.data.status !== undefined) updates.status = body.data.status;
   if (body.data.origin !== undefined) updates.origin = body.data.origin;
+  if (body.data.dayOfWeek !== undefined) updates.due_date = toDateFromDayOfWeek(body.data.dayOfWeek);
 
   if (Object.keys(updates).length) {
     const { error } = await supabase.from("tasks").update(updates).eq("id", id).eq("household_id", household.household.id);

@@ -3,6 +3,15 @@ import { DEFAULT_TASK_LIBRARY, getDefaultTasksForHousehold } from "@/lib/task-li
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
 
+
+const toDateFromDayOfWeek = (dayOfWeek: number) => {
+  const now = new Date();
+  const monday = new Date(now);
+  const mondayOffset = (monday.getDay() + 6) % 7;
+  monday.setDate(monday.getDate() - mondayOffset + (dayOfWeek - 1));
+  return monday.toISOString().slice(0, 10);
+};
+
 type AssignmentRow = {
   task_id: string;
   member_id: string;
@@ -121,15 +130,23 @@ export async function persistAiPlanTasks(input: { householdId: string; plan: AiH
   const { data, error } = await supabase.from("tasks").insert(rows).select("id, title");
   if (error || !data) return;
 
-  for (const created of data) {
+  for (let index = 0; index < data.length; index += 1) {
+    const created = data[index];
     const suggestion = input.plan.taskFocus.find((i) => i.title === created.title);
+    const dayOfWeek = suggestion?.suggestedDayOfWeek ?? (((index % 7) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7);
+
+    await supabase
+      .from("tasks")
+      .update({ due_date: toDateFromDayOfWeek(dayOfWeek) })
+      .eq("id", created.id)
+      .eq("household_id", input.householdId);
+
     if (suggestion?.suggestedMemberId) {
-      const dayOfWeek = (((new Date(nowDate).getDay() + 6) % 7) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
       await supabase.from("task_assignments").upsert(
         {
           task_id: created.id,
           member_id: suggestion.suggestedMemberId,
-          scheduled_for: nowDate,
+          scheduled_for: toDateFromDayOfWeek(dayOfWeek),
           day_of_week: dayOfWeek,
           status: "todo"
         },

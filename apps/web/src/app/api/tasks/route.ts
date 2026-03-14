@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       description: body.data.description ?? null,
       category: body.data.category,
       frequency: body.data.frequency,
-      due_date: new Date().toISOString().slice(0, 10),
+      due_date: toDateFromDayOfWeek(body.data.dayOfWeek ?? (((new Date().getDay() + 6) % 7) + 1)),
       status: "todo",
       estimated_minutes: body.data.estimatedMinutes,
       difficulty: 1,
