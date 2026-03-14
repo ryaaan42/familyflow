@@ -72,6 +72,36 @@ export interface FeatureFlag {
   updatedAt: string;
 }
 
+
+export interface AdminSetting {
+  key: string;
+  label: string;
+  value: string;
+  section: string;
+  isSecret: boolean;
+}
+
+export interface PromoCode {
+  id: string;
+  code: string;
+  discountPercent?: number;
+  discountAmount?: number;
+  maxRedemptions?: number;
+  redeemedCount: number;
+  validUntil?: string;
+  active: boolean;
+}
+
+export interface SubscriptionPlanConfig {
+  key: string;
+  label: string;
+  stripePriceId?: string;
+  monthlyPriceCents: number;
+  description: string;
+  features: string[];
+  active: boolean;
+}
+
 export interface AdminStats {
   totalUsers: number;
   totalHouseholds: number;

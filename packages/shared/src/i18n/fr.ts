@@ -1,5 +1,5 @@
 export const fr = {
-  appName: "FamilyFlow",
+  appName: "Planille",
   dashboard: "Tableau de bord",
   tasks: "Taches",
   budget: "Budget",

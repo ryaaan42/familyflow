@@ -12,11 +12,21 @@ import {
   categoryColors,
   categoryLabels,
   DemoDataset,
-  PdfTheme,
-  type MealPlan
+  PdfTheme
 } from "@familyflow/shared";
 
 const weekdayLabels = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
+
+
+const mealIdeas = [
+  "Lundi: Pâtes légumes / Soupe maison",
+  "Mardi: Poulet riz / Omelette salade",
+  "Mercredi: Curry doux / Gratin",
+  "Jeudi: Poisson vapeur / Tacos maison",
+  "Vendredi: Bowl quinoa / Pizza maison"
+];
+
+const shoppingChecklist = ["Lait", "Oeufs", "Légumes", "Fruits", "Pâtes", "Riz", "Pain", "Yaourts"];
 
 const themeMap: Record<
   PdfTheme,
@@ -353,55 +363,6 @@ const styles = StyleSheet.create({
   progressFill: {
     height: 4,
     borderRadius: 99
-  },
-  /* ── Meal planning ── */
-  mealGrid: {
-    flexDirection: "row",
-    marginTop: 8
-  },
-  mealDayCol: {
-    flex: 1,
-    borderRadius: 12,
-    paddingTop: 8,
-    paddingRight: 6,
-    paddingBottom: 8,
-    paddingLeft: 6,
-    marginRight: 5
-  },
-  mealDayColLast: {
-    marginRight: 0
-  },
-  mealDayTitle: {
-    fontSize: 9,
-    fontWeight: 700
-  },
-  mealDayDate: {
-    fontSize: 7,
-    marginTop: 1,
-    marginBottom: 6
-  },
-  mealSlot: {
-    borderRadius: 9,
-    paddingTop: 5,
-    paddingRight: 6,
-    paddingBottom: 5,
-    paddingLeft: 6,
-    marginBottom: 4
-  },
-  mealSlotLabel: {
-    fontSize: 7,
-    textTransform: "uppercase",
-    letterSpacing: 0.8,
-    marginBottom: 2
-  },
-  mealSlotTitle: {
-    fontSize: 8,
-    fontWeight: 700,
-    lineHeight: 1.3
-  },
-  mealSlotEmpty: {
-    fontSize: 7.5,
-    fontStyle: "italic"
   }
 });
 
@@ -456,16 +417,12 @@ const getWeeklyBuckets = (data: DemoDataset) => {
   });
 };
 
-const weekdayShort = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
-
-export function FamilyFlowPdfDocument({
+export function PlanillePdfDocument({
   data,
-  theme,
-  mealPlans = []
+  theme
 }: {
   data: DemoDataset;
   theme: PdfTheme;
-  mealPlans?: MealPlan[];
 }): React.ReactElement<DocumentProps> {
   const palette = themeMap[theme];
   const savings = buildSavingsSummary(data.savingsScenarios, data.tasks, data.budgetItems);
@@ -473,12 +430,6 @@ export function FamilyFlowPdfDocument({
   const weekEnd = addDaysNative(weekStart, 6);
   const dailyTasks = getDailyTasks(data);
   const weeklyBuckets = getWeeklyBuckets(data);
-
-  // Meal planning helpers
-  const getMeal = (dayIndex: number, mealType: "lunch" | "dinner") =>
-    mealPlans.find((m) => m.dayOfWeek === dayIndex && m.mealType === mealType);
-
-  const hasMeals = mealPlans.length > 0;
 
   return (
     <Document>
@@ -495,7 +446,7 @@ export function FamilyFlowPdfDocument({
         <View style={{ ...styles.headerRibbon, backgroundColor: palette.soft }}>
           <View style={styles.headerTopRow}>
             <View style={{ maxWidth: "65%" }}>
-              <Text style={{ ...styles.eyebrow, color: palette.accent }}>FamilyFlow — Édition frigo</Text>
+              <Text style={{ ...styles.eyebrow, color: palette.accent }}>Planille — Édition frigo</Text>
               <Text style={styles.title}>Planning hebdomadaire</Text>
               <Text style={{ ...styles.subtitle, color: palette.muted }}>
                 {data.profile.household.name} — semaine du {formatDateLabel(weekStart)} au {formatDateLabel(weekEnd)}
@@ -679,6 +630,18 @@ export function FamilyFlowPdfDocument({
           })}
         </View>
 
+
+
+        <View style={{ ...styles.panel, backgroundColor: palette.soft }}>
+          <Text style={{ ...styles.sectionTitle, color: palette.text }}>Repas & courses (ajoutés au PDF)</Text>
+          <Text style={{ ...styles.smallNote, color: palette.muted }}>Plan repas hebdomadaire</Text>
+          {mealIdeas.map((meal) => (
+            <Text key={meal} style={{ ...styles.scenarioText, color: palette.text }}>{meal}</Text>
+          ))}
+          <Text style={{ ...styles.smallNote, color: palette.muted, marginTop: 8 }}>Liste de courses suggérée</Text>
+          <Text style={{ ...styles.scenarioText, color: palette.text }}>{shoppingChecklist.join(' · ')}</Text>
+        </View>
+
         {/* Budget et projections */}
         <View
           style={{
@@ -709,7 +672,7 @@ export function FamilyFlowPdfDocument({
             </View>
           </View>
 
-          {data.savingsScenarios.slice(0, hasMeals ? 2 : 3).map((scenario) => {
+          {data.savingsScenarios.slice(0, 3).map((scenario) => {
             const pct =
               scenario.monthlyCost > 0
                 ? Math.round(
@@ -737,112 +700,11 @@ export function FamilyFlowPdfDocument({
           })}
         </View>
       </Page>
-      {/* ══════════════════════════════════════════════════════════
-          PAGE 3 — Planning repas (Paysage A4) — conditionnel
-      ══════════════════════════════════════════════════════════ */}
-      {hasMeals ? (
-        <Page
-          size="A4"
-          orientation="landscape"
-          style={{ ...styles.pageLandscape, backgroundColor: palette.page, color: palette.text }}
-          wrap={false}
-        >
-          {/* Header */}
-          <View style={{ ...styles.headerRibbon, backgroundColor: palette.soft }}>
-            <View style={styles.headerTopRow}>
-              <View>
-                <Text style={{ ...styles.eyebrow, color: palette.accent }}>FamilyFlow — Planning repas</Text>
-                <Text style={styles.title}>Repas de la semaine</Text>
-                <Text style={{ ...styles.subtitle, color: palette.muted }}>
-                  {data.profile.household.name} — du {formatDateLabel(weekStart)} au {formatDateLabel(weekEnd)}
-                </Text>
-              </View>
-              <View style={{ width: 160 }}>
-                <Text style={{ ...styles.eyebrow, color: palette.muted }}>Récapitulatif</Text>
-                <View style={{ flexDirection: "row", marginTop: 6, gap: 6 }}>
-                  <View style={{ ...styles.heroMetric, backgroundColor: palette.panel, borderWidth: 1, borderColor: palette.border }}>
-                    <Text style={{ ...styles.metricLabel, color: palette.muted }}>Déjeuners</Text>
-                    <Text style={{ ...styles.metricValue, color: palette.text }}>
-                      {mealPlans.filter((m) => m.mealType === "lunch").length}/7
-                    </Text>
-                  </View>
-                  <View style={{ ...styles.heroMetric, ...styles.heroMetricLast, backgroundColor: palette.panel, borderWidth: 1, borderColor: palette.border }}>
-                    <Text style={{ ...styles.metricLabel, color: palette.muted }}>Dîners</Text>
-                    <Text style={{ ...styles.metricValue, color: palette.text }}>
-                      {mealPlans.filter((m) => m.mealType === "dinner").length}/7
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.sectionTitleRow}>
-            <Text style={styles.sectionTitle}>Menu midi & soir</Text>
-            <Text style={{ ...styles.sectionNote, color: palette.muted }}>
-              Planifié dans FamilyFlow · page 3/3
-            </Text>
-          </View>
-
-          {/* Meal grid */}
-          <View style={styles.mealGrid}>
-            {weekdayShort.map((short, i) => {
-              const dayDate = addDaysNative(weekStart, i);
-              const lunch = getMeal(i, "lunch");
-              const dinner = getMeal(i, "dinner");
-              const isLast = i === 6;
-
-              return (
-                <View
-                  key={short}
-                  style={{
-                    ...styles.mealDayCol,
-                    ...(isLast ? styles.mealDayColLast : {}),
-                    backgroundColor: palette.panel,
-                    borderWidth: 1,
-                    borderColor: palette.border
-                  }}
-                >
-                  <Text style={{ ...styles.mealDayTitle, color: palette.text }}>{short}</Text>
-                  <Text style={{ ...styles.mealDayDate, color: palette.muted }}>{formatDateLabel(dayDate)}</Text>
-
-                  {/* Midi */}
-                  <View style={{ ...styles.mealSlot, backgroundColor: palette.soft }}>
-                    <Text style={{ ...styles.mealSlotLabel, color: palette.accent }}>Midi</Text>
-                    {lunch ? (
-                      <Text style={{ ...styles.mealSlotTitle, color: palette.text }}>{lunch.title}</Text>
-                    ) : (
-                      <Text style={{ ...styles.mealSlotEmpty, color: palette.muted }}>—</Text>
-                    )}
-                  </View>
-
-                  {/* Soir */}
-                  <View style={{ ...styles.mealSlot, backgroundColor: palette.soft }}>
-                    <Text style={{ ...styles.mealSlotLabel, color: palette.accent }}>Soir</Text>
-                    {dinner ? (
-                      <Text style={{ ...styles.mealSlotTitle, color: palette.text }}>{dinner.title}</Text>
-                    ) : (
-                      <Text style={{ ...styles.mealSlotEmpty, color: palette.muted }}>—</Text>
-                    )}
-                  </View>
-                </View>
-              );
-            })}
-          </View>
-
-          <Text style={{ ...styles.smallNote, color: palette.muted, marginTop: 10 }}>
-            Modifiez le planning repas directement dans FamilyFlow → section Repas.
-          </Text>
-        </Page>
-      ) : null}
     </Document>
   );
 }
 
-export const createFamilyFlowPdfDocument = (
+export const createPlanillePdfDocument = (
   data: DemoDataset,
-  theme: PdfTheme,
-  mealPlans?: MealPlan[]
-): React.ReactElement<DocumentProps> => (
-  <FamilyFlowPdfDocument data={data} theme={theme} mealPlans={mealPlans} />
-);
+  theme: PdfTheme
+ ): React.ReactElement<DocumentProps> => <PlanillePdfDocument data={data} theme={theme} />;

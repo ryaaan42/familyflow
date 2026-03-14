@@ -119,7 +119,7 @@ export default async function SharedBirthListPage({
             </p>
           </div>
           <Link href="/" className="text-sm font-semibold text-[var(--brand-primary)]">
-            Retour a FamilyFlow
+            Retour a Planille
           </Link>
         </div>
       </Card>

@@ -7,16 +7,17 @@ import {
   Baby,
   BrainCircuit,
   Coins,
+  CreditCard,
   FileSpreadsheet,
   LayoutDashboard,
+  ListTodo,
   Settings,
   ShieldCheck,
   ShoppingCart,
   Sparkles,
   Target,
   UtensilsCrossed,
-  Users,
-  ListTodo
+  Users
 } from "lucide-react";
 import { useFamilyFlowStore } from "@familyflow/shared";
 import type { HouseholdProfile, UserProfile } from "@familyflow/shared";
@@ -76,6 +77,23 @@ const navItems = [
     activeBg: "bg-blue-100",
     activeGradient: "from-blue-500/20 to-sky-500/10"
   },
+
+  {
+    href: "/app/meals",
+    label: "Repas",
+    icon: UtensilsCrossed,
+    activeColor: "text-orange-600",
+    activeBg: "bg-orange-100",
+    activeGradient: "from-orange-500/20 to-amber-500/10"
+  },
+  {
+    href: "/app/shopping",
+    label: "Courses",
+    icon: ShoppingCart,
+    activeColor: "text-lime-700",
+    activeBg: "bg-lime-100",
+    activeGradient: "from-lime-500/20 to-emerald-500/10"
+  },
   {
     href: "/app/meals",
     label: "Repas",
@@ -115,6 +133,15 @@ const navItems = [
     activeColor: "text-amber-600",
     activeBg: "bg-amber-100",
     activeGradient: "from-amber-500/20 to-orange-500/10"
+  },
+
+  {
+    href: "/app/subscription",
+    label: "Abonnement",
+    icon: CreditCard,
+    activeColor: "text-indigo-700",
+    activeBg: "bg-indigo-100",
+    activeGradient: "from-indigo-500/20 to-violet-500/10"
   },
   {
     href: "/app/settings",
@@ -182,7 +209,7 @@ export function AppShell({ children, userProfile, householdProfile }: AppShellPr
       <aside className="premium-shell sticky top-4 h-fit rounded-[30px] border border-[#d9e6ff] bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(239,247,255,0.94))] p-4 shadow-[0_26px_70px_rgba(24,53,123,0.14)] backdrop-blur-xl md:p-5">
         {/* Brand header */}
         <div className="mb-5 rounded-[24px] border border-white/60 bg-[linear-gradient(140deg,rgba(53,89,230,0.92),rgba(109,94,244,0.86),rgba(0,169,255,0.82),rgba(46,197,161,0.76))] p-4 text-white shadow-[0_16px_40px_rgba(53,89,230,0.28)]">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">FamilyFlow</p>
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">Planille</p>
           <h1 className="mt-2 text-2xl font-bold tracking-[-0.03em]">Control Center</h1>
           <p className="mt-1.5 text-sm text-white/80">Pilotez votre vie de famille au quotidien.</p>
           <div className="mt-3 flex items-center gap-2">

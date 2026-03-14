@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
           ? `<blockquote style="border-left:3px solid #6D5EF4;padding-left:12px;color:#555;">${buyerMessage}</blockquote>`
           : ""}
         <p>Merci pour votre générosité !</p>
-        <p style="color:#888;font-size:12px;">— FamilyFlow</p>
+        <p style="color:#888;font-size:12px;">— Planille</p>
       `
     };
     console.log("[birth-list/reserve] Email to send:", JSON.stringify(emailPayload, null, 2));

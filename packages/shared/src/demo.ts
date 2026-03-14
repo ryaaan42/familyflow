@@ -18,7 +18,7 @@ const now = new Date("2026-03-11T09:00:00.000Z");
 export const createDemoDataset = (): DemoDataset => {
   const user: UserProfile = {
     id: "user-demo",
-    email: "emma@familyflow.app",
+    email: "emma@planille.app",
     displayName: "Emma Martin",
     locale: "fr-FR",
     currency: "EUR",
@@ -233,7 +233,7 @@ export const createDemoDataset = (): DemoDataset => {
       quantity: 1,
       reservedQuantity: 0,
       estimatedPrice: 420,
-      storeUrl: "https://familyflow.app/demo/poussette"
+      storeUrl: "https://planille.app/demo/poussette"
     },
     {
       id: "birth-2",

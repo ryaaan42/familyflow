@@ -118,7 +118,7 @@ export const createAiHouseholdPlan = async (
   request: AiHouseholdRequest
 ): Promise<AiHouseholdPlan> => {
   const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+  const model = process.env.OPENAI_MODEL ?? "gpt-5-mini";
 
   if (!apiKey) {
     return buildFallbackPlan(request);
@@ -164,22 +164,8 @@ export const createAiHouseholdPlan = async (
 
   let response: Response;
 
-  const systemPrompt =
-    "Tu es l'assistant IA de FamilyFlow. Tu aides un foyer francophone a repartir les taches de maniere adaptee au profil de chaque membre. " +
-    "Regles d'attribution obligatoires : " +
-    "1) Les membres avec role 'enfant' (< 12 ans en general) ne peuvent recevoir que des taches simples, legeres et sans produits chimiques. " +
-    "2) Les membres avec role 'ado' peuvent faire plus mais pas les taches physiquement lourdes ou administratives complexes. " +
-    "3) Les membres avec isPregnant=true ne doivent pas se voir assigner de taches physiquement epuisantes ou exposant a des produits chimiques. " +
-    "4) Tiens compte de l'age : un enfant de moins de 8 ans ne fait que des micro-taches (< 10 min). " +
-    "Reponds en JSON strict uniquement, sans markdown ni balises.";
-
-  const userPrompt =
-    `Analyse ce foyer et genere un plan concret, court et actionnable. ` +
-    `Donne 3 a 5 priorites de taches (avec attribution adaptee aux profils), 3 a 5 routines, 3 a 5 economies et, si le foyer attend un bebe, 1 a 5 suggestions de liste de naissance.\n\n` +
-    `Contexte:\n${JSON.stringify(compactContext)}`;
-
   try {
-    response = await fetch("https://api.openai.com/v1/chat/completions", {
+    response = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -187,12 +173,19 @@ export const createAiHouseholdPlan = async (
       },
       body: JSON.stringify({
         model,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-        response_format: { type: "json_object" },
-        max_tokens: 1400
+        instructions:
+          "Tu es l'assistant IA de Planille. Tu aides un foyer francophone a repartir les taches de maniere adaptee au profil de chaque membre. " +
+          "Regles d'attribution obligatoires : " +
+          "1) Les membres avec role 'enfant' (< 12 ans en general) ne peuvent recevoir que des taches simples, legeres et sans produits chimiques (ex : ranger ses affaires, mettre la table, nourrir un animal). " +
+          "2) Les membres avec role 'ado' peuvent faire plus mais pas les taches physiquement lourdes ou administratives complexes. " +
+          "3) Les membres avec isPregnant=true ne doivent pas se voir assigner de taches physiquement epuisantes ou exposant a des produits chimiques (menage lourd, port de charges, bricolage). Privilegie les taches administratives, cuisine legere, coordination. " +
+          "4) Tiens compte de l'age : un enfant de moins de 8 ans ne fait que des micro-taches (< 10 min). " +
+          "Reponds en JSON strict uniquement, sans markdown.",
+        input:
+          `Analyse ce foyer et genere un plan concret, court et actionnable. ` +
+          `Donne 3 a 5 priorites de taches (avec attribution adaptee aux profils), 3 a 5 routines, 3 a 5 economies et, si le foyer attend un bebe, 1 a 5 suggestions de liste de naissance.\n\n` +
+          `Contexte:\n${JSON.stringify(compactContext)}`,
+        max_output_tokens: 1400
       })
     });
   } catch {
@@ -203,11 +196,11 @@ export const createAiHouseholdPlan = async (
     return buildFallbackPlan(request);
   }
 
-  const payload = (await response.json()) as { choices?: { message?: { content?: string } }[] };
+  const payload = (await response.json()) as { output_text?: string };
   let maybeJson: unknown;
 
   try {
-    maybeJson = JSON.parse(extractJsonBlock(payload.choices?.[0]?.message?.content ?? ""));
+    maybeJson = JSON.parse(extractJsonBlock(payload.output_text ?? ""));
   } catch {
     return buildFallbackPlan(request);
   }

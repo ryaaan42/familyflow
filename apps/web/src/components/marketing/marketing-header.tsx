@@ -11,7 +11,7 @@ export function MarketingHeader() {
         <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#6D5EF4,#3559e6,#00a9ff)] shadow-[0_8px_20px_rgba(53,89,230,0.32)]">
           <span className="text-base leading-none text-white">🏠</span>
         </span>
-        <span className="text-[var(--foreground)]">FamilyFlow</span>
+        <span className="text-[var(--foreground)]">Planille</span>
         <span className="hidden rounded-full bg-[rgba(46,197,161,0.18)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[var(--brand-mint-strong)] sm:inline">
           Beta
         </span>

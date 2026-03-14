@@ -73,3 +73,48 @@ export async function exportAllDataGdpr(): Promise<string> {
 
   return JSON.stringify(exportData, null, 2);
 }
+
+export async function updateAdminSetting(key: string, value: string) {
+  const supabase = await requireAdmin();
+  const { error } = await supabase.from("site_settings").update({ value }).eq("key", key);
+  if (error) throw new Error(error.message);
+}
+
+export async function createPromoCode(input: {
+  code: string;
+  discountPercent?: number;
+  discountAmount?: number;
+  maxRedemptions?: number;
+  validUntil?: string;
+}) {
+  const supabase = await requireAdmin();
+  const { error } = await supabase.from("promo_codes").insert({
+    code: input.code.toUpperCase(),
+    discount_percent: input.discountPercent ?? null,
+    discount_amount: input.discountAmount ?? null,
+    max_redemptions: input.maxRedemptions ?? null,
+    valid_until: input.validUntil ?? null
+  });
+  if (error) throw new Error(error.message);
+}
+
+export async function togglePromoCode(id: string, active: boolean) {
+  const supabase = await requireAdmin();
+  const { error } = await supabase.from("promo_codes").update({ active }).eq("id", id);
+  if (error) throw new Error(error.message);
+}
+
+export async function updateSubscriptionPlanConfig(
+  key: string,
+  updates: { monthlyPriceCents?: number; stripePriceId?: string; description?: string; features?: string[]; active?: boolean }
+) {
+  const supabase = await requireAdmin();
+  const { error } = await supabase.from("subscription_plans").update({
+    monthly_price_cents: updates.monthlyPriceCents,
+    stripe_price_id: updates.stripePriceId,
+    description: updates.description,
+    features: updates.features,
+    active: updates.active
+  }).eq("key", key);
+  if (error) throw new Error(error.message);
+}

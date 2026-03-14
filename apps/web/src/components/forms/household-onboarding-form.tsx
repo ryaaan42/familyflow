@@ -7,6 +7,7 @@ import { householdSchema } from "@familyflow/shared";
 import { useFamilyFlowStore } from "@familyflow/shared";
 import { z } from "zod";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { buildBirthListSlug } from "@/lib/slug";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -42,6 +43,10 @@ export function HouseholdOnboardingForm() {
     setSaved(false);
 
     const supabase = createSupabaseBrowserClient();
+    const resolvedSlug = values.isExpectingBaby
+      ? (values.birthListShareSlug?.trim() || buildBirthListSlug(values.name, profile.household.id.slice(0, 6)))
+      : null;
+
     const { error: dbError } = await supabase
       .from("households")
       .update({
@@ -53,7 +58,7 @@ export function HouseholdOnboardingForm() {
         city: values.city ?? null,
         is_expecting_baby: values.isExpectingBaby,
         pregnancy_due_date: values.pregnancyDueDate || null,
-        birth_list_share_slug: values.birthListShareSlug ?? null
+        birth_list_share_slug: resolvedSlug
       })
       .eq("id", profile.household.id);
 
@@ -77,7 +82,7 @@ export function HouseholdOnboardingForm() {
           city: values.city,
           isExpectingBaby: values.isExpectingBaby,
           pregnancyDueDate: values.pregnancyDueDate || undefined,
-          birthListShareSlug: values.birthListShareSlug
+          birthListShareSlug: resolvedSlug ?? undefined
         }
       }
     }));
