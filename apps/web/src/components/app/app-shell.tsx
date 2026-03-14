@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -11,13 +11,15 @@ import {
   FileSpreadsheet,
   LayoutDashboard,
   ListTodo,
+  MoreHorizontal,
   Settings,
   ShieldCheck,
   ShoppingCart,
   Sparkles,
   Target,
   UtensilsCrossed,
-  Users
+  Users,
+  X
 } from "lucide-react";
 import { useFamilyFlowStore } from "@familyflow/shared";
 import type { HouseholdProfile, UserProfile } from "@familyflow/shared";
@@ -171,6 +173,9 @@ const navItems = [
   }
 ];
 
+// Bottom tab items for mobile (most important 4, plus "More")
+const BOTTOM_TAB_HREFS = ["/app", "/app/tasks", "/app/budget", "/app/household"];
+
 interface AppShellProps {
   children: React.ReactNode;
   userProfile: UserProfile | null;
@@ -180,6 +185,7 @@ interface AppShellProps {
 export function AppShell({ children, userProfile, householdProfile }: AppShellProps) {
   const pathname = usePathname();
   const initialized = useRef(false);
+  const [moreOpen, setMoreOpen] = useState(false);
 
   if (!initialized.current) {
     initialized.current = true;
@@ -212,10 +218,14 @@ export function AppShell({ children, userProfile, householdProfile }: AppShellPr
     return true;
   });
 
+  const bottomTabs = visibleItems.filter((item) => BOTTOM_TAB_HREFS.includes(item.href));
+  const moreItems = visibleItems.filter((item) => !BOTTOM_TAB_HREFS.includes(item.href));
+  const isMoreActive = !BOTTOM_TAB_HREFS.includes(pathname) && pathname.startsWith("/app");
+
   return (
     <div className="mx-auto grid min-h-screen w-full max-w-[1640px] gap-4 px-3 py-3 md:px-4 lg:py-4 xl:grid-cols-[272px_minmax(0,1fr)] xl:gap-5 xl:px-5">
-      {/* ── Sidebar ── */}
-      <aside className="sticky top-3 h-fit xl:top-4">
+      {/* ── Sidebar (desktop only) ── */}
+      <aside className="sticky top-3 hidden h-fit xl:block xl:top-4">
         <div className="rounded-[26px] border border-white/80 bg-white/90 p-3 shadow-[0_8px_32px_rgba(79,70,229,0.1),0_2px_8px_rgba(79,70,229,0.06)] backdrop-blur-xl">
           {/* Brand header */}
           <div className="mb-3 overflow-hidden rounded-[20px] bg-[linear-gradient(140deg,#1e1b4b_0%,#4338ca_35%,#7c3aed_60%,#0ea5e9_100%)] p-4 text-white shadow-[0_8px_24px_rgba(79,70,229,0.36)]">
@@ -234,7 +244,7 @@ export function AppShell({ children, userProfile, householdProfile }: AppShellPr
             </div>
           </div>
 
-          {/* Navigation — scrollable on mobile, grid on xl */}
+          {/* Navigation */}
           <nav className="flex gap-1.5 overflow-x-auto pb-1 xl:grid xl:overflow-visible">
             {visibleItems.map((item) => {
               const Icon = item.icon;
@@ -289,10 +299,145 @@ export function AppShell({ children, userProfile, householdProfile }: AppShellPr
       </aside>
 
       {/* ── Main content ── */}
-      <main className="min-w-0 space-y-4">
+      <main className="min-w-0 space-y-4 pb-24 xl:pb-4">
         <AppHeader />
         {children}
       </main>
+
+      {/* ── Mobile bottom tab bar ── */}
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/80 bg-white/95 backdrop-blur-xl xl:hidden">
+        <div className="mx-auto flex max-w-lg items-center px-2 pb-safe-area-inset-bottom">
+          {bottomTabs.map((item) => {
+            const Icon = item.icon;
+            const active = pathname === item.href;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="flex flex-1 flex-col items-center gap-1 py-2.5 transition-all"
+              >
+                <span
+                  className={cn(
+                    "flex h-10 w-10 items-center justify-center rounded-[14px] transition-all duration-200",
+                    active ? `${item.bg} ${item.color} shadow-sm` : "text-[#9ca3af]"
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span
+                  className={cn(
+                    "text-[10px] font-semibold leading-none",
+                    active ? item.color : "text-[#9ca3af]"
+                  )}
+                >
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+
+          {/* More button */}
+          <button
+            type="button"
+            onClick={() => setMoreOpen(true)}
+            className="flex flex-1 flex-col items-center gap-1 py-2.5"
+          >
+            <span
+              className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-[14px] transition-all duration-200",
+                isMoreActive ? "bg-gray-100 text-[#1f2937]" : "text-[#9ca3af]"
+              )}
+            >
+              <MoreHorizontal className="h-5 w-5" />
+            </span>
+            <span
+              className={cn(
+                "text-[10px] font-semibold leading-none",
+                isMoreActive ? "text-[#1f2937]" : "text-[#9ca3af]"
+              )}
+            >
+              Plus
+            </span>
+          </button>
+        </div>
+      </nav>
+
+      {/* ── Mobile "More" drawer ── */}
+      {moreOpen && (
+        <div className="fixed inset-0 z-50 xl:hidden">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => setMoreOpen(false)}
+          />
+
+          {/* Drawer */}
+          <div className="absolute bottom-0 left-0 right-0 rounded-t-[28px] bg-white shadow-2xl">
+            {/* Handle + header */}
+            <div className="flex items-center justify-between px-5 pt-4 pb-2">
+              <div>
+                <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-gray-200" />
+                <p className="text-sm font-bold text-[#0f0e1a]">Navigation</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMoreOpen(false)}
+                className="rounded-full p-2 text-[#9ca3af] hover:bg-gray-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {/* Nav grid */}
+            <div className="grid grid-cols-3 gap-2 px-4 pb-4 pt-2">
+              {moreItems.map((item) => {
+                const Icon = item.icon;
+                const active = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMoreOpen(false)}
+                    className={cn(
+                      "flex flex-col items-center gap-2 rounded-[18px] border px-2 py-3.5 transition-all",
+                      active
+                        ? `border-transparent bg-gradient-to-br ${item.activeGradient} ${item.color}`
+                        : "border-[#f3f4f6] bg-[#f9f9fb] text-[#6b7280]"
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-10 w-10 items-center justify-center rounded-[14px]",
+                        active ? `${item.bg} ${item.color}` : "bg-white text-[#9ca3af] shadow-sm"
+                      )}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </span>
+                    <span className="text-center text-[11px] font-semibold leading-tight">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* User info + sign out */}
+            <div className="border-t border-[#f3f4f6] px-4 py-4">
+              <div className="mb-3 flex items-center gap-3 rounded-[16px] border border-[#e0e7ff] bg-gradient-to-br from-indigo-50 to-violet-50 p-3.5">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#4f46e5,#7c3aed)] text-sm font-bold text-white shadow-[0_4px_12px_rgba(79,70,229,0.3)]">
+                  {(user.displayName || "?").charAt(0).toUpperCase()}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-semibold text-[#1f2937]">{user.displayName || "Utilisateur"}</p>
+                  <p className="truncate text-xs text-[#9ca3af]">{user.email}</p>
+                </div>
+              </div>
+              <SignOutButton />
+            </div>
+
+            {/* Safe area bottom padding */}
+            <div className="h-safe-area-inset-bottom" />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
