@@ -9,7 +9,7 @@ import type {
 
 const aiPlanSchema = z.object({
   headline: z.string(),
-  summary: z.string(),
+  summary: z.string().min(120),
   taskFocus: z.array(
     z.object({
       title: z.string(),
@@ -17,16 +17,17 @@ const aiPlanSchema = z.object({
       who: z.string(),
       when: z.string()
     })
-  ).max(5),
-  routines: z.array(z.string()).max(5),
-  savingsMoves: z.array(z.string()).max(5),
+  ).min(5).max(12),
+  routines: z.array(z.string().min(20)).min(4).max(10),
+  savingsMoves: z.array(z.string().min(20)).min(3).max(8),
   birthListSuggestions: z.array(
     z.object({
       title: z.string(),
       reason: z.string(),
       priority: z.enum(["essentiel", "utile", "confort"])
     })
-  ).max(5)
+  ).max(8),
+  notes: z.array(z.string().min(20)).min(2).max(6).default([])
 });
 
 export interface AiHouseholdRequest {
@@ -180,10 +181,11 @@ export const createAiHouseholdPlan = async (
           "2) Les membres avec role 'ado' peuvent faire plus mais pas les taches physiquement lourdes ou administratives complexes. " +
           "3) Les membres avec isPregnant=true ne doivent pas se voir assigner de taches physiquement epuisantes ou exposant a des produits chimiques (menage lourd, port de charges, bricolage). Privilegie les taches administratives, cuisine legere, coordination. " +
           "4) Tiens compte de l'age : un enfant de moins de 8 ans ne fait que des micro-taches (< 10 min). " +
-          "Reponds en JSON strict uniquement, sans markdown.",
+          "Reponds en JSON strict uniquement, sans markdown. Le JSON doit respecter exactement: headline, summary, taskFocus, routines, savingsMoves, birthListSuggestions, notes.",
         input:
-          `Analyse ce foyer et genere un plan concret, court et actionnable. ` +
-          `Donne 3 a 5 priorites de taches (avec attribution adaptee aux profils), 3 a 5 routines, 3 a 5 economies et, si le foyer attend un bebe, 1 a 5 suggestions de liste de naissance.\n\n` +
+          `Analyse ce foyer et genere un plan détaillé, structuré et immédiatement exploitable. ` +
+          `Donne au minimum 5 tâches recommandées (avec attribution explicite), 4 routines matin/soir, 3 optimisations budget, des points d'attention, et des notes d'organisation. ` +
+          `Chaque suggestion doit être précise et concrète (pas de formulation vague).\n\n` +
           `Contexte:\n${JSON.stringify(compactContext)}`,
         max_output_tokens: 1400
       })

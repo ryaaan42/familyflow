@@ -128,13 +128,24 @@ export function TasksMemberBoard({ draggingTaskId, onDragEnd }: Props) {
   const state = useFamilyFlowStore();
   const [dragOverId, setDragOverId] = useState<string | null>(null);
 
-  const handleDrop = (memberId: string | null) => {
+  const handleDrop = async (memberId: string | null) => {
     if (!draggingTaskId) return;
-    if (memberId === null) {
+
+    const response = await fetch(`/api/tasks/${draggingTaskId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ assignedMemberId: memberId })
+    });
+
+    if (response.ok) {
+      const tasks = (await response.json()) as Task[];
+      useFamilyFlowStore.setState({ tasks });
+    } else if (memberId === null) {
       state.unassignTask(draggingTaskId);
     } else {
       state.assignTask(draggingTaskId, memberId);
     }
+
     setDragOverId(null);
     onDragEnd();
   };

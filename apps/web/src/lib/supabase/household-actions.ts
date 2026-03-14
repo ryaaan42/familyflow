@@ -18,7 +18,7 @@ export interface CreateHouseholdInput {
 export interface CreateMemberInput {
   displayName: string;
   age: number;
-  role: "parent" | "adulte" | "ado" | "enfant" | "autre";
+  role?: "parent" | "adulte" | "ado" | "enfant" | "autre";
   avatarColor: string;
   isAdmin?: boolean;
   isPregnant?: boolean;
@@ -57,6 +57,18 @@ export async function createHouseholdWithMembers(
 
   // Utiliser la fonction RPC pour créer le foyer + membres en une seule transaction.
   // Le RPC bypasse le cache schema PostgREST et garantit l'atomicité.
+  const normalizedMembers = members.map((m, i) => {
+    const role = m.age <= 3 ? "autre" : m.age <= 11 ? "enfant" : m.age <= 17 ? "ado" : "adulte";
+    return {
+      displayName: m.displayName,
+      age: m.age,
+      role,
+      avatarColor: m.avatarColor,
+      isAdmin: i === 0,
+      isPregnant: m.isPregnant ?? false
+    };
+  });
+
   const { data: householdId, error: rpcError } = await supabase.rpc(
     "create_household_with_members",
     {
@@ -69,14 +81,7 @@ export async function createHouseholdWithMembers(
       p_city: household.city ?? "",
       p_is_expecting_baby: household.isExpectingBaby ?? false,
       p_pregnancy_due_date: household.pregnancyDueDate || null,
-      p_members: members.map((m, i) => ({
-        displayName: m.displayName,
-        age: m.age,
-        role: m.role,
-        avatarColor: m.avatarColor,
-        isAdmin: i === 0,
-        isPregnant: m.isPregnant ?? false
-      }))
+      p_members: normalizedMembers
     }
   );
 
@@ -102,7 +107,7 @@ export async function addHouseholdMember(
       household_id: householdId,
       display_name: member.displayName,
       age: member.age,
-      role: member.role,
+      role: member.age <= 3 ? "autre" : member.age <= 11 ? "enfant" : member.age <= 17 ? "ado" : "adulte",
       avatar_color: member.avatarColor,
       availability_hours_per_week: 10,
       is_admin: member.isAdmin ?? false,
@@ -123,7 +128,7 @@ export async function updateHouseholdMember(
   updates: Partial<{
     displayName: string;
     age: number;
-    role: "parent" | "adulte" | "ado" | "enfant" | "autre";
+    role?: "parent" | "adulte" | "ado" | "enfant" | "autre";
     avatarColor: string;
     isPregnant: boolean;
   }>
@@ -133,7 +138,6 @@ export async function updateHouseholdMember(
   const dbUpdates: Record<string, unknown> = {};
   if (updates.displayName !== undefined) dbUpdates.display_name = updates.displayName;
   if (updates.age !== undefined) dbUpdates.age = updates.age;
-  if (updates.role !== undefined) dbUpdates.role = updates.role;
   if (updates.avatarColor !== undefined) dbUpdates.avatar_color = updates.avatarColor;
   if (updates.isPregnant !== undefined) dbUpdates.is_pregnant = updates.isPregnant;
 

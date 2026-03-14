@@ -1,5 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { getPromoCodes, getSubscriptionPlansConfig } from "@/lib/supabase/admin-queries";
+import { CheckoutButton } from "@/components/app/checkout-button";
 
 const euro = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" });
 
@@ -20,6 +21,7 @@ export default async function SubscriptionPage() {
             <ul className="mt-3 space-y-1 text-sm text-[var(--foreground-muted)]">
               {plan.features.map((feature) => <li key={feature}>• {feature}</li>)}
             </ul>
+            {plan.monthlyPriceCents > 0 && <CheckoutButton priceId={plan.stripePriceId} />}
           </Card>
         ))}
       </div>

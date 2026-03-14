@@ -8,6 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, ChevronRight, Home, Users, Target, Plus, Trash2 } from "lucide-react";
 
 import { createHouseholdWithMembers } from "@/lib/supabase/household-actions";
+import { getMemberCategoryFromAge } from "@/lib/household-member";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -42,7 +43,7 @@ const membersStep = z.object({
       z.object({
         displayName: z.string().min(2, "Minimum 2 caractères"),
         age: z.coerce.number().min(0).max(120),
-        role: z.enum(["parent", "adulte", "ado", "enfant", "autre"]),
+        role: z.enum(["adulte", "ado", "enfant", "bebe"]),
         avatarColor: z.string(),
         isPregnant: z.boolean()
       })
@@ -67,14 +68,13 @@ const OBJECTIVES = [
 ];
 
 const ROLE_LABELS: Record<string, string> = {
-  parent: "Parent",
   adulte: "Adulte",
-  ado: "Adolescent",
+  ado: "Ado",
   enfant: "Enfant",
-  autre: "Autre"
+  bebe: "Bébé"
 };
 
-const PREGNANT_ROLES = new Set(["parent", "adulte"]);
+const PREGNANT_ROLES = new Set(["adulte"]);
 
 export function OnboardingWizard({ displayName }: { displayName: string }) {
   const router = useRouter();
@@ -108,7 +108,7 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
         {
           displayName: displayName || "",
           age: 30,
-          role: "parent",
+          role: "adulte",
           avatarColor: AVATAR_COLORS[0],
           isPregnant: false
         }
@@ -151,14 +151,17 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
         pregnancyDueDate: householdData.pregnancyDueDate || undefined,
         objective: selectedObjective
       },
-      membersValues.members.map((m, i) => ({
-        displayName: m.displayName,
-        age: m.age,
-        role: m.role,
-        avatarColor: m.avatarColor,
-        isAdmin: i === 0,
-        isPregnant: m.isPregnant
-      }))
+      membersValues.members.map((m, i) => {
+        const category = getMemberCategoryFromAge(m.age);
+        return {
+          displayName: m.displayName,
+          age: m.age,
+          role: category === "bebe" ? "autre" : category,
+          avatarColor: m.avatarColor,
+          isAdmin: i === 0,
+          isPregnant: m.isPregnant
+        };
+      })
     );
 
     setSubmitting(false);
@@ -168,7 +171,8 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
       return;
     }
 
-    router.push("/app");
+    await fetch("/api/onboarding/finalize", { method: "POST" });
+    router.push("/app/tasks");
     router.refresh();
   };
 
@@ -380,17 +384,10 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
                     </div>
 
                     <div className="space-y-1.5">
-                      <Label>Rôle *</Label>
-                      <select
-                        className="flex h-11 w-full rounded-2xl border border-[var(--border)] bg-white px-4 text-sm"
-                        {...membersForm.register(`members.${index}.role`)}
-                      >
-                        {Object.entries(ROLE_LABELS).map(([value, label]) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </select>
+                      <Label>Catégorie</Label>
+                      <div className="h-11 rounded-2xl border border-[var(--border)] bg-white px-4 text-sm flex items-center">
+                        {ROLE_LABELS[getMemberCategoryFromAge(Number(membersForm.watch(`members.${index}.age`) || 0))]}
+                      </div>
                     </div>
 
                     <div className="space-y-1.5">
