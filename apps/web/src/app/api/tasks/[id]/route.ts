@@ -55,31 +55,30 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   const assignmentFieldsProvided = body.data.assignedMemberId !== undefined || body.data.dayOfWeek !== undefined || body.data.status !== undefined;
   if (assignmentFieldsProvided) {
     if (body.data.assignedMemberId === null) {
-      const deletion = await supabase.from("task_assignments").delete().eq("task_id", id).eq("household_id", household.household.id);
+      const deletion = await supabase.from("task_assignments").delete().eq("task_id", id);
       if (deletion.error) return NextResponse.json({ error: deletion.error.message }, { status: 500 });
     } else {
       const { data: existingAssignment } = await supabase
         .from("task_assignments")
-        .select("member_id, day_of_week, status")
+        .select("member_id, status")
         .eq("task_id", id)
         .maybeSingle();
 
       const resolvedMemberId = body.data.assignedMemberId ?? (existingAssignment?.member_id as string | undefined);
       if (resolvedMemberId) {
-        const fallbackDayOfWeek = body.data.dayOfWeek ?? (existingAssignment?.day_of_week as number | undefined) ?? (((new Date().getDay() + 6) % 7) + 1);
-        const upsert = await supabase.from("task_assignments").upsert(
-          {
-            task_id: id,
-            member_id: resolvedMemberId,
-            household_id: household.household.id,
-            day_of_week: fallbackDayOfWeek,
-            scheduled_for: toDateFromDayOfWeek(fallbackDayOfWeek),
-            status: body.data.status ?? (existingAssignment?.status as string | undefined) ?? "todo"
-          },
-          { onConflict: "task_id" }
-        );
+        const fallbackDayOfWeek = body.data.dayOfWeek ?? (((new Date().getDay() + 6) % 7) + 1);
+        const resolvedStatus = body.data.status ?? (existingAssignment?.status as string | undefined) ?? "todo";
 
-        if (upsert.error) return NextResponse.json({ error: upsert.error.message }, { status: 500 });
+        // Delete then insert — avoids onConflict issues across schema versions
+        await supabase.from("task_assignments").delete().eq("task_id", id);
+        const { error: insertError } = await supabase.from("task_assignments").insert({
+          task_id: id,
+          member_id: resolvedMemberId,
+          scheduled_for: toDateFromDayOfWeek(fallbackDayOfWeek),
+          status: resolvedStatus
+        });
+
+        if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
       }
     }
   }

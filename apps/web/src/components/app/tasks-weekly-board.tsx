@@ -279,7 +279,9 @@ export function TasksWeeklyBoard() {
       });
 
       if (!response.ok) {
-        setFeedback({ type: "error", message: "Assignation impossible." });
+        let detail = "";
+        try { detail = (await response.json()).error ?? ""; } catch { /* ignore */ }
+        setFeedback({ type: "error", message: `Erreur ${response.status}${detail ? ` : ${detail}` : " : Assignation impossible."}` });
         return;
       }
       await refreshFrom(response);

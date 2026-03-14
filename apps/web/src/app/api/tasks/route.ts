@@ -79,19 +79,15 @@ export async function POST(request: NextRequest) {
 
   if (body.data.assignedMemberId) {
     const dayOfWeek = body.data.dayOfWeek ?? (((new Date().getDay() + 6) % 7) + 1);
-    const assignmentResult = await supabase.from("task_assignments").upsert(
-      {
-        task_id: data.id,
-        member_id: body.data.assignedMemberId,
-        scheduled_for: toDateFromDayOfWeek(dayOfWeek),
-        day_of_week: dayOfWeek,
-        status: "todo"
-      },
-      { onConflict: "task_id" }
-    );
+    const { error: assignError } = await supabase.from("task_assignments").insert({
+      task_id: data.id,
+      member_id: body.data.assignedMemberId,
+      scheduled_for: toDateFromDayOfWeek(dayOfWeek),
+      status: "todo"
+    });
 
-    if (assignmentResult.error) {
-      return NextResponse.json({ error: assignmentResult.error.message }, { status: 500 });
+    if (assignError) {
+      return NextResponse.json({ error: assignError.message }, { status: 500 });
     }
   }
 
