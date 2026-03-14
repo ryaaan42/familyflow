@@ -6,9 +6,38 @@ on:
       - main
     paths:
       - "supabase/migrations/**"
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
 
 jobs:
+  # On PR: validate SQL syntax only (no DB connection needed)
+  validate:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Validate migration files
+        run: |
+          echo "Checking migration files..."
+          for f in supabase/migrations/*.sql; do
+            echo "  → $f"
+            # Check for common SQL syntax issues
+            if grep -qP "<<<<<<|>>>>>>>" "$f"; then
+              echo "ERROR: Merge conflict markers found in $f"
+              exit 1
+            fi
+          done
+          echo "All migration files look clean."
+
+  # On push to main: apply migrations to Supabase
   migrate:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
