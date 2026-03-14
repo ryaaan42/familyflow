@@ -1,9 +1,10 @@
 "use client";
 
 import { useFamilyFlowStore } from "@familyflow/shared";
-import { CalendarDays, CheckCircle2, Clock, ListTodo } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, ListTodo, Sparkles } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 import { TasksAiPanel } from "@/components/app/tasks-ai-panel";
 import { TasksWeeklyBoard } from "@/components/app/tasks-weekly-board";
 
@@ -21,73 +22,59 @@ export function TasksView() {
   const memberNames = state.profile.members.map((m) => m.name).join(", ");
 
   const stats = [
-    { icon: ListTodo, label: "Total", value: total, bg: "bg-white/10" },
-    { icon: CheckCircle2, label: "Fait", value: done, bg: "bg-emerald-500/20" },
-    { icon: Clock, label: "En cours", value: inProgress, bg: "bg-amber-400/20" },
-    { icon: CalendarDays, label: "Aujourd'hui", value: todayTasks, bg: "bg-sky-400/20" }
+    { icon: ListTodo, label: "Total", value: total, tint: "from-violet-500/20 to-indigo-500/5" },
+    { icon: CheckCircle2, label: "Terminées", value: done, tint: "from-emerald-500/20 to-emerald-500/5" },
+    { icon: Clock, label: "En cours", value: inProgress, tint: "from-amber-500/20 to-orange-500/5" },
+    { icon: CalendarDays, label: "Aujourd'hui", value: todayTasks, tint: "from-sky-500/20 to-cyan-500/5" }
   ];
 
   return (
-    <div className="space-y-4">
-      {/* ── Hero ── */}
-      <div className="relative overflow-hidden rounded-[28px] bg-[linear-gradient(135deg,#1e3a8a_0%,#3730a3_30%,#6D5EF4_65%,#818cf8_100%)] p-6 text-white shadow-[0_20px_60px_rgba(79,70,229,0.4)] md:p-8">
-        {/* Decorative orbs */}
-        <div className="pointer-events-none absolute -right-16 -top-16 h-72 w-72 rounded-full bg-white/5 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-12 -left-12 h-56 w-56 rounded-full bg-violet-400/15 blur-3xl" />
-
-        <div className="relative grid gap-6 md:grid-cols-[1fr_auto]">
-          {/* Left: copy */}
+    <div className="space-y-5">
+      <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_0%_0%,#4338ca_0%,#312e81_40%,#0f172a_100%)] text-white shadow-[0_20px_60px_rgba(49,46,129,0.45)]">
+        <div className="grid gap-6 p-6 md:grid-cols-[1.2fr_0.8fr] md:p-8">
           <div className="space-y-4">
-            <Badge variant="white">Planning hebdomadaire</Badge>
-            <div>
-              <h2 className="text-2xl font-bold tracking-[-0.03em] md:text-4xl">
-                {total > 0
-                  ? `${done} tâche${done > 1 ? "s" : ""} complétée${done > 1 ? "s" : ""} · ${pct}%`
-                  : "Organisez votre semaine"}
+            <Badge variant="white">Zone tâches</Badge>
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
+                {total > 0 ? `${done} / ${total} tâches validées` : "Créez votre cockpit de tâches"}
               </h2>
-              <p className="mt-2 max-w-lg text-sm text-white/75">
+              <p className="max-w-2xl text-sm text-white/75">
                 {memberNames
-                  ? `${memberNames} · ${total} tâche${total > 1 ? "s" : ""} planifiée${total > 1 ? "s" : ""} cette semaine`
-                  : "Ajoutez votre foyer puis générez un plan personnalisé avec l'IA."}
+                  ? `${memberNames} · suivi hebdomadaire en temps réel et meilleure répartition de la charge.`
+                  : "Ajoutez votre foyer, puis générez des tâches intelligentes avec l'IA."}
               </p>
             </div>
-
-            {total > 0 && (
-              <div className="flex max-w-xs items-center gap-3">
-                <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/20">
-                  <div
-                    className="h-full rounded-full bg-white transition-all duration-700"
-                    style={{ width: `${pct}%` }}
-                  />
-                </div>
-                <span className="text-xs font-bold text-white/80">{pct}%</span>
+            <div className="flex max-w-sm items-center gap-3">
+              <div className="h-2 flex-1 overflow-hidden rounded-full bg-white/15">
+                <div className="h-full rounded-full bg-white transition-all duration-500" style={{ width: `${pct}%` }} />
               </div>
-            )}
+              <span className="text-xs font-bold">{pct}%</span>
+            </div>
           </div>
 
-          {/* Right: stat chips */}
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2">
             {stats.map((stat) => {
               const Icon = stat.icon;
               return (
-                <div
-                  key={stat.label}
-                  className={`rounded-2xl border border-white/15 ${stat.bg} p-3 backdrop-blur-md`}
-                >
-                  <Icon className="mb-1 h-4 w-4 text-white/60" />
+                <div key={stat.label} className={`rounded-2xl border border-white/20 bg-gradient-to-b ${stat.tint} p-3 backdrop-blur-md`}>
+                  <Icon className="mb-1.5 h-4 w-4 text-white/75" />
                   <p className="text-xl font-bold">{stat.value}</p>
-                  <p className="text-[10px] font-medium text-white/60">{stat.label}</p>
+                  <p className="text-[11px] text-white/70">{stat.label}</p>
                 </div>
               );
             })}
           </div>
         </div>
-      </div>
+      </Card>
 
-      {/* ── AI Panel ── */}
+      <Card className="border-[#e0e7ff] bg-[linear-gradient(180deg,#ffffff_0%,#f8faff_100%)]">
+        <div className="flex items-center gap-2 p-4 text-sm text-[#4f46e5]">
+          <Sparkles className="h-4 w-4" />
+          Nouveau design : meilleure lisibilité, résumé instantané et progression visible.
+        </div>
+      </Card>
+
       <TasksAiPanel />
-
-      {/* ── Weekly board ── */}
       <TasksWeeklyBoard />
     </div>
   );
