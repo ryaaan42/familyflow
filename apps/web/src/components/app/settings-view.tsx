@@ -43,22 +43,19 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean
   );
 }
 
-const planDetails: Record<string, { label: string; variant: "default" | "violet" | "mint"; features: string[]; gradient: string }> = {
+const planDetails: Record<string, { label: string; gradient: string; features: string[] }> = {
   free: {
     label: "Gratuit",
-    variant: "dark",
     gradient: "from-gray-800 to-gray-900",
     features: ["1 foyer", "15 tâches max", "Export PDF basique"]
   },
   plus: {
     label: "Plus",
-    variant: "blue",
     gradient: "from-blue-600 to-indigo-700",
     features: ["Foyer illimité", "PDF multi-thèmes", "Assistant IA", "Historique 6 mois"]
   },
   "family-pro": {
     label: "Family Pro",
-    variant: "violet",
     gradient: "from-violet-600 to-purple-700",
     features: ["Tout Plus", "Alertes budget", "Export avancé", "Support prioritaire"]
   }
