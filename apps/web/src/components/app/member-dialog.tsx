@@ -37,8 +37,8 @@ const memberSchema = z.object({
   age: z.coerce.number().min(0).max(120),
   role: z.enum(["parent", "adulte", "ado", "enfant", "autre"]),
   avatarColor: z.string(),
-  isFemale: z.boolean().default(false),
-  isPregnant: z.boolean().default(false)
+  isFemale: z.boolean(),
+  isPregnant: z.boolean()
 });
 
 type MemberFormValues = z.infer<typeof memberSchema>;
