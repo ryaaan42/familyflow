@@ -249,3 +249,12 @@ Etat partage web/mobile:
 - La logique est volontairement centralisee dans `@familyflow/shared` pour reduire la divergence web/mobile.
 - Le mode demo permet de travailler le produit et l'UX avant de brancher toutes les mutations serveur.
 - Les versions de packages sont des points de depart coherents pour la V1 et doivent etre rafraichies avant un lancement reel si de nouveaux patches sont sortis.
+
+## Billing Stripe (V1)
+
+Variables attendues dans `apps/web`:
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
+
+Webhooks à pointer vers `/api/stripe/webhook`.

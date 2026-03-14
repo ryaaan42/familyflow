@@ -132,6 +132,7 @@ export interface HouseholdMember {
   name: string;
   age: number;
   role: Role;
+  memberCategory?: "adulte" | "ado" | "enfant" | "bebe";
   avatarColor: string;
   availabilityHoursPerWeek: number;
   isPregnant?: boolean;
@@ -181,6 +182,7 @@ export interface Task {
   difficulty: 1 | 2 | 3 | 4 | 5;
   indirectCostPerMonth?: number;
   assignedMemberId?: string;
+  dayOfWeek?: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   templateId?: string;
   minimumAge?: number;
   recommendedRoles?: Role[];
@@ -275,6 +277,17 @@ export interface AiHouseholdPlanItem {
   reason: string;
   who: string;
   when: string;
+  category?: TaskCategory;
+  frequency?: Frequency;
+  suggestedMemberId?: string;
+  estimatedMinutes?: number;
+  suggestedDayOfWeek?: number;
+}
+
+export interface AiRoutineSuggestion {
+  title: string;
+  timing: "matin" | "soir" | "hebdomadaire";
+  steps: string[];
 }
 
 export interface AiBirthListSuggestion {
@@ -290,6 +303,9 @@ export interface AiHouseholdPlan {
   routines: string[];
   savingsMoves: string[];
   birthListSuggestions: AiBirthListSuggestion[];
+  notes?: string[];
+  routineSuggestions?: AiRoutineSuggestion[];
+  budgetSuggestions?: string[];
   usedFallback: boolean;
 }
 

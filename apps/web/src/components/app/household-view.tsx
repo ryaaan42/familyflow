@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 
 import { HouseholdOnboardingForm } from "@/components/forms/household-onboarding-form";
 import { MemberManager } from "@/components/app/member-dialog";
+import { PetManager } from "@/components/app/pet-manager";
 
 export function HouseholdView() {
   const state = useFamilyFlowStore();
@@ -27,7 +28,7 @@ export function HouseholdView() {
               {state.profile.household.rooms} pièces
               {state.profile.household.city ? `, ${state.profile.household.city}` : ""}
             </p>
-            {state.profile.household.isExpectingBaby ? (
+          {state.profile.household.isExpectingBaby ? (
               <div className="rounded-[24px] border border-white/16 bg-white/10 px-4 py-3 text-sm text-white/82 backdrop-blur-md">
                 Naissance en préparation pour {expectingParent?.name ?? "le foyer"}.
                 Terme estimé le {state.profile.household.pregnancyDueDate ?? "à définir"}.
@@ -73,6 +74,12 @@ export function HouseholdView() {
                 <div className="flex-1" />
               </div>
               <MemberManager householdId={state.profile.household.id} />
+            </div>
+          </Card>
+
+          <Card>
+            <div className="p-6">
+              <PetManager />
             </div>
           </Card>
 

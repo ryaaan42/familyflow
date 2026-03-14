@@ -180,9 +180,23 @@ interface AppShellProps {
   children: React.ReactNode;
   userProfile: UserProfile | null;
   householdProfile: HouseholdProfile;
+  initialTasks?: ReturnType<typeof useFamilyFlowStore.getState>["tasks"];
+  initialCompletions?: ReturnType<typeof useFamilyFlowStore.getState>["completions"];
+  initialBudgetItems?: ReturnType<typeof useFamilyFlowStore.getState>["budgetItems"];
+  initialSavingsScenarios?: ReturnType<typeof useFamilyFlowStore.getState>["savingsScenarios"];
+  initialBirthListItems?: ReturnType<typeof useFamilyFlowStore.getState>["birthListItems"];
 }
 
-export function AppShell({ children, userProfile, householdProfile }: AppShellProps) {
+export function AppShell({
+  children,
+  userProfile,
+  householdProfile,
+  initialTasks = [],
+  initialCompletions = [],
+  initialBudgetItems = [],
+  initialSavingsScenarios = [],
+  initialBirthListItems = []
+}: AppShellProps) {
   const pathname = usePathname();
   const initialized = useRef(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -200,11 +214,11 @@ export function AppShell({ children, userProfile, householdProfile }: AppShellPr
         isAdmin: false
       },
       profile: householdProfile,
-      tasks: [],
-      completions: [],
-      budgetItems: [],
-      savingsScenarios: [],
-      birthListItems: [],
+      tasks: initialTasks,
+      completions: initialCompletions,
+      budgetItems: initialBudgetItems,
+      savingsScenarios: initialSavingsScenarios,
+      birthListItems: initialBirthListItems,
       hydratedFromDemo: false,
       ready: true
     });

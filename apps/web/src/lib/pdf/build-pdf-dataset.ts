@@ -38,16 +38,20 @@ export async function buildPdfDatasetForCurrentUser(): Promise<DemoDataset | nul
   const { data: assignmentsData } = taskIds.length
     ? await supabase
         .from("task_assignments")
-        .select("task_id, member_id, created_at")
+        .select("task_id, member_id, day_of_week, status, scheduled_for, created_at")
         .in("task_id", taskIds)
         .order("created_at", { ascending: false })
     : { data: [] as Array<Record<string, unknown>> };
 
-  const assignmentByTask = new Map<string, string>();
+  const assignmentByTask = new Map<string, { memberId: string; dayOfWeek?: number; status?: Task["status"] }>();
   (assignmentsData ?? []).forEach((row) => {
     const taskId = row.task_id as string;
     if (!assignmentByTask.has(taskId)) {
-      assignmentByTask.set(taskId, row.member_id as string);
+      assignmentByTask.set(taskId, {
+        memberId: row.member_id as string,
+        dayOfWeek: (row.day_of_week as number | null) ?? undefined,
+        status: (row.status as Task["status"] | null) ?? undefined
+      });
     }
   });
 
@@ -59,12 +63,13 @@ export async function buildPdfDatasetForCurrentUser(): Promise<DemoDataset | nul
     category: task.category as Task["category"],
     frequency: task.frequency as Task["frequency"],
     dueDate: task.due_date as string,
-    status: task.status as Task["status"],
+    status: (assignmentByTask.get(task.id as string)?.status ?? task.status) as Task["status"],
     estimatedMinutes: toNumber(task.estimated_minutes),
     difficulty: toNumber(task.difficulty) as Task["difficulty"],
     indirectCostPerMonth:
       task.indirect_cost_per_month !== null ? toNumber(task.indirect_cost_per_month) : undefined,
-    assignedMemberId: assignmentByTask.get(task.id as string),
+    assignedMemberId: assignmentByTask.get(task.id as string)?.memberId,
+    dayOfWeek: assignmentByTask.get(task.id as string)?.dayOfWeek as Task["dayOfWeek"],
     templateId: (task.template_id as string | null) ?? undefined,
     minimumAge: (task.minimum_age as number | null) ?? undefined,
     recommendedRoles: ((task.recommended_roles as Task["recommendedRoles"]) ?? []) as Task["recommendedRoles"],
