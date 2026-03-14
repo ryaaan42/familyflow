@@ -90,7 +90,20 @@ export async function getUserHousehold(): Promise<HouseholdProfile | null> {
     .limit(1)
     .maybeSingle();
 
-  const householdId = (memberLink?.household_id as string | undefined) ?? null;
+  const householdIdFromMembership = (memberLink?.household_id as string | undefined) ?? null;
+
+  let householdId = householdIdFromMembership;
+  if (!householdId) {
+    const { data: ownedHousehold } = await supabase
+      .from("households")
+      .select("id")
+      .eq("owner_user_id", user.id)
+      .is("deleted_at", null)
+      .limit(1)
+      .maybeSingle();
+
+    householdId = (ownedHousehold?.id as string | undefined) ?? null;
+  }
 
   const { data: householdData, error: householdError } = await supabase
     .from("households")
