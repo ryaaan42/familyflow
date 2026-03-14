@@ -34,8 +34,12 @@ export async function POST(request: NextRequest) {
   const household = await getUserHousehold();
   if (!household) return NextResponse.json({ error: "Foyer introuvable" }, { status: 404 });
 
-  const body = createSchema.safeParse(await request.json());
-  if (!body.success) return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
+  const rawBody = await request.json();
+  const body = createSchema.safeParse(rawBody);
+  if (!body.success) {
+    const issues = body.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+    return NextResponse.json({ error: `Validation: ${issues}` }, { status: 400 });
+  }
 
   const { data, error } = await supabase
     .from("tasks")
