@@ -117,6 +117,7 @@ export function TasksWeeklyBoard() {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dragOverDay, setDragOverDay] = useState<number | null>(null);
+  const [showDeleteAll, setShowDeleteAll] = useState(false);
 
   const quickTemplates = useMemo(() => getTaskTemplatesForPets(state.profile.pets), [state.profile.pets]);
   const todayDow = currentDayOfWeek();
@@ -199,6 +200,17 @@ export function TasksWeeklyBoard() {
     await refreshFrom(response);
     setEditor(null);
     setFeedback({ type: "success", message: editor?.type === "edit" ? "Tâche modifiée." : "Tâche ajoutée." });
+  };
+
+  const deleteAllTasks = async () => {
+    setShowDeleteAll(false);
+    const response = await fetch("/api/tasks", { method: "DELETE" });
+    if (!response.ok) {
+      setFeedback({ type: "error", message: "Impossible de tout supprimer." });
+      return;
+    }
+    useFamilyFlowStore.setState({ tasks: [] });
+    setFeedback({ type: "success", message: "Toutes les tâches ont été supprimées." });
   };
 
   const deleteTask = async (taskId: string) => {
@@ -295,13 +307,24 @@ export function TasksWeeklyBoard() {
             </div>
           </div>
         </div>
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 rounded-2xl bg-[#6D5EF4] px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(109,94,244,0.35)] transition hover:bg-[#5b4ee0] active:scale-95"
-          onClick={() => openCreateModal()}
-        >
-          <Plus className="h-4 w-4" /> Ajouter une tâche
-        </button>
+        <div className="flex items-center gap-2">
+          {state.tasks.length > 0 && (
+            <button
+              type="button"
+              className="inline-flex items-center gap-1.5 rounded-2xl border border-rose-200 px-4 py-2 text-sm font-semibold text-rose-500 transition hover:bg-rose-50 active:scale-95"
+              onClick={() => setShowDeleteAll(true)}
+            >
+              <Trash2 className="h-4 w-4" /> Tout supprimer
+            </button>
+          )}
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 rounded-2xl bg-[#6D5EF4] px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(109,94,244,0.35)] transition hover:bg-[#5b4ee0] active:scale-95"
+            onClick={() => openCreateModal()}
+          >
+            <Plus className="h-4 w-4" /> Ajouter une tâche
+          </button>
+        </div>
       </div>
 
       {feedback ? (
@@ -528,6 +551,49 @@ export function TasksWeeklyBoard() {
           );
         })}
       </div>
+
+      {/* Delete-all confirmation */}
+      {showDeleteAll ? (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 backdrop-blur-md"
+          onClick={(e) => { if (e.target === e.currentTarget) setShowDeleteAll(false); }}
+        >
+          <div className="w-full max-w-sm overflow-hidden rounded-3xl bg-white shadow-[0_32px_80px_rgba(17,24,39,0.22)] ring-1 ring-black/5">
+            <div className="flex items-center gap-3 bg-gradient-to-r from-rose-500 to-rose-400 px-6 py-4">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+                <Trash2 className="h-4 w-4 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-white">Tout supprimer</p>
+                <p className="text-xs text-white/70">Cette action est irréversible</p>
+              </div>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-[var(--foreground-muted)]">
+                Vous êtes sur le point de supprimer{" "}
+                <strong className="text-[var(--foreground)]">{state.tasks.length} tâche{state.tasks.length > 1 ? "s" : ""}</strong>.
+                Le tableau sera entièrement vidé.
+              </p>
+              <div className="flex gap-2.5">
+                <button
+                  type="button"
+                  className="flex-1 rounded-2xl border border-[#e8e4f8] py-2.5 text-sm font-medium text-[var(--foreground-muted)] transition hover:bg-[#f9f8ff]"
+                  onClick={() => setShowDeleteAll(false)}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  className="flex-[2] rounded-2xl bg-rose-500 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-600 active:scale-[0.98]"
+                  onClick={deleteAllTasks}
+                >
+                  Oui, tout supprimer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {/* Create/Edit modal */}
       {editor ? (
