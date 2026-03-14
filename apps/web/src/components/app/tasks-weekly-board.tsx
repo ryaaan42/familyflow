@@ -349,6 +349,36 @@ export function TasksWeeklyBoard() {
         </div>
       ) : null}
 
+      {/* Day pill navigator */}
+      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        {weekdays.map((day) => {
+          const count = state.tasks.filter((t) => t.dayOfWeek === day.value).length;
+          const isToday = day.value === todayDow;
+          return (
+            <a
+              key={day.value}
+              href={`#day-${day.value}`}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-150 ${
+                isToday
+                  ? "bg-[#6D5EF4] text-white shadow-[0_2px_8px_rgba(109,94,244,0.35)]"
+                  : "bg-[#f0f3fb] text-[#6b7280] hover:bg-[#e4e9f8] hover:text-[#4b5563]"
+              }`}
+            >
+              {day.label}
+              {count > 0 && (
+                <span
+                  className={`flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${
+                    isToday ? "bg-white/25 text-white" : "bg-[#6D5EF4]/15 text-[#6D5EF4]"
+                  }`}
+                >
+                  {count}
+                </span>
+              )}
+            </a>
+          );
+        })}
+      </div>
+
       {/* Weekly columns */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
         {weekdays.map((day) => {
@@ -359,6 +389,7 @@ export function TasksWeeklyBoard() {
           return (
             <section
               key={day.value}
+              id={`day-${day.value}`}
               onDragOver={(event) => {
                 event.preventDefault();
                 setDragOverDay(day.value);

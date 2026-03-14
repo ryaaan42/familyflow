@@ -269,26 +269,27 @@ export function AppShell({
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "group flex shrink-0 items-center gap-2.5 rounded-[14px] border px-3 py-2 text-sm font-medium transition-all duration-150",
+                    "group relative flex shrink-0 items-center gap-2.5 rounded-[14px] px-3 py-2.5 text-sm font-medium transition-all duration-150 overflow-hidden",
                     active
-                      ? `border-transparent bg-gradient-to-r ${item.activeGradient} ${item.color} font-semibold shadow-[0_2px_8px_rgba(0,0,0,0.06)]`
-                      : "border-transparent text-[#6b7280] hover:bg-gray-50 hover:text-[#1f2937] hover:border-[#f3f4f6]"
+                      ? `bg-gradient-to-r ${item.activeGradient} ${item.color} font-semibold shadow-[0_2px_12px_rgba(0,0,0,0.08)]`
+                      : "text-[#6b7280] hover:bg-[#f8f9ff] hover:text-[#1f2937]"
                   )}
                 >
+                  {/* Left border accent when active */}
+                  {active && (
+                    <span className={cn("absolute left-0 top-2 bottom-2 w-[3px] rounded-full", item.dot)} />
+                  )}
                   <span
                     className={cn(
                       "flex h-7 w-7 shrink-0 items-center justify-center rounded-[10px] transition-all duration-150",
                       active
-                        ? `${item.bg} ${item.color}`
-                        : "bg-gray-100 text-[#9ca3af] group-hover:bg-gray-200 group-hover:text-[#6b7280]"
+                        ? `${item.bg} ${item.color} shadow-sm`
+                        : "bg-gray-100 text-[#9ca3af] group-hover:bg-indigo-50 group-hover:text-indigo-400"
                     )}
                   >
                     <Icon className="h-3.5 w-3.5" />
                   </span>
                   <span className="truncate">{item.label}</span>
-                  {active && (
-                    <span className={cn("ml-auto h-1.5 w-1.5 shrink-0 rounded-full", item.dot)} />
-                  )}
                 </Link>
               );
             })}
@@ -319,8 +320,8 @@ export function AppShell({
       </main>
 
       {/* ── Mobile bottom tab bar ── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-white/80 bg-white/95 backdrop-blur-xl xl:hidden">
-        <div className="mx-auto flex max-w-lg items-center px-2 pb-safe-area-inset-bottom">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 border-t border-[#ebebf0] bg-white/97 shadow-[0_-4px_24px_rgba(0,0,0,0.06)] backdrop-blur-xl xl:hidden">
+        <div className="mx-auto flex max-w-lg items-center px-1 pb-safe-area-inset-bottom">
           {bottomTabs.map((item) => {
             const Icon = item.icon;
             const active = pathname === item.href;
@@ -328,24 +329,27 @@ export function AppShell({
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex flex-1 flex-col items-center gap-1 py-2.5 transition-all"
+                className="flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1.5 transition-all"
               >
                 <span
                   className={cn(
-                    "flex h-10 w-10 items-center justify-center rounded-[14px] transition-all duration-200",
-                    active ? `${item.bg} ${item.color} shadow-sm` : "text-[#9ca3af]"
+                    "flex h-10 w-10 items-center justify-center rounded-2xl transition-all duration-200",
+                    active ? `${item.bg} ${item.color} shadow-[0_2px_8px_rgba(0,0,0,0.1)] scale-105` : "text-[#a1a1aa]"
                   )}
                 >
                   <Icon className="h-5 w-5" />
                 </span>
                 <span
                   className={cn(
-                    "text-[10px] font-semibold leading-none",
-                    active ? item.color : "text-[#9ca3af]"
+                    "text-[10px] font-semibold leading-none tracking-tight",
+                    active ? item.color : "text-[#a1a1aa]"
                   )}
                 >
                   {item.label}
                 </span>
+                {active && (
+                  <span className={cn("mt-0.5 h-1 w-4 rounded-full", item.dot)} />
+                )}
               </Link>
             );
           })}
@@ -354,24 +358,27 @@ export function AppShell({
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
-            className="flex flex-1 flex-col items-center gap-1 py-2.5"
+            className="flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1.5"
           >
             <span
               className={cn(
-                "flex h-10 w-10 items-center justify-center rounded-[14px] transition-all duration-200",
-                isMoreActive ? "bg-gray-100 text-[#1f2937]" : "text-[#9ca3af]"
+                "flex h-10 w-10 items-center justify-center rounded-2xl transition-all duration-200",
+                isMoreActive ? "bg-gray-100 text-[#374151] scale-105 shadow-[0_2px_8px_rgba(0,0,0,0.1)]" : "text-[#a1a1aa]"
               )}
             >
               <MoreHorizontal className="h-5 w-5" />
             </span>
             <span
               className={cn(
-                "text-[10px] font-semibold leading-none",
-                isMoreActive ? "text-[#1f2937]" : "text-[#9ca3af]"
+                "text-[10px] font-semibold leading-none tracking-tight",
+                isMoreActive ? "text-[#374151]" : "text-[#a1a1aa]"
               )}
             >
               Plus
             </span>
+            {isMoreActive && (
+              <span className="mt-0.5 h-1 w-4 rounded-full bg-gray-400" />
+            )}
           </button>
         </div>
       </nav>

@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 import {
   ArrowRight,
   CalendarRange,
@@ -43,13 +42,7 @@ export function HeroSection() {
 
       <div className="grid gap-14 lg:grid-cols-[1.08fr_0.92fr] lg:items-center">
         {/* ── Left: copy ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="space-y-8"
-        >
+        <div className="animate-fade-in-up space-y-8">
           <div className="flex flex-wrap items-center gap-3">
             <Badge variant="mint" className="gap-1.5">
               <Sparkles className="h-3.5 w-3.5" />
@@ -108,32 +101,26 @@ export function HeroSection() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         {/* ── Right: app mockup ── */}
-        <div className="panel-3d relative mx-auto flex w-full max-w-[560px] justify-center [perspective:2000px]">
+        <div className="relative mx-auto flex w-full max-w-[560px] justify-center [perspective:2000px]">
           {floating.map((item, index) => (
-            <motion.div
+            <div
               key={item.label}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.2 + 0.15 * index }}
-              className={`absolute hidden flex-col rounded-[16px] border border-white/70 bg-white/90 px-4 py-2.5 shadow-[0_20px_40px_rgba(57,47,133,0.12)] backdrop-blur-md md:flex ${item.className}`}
+              className={`animate-fade-in-up absolute hidden flex-col rounded-[16px] border border-white/70 bg-white/90 px-4 py-2.5 shadow-[0_20px_40px_rgba(57,47,133,0.12)] backdrop-blur-md md:flex ${item.className}`}
+              style={{ animationDelay: `${0.2 + 0.15 * index}s` }}
             >
               <p className="text-[10px] font-semibold uppercase tracking-widest text-[var(--foreground-subtle)]">
                 {item.label}
               </p>
               <p className="mt-0.5 text-sm font-bold">{item.value}</p>
-            </motion.div>
+            </div>
           ))}
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.94, y: 20 }}
-            whileInView={{ opacity: 1, scale: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-            className="relative z-10 w-full rounded-[38px] border border-white/60 bg-white p-3.5 shadow-[0_48px_120px_rgba(109,94,244,0.2),0_12px_32px_rgba(0,0,0,0.06)] [transform:rotateY(-8deg)_rotateX(5deg)]"
+          <div
+            className="animate-fade-in-up relative z-10 w-full rounded-[38px] border border-white/60 bg-white p-3.5 shadow-[0_48px_120px_rgba(109,94,244,0.2),0_12px_32px_rgba(0,0,0,0.06)] [transform:rotateY(-8deg)_rotateX(5deg)]"
+            style={{ animationDelay: "0.15s" }}
           >
             <div className="overflow-hidden rounded-[28px]">
               {/* App header */}
@@ -149,13 +136,7 @@ export function HeroSection() {
                   </div>
                 </div>
                 <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/20">
-                  <motion.div
-                    initial={{ width: 0 }}
-                    whileInView={{ width: "82%" }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1.2, delay: 0.6, ease: "easeOut" }}
-                    className="h-2 rounded-full bg-white"
-                  />
+                  <div className="h-2 w-[82%] rounded-full bg-white" />
                 </div>
               </div>
 
@@ -223,17 +204,14 @@ export function HeroSection() {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </div>
 
       {/* Feature strip */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.6, delay: 0.5 }}
-        className="mt-14 grid gap-4 sm:grid-cols-3"
+      <div
+        className="animate-fade-in-up mt-14 grid gap-4 sm:grid-cols-3"
+        style={{ animationDelay: "0.5s" }}
       >
         {[
           {
@@ -273,7 +251,7 @@ export function HeroSection() {
             </div>
           </Card>
         ))}
-      </motion.div>
+      </div>
     </section>
   );
 }
