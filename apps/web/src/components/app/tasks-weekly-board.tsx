@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 
 import { getTaskTemplatesForPets } from "@/lib/task-library";
+import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 
 const categoryValues = Object.keys(categoryLabels) as Array<keyof typeof categoryLabels>;
 
@@ -543,19 +545,21 @@ export function TasksWeeklyBoard() {
 
                         {/* Actions (hover) */}
                         <div className="mt-2 flex items-center justify-between gap-1 border-t border-[#f0f4f8] pt-1.5 opacity-0 transition-opacity group-hover:opacity-100">
-                          <select
-                            className="flex-1 rounded-lg border border-[#e8eef8] bg-[#fafcff] px-1.5 py-0.5 text-[10px] text-[var(--foreground-muted)] focus:border-[#6D5EF4] focus:outline-none"
-                            value={task.assignedMemberId ?? ""}
-                            onChange={(e) => changeAssignee(task, e.target.value)}
-                            disabled={isBusy}
-                          >
-                            <option value="">Non assigné</option>
-                            {state.profile.members.map((member) => (
-                              <option key={`${task.id}-${member.id}`} value={member.id}>
-                                {member.name}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="relative flex-1">
+                            <select
+                              className="w-full appearance-none rounded-lg border border-[#e8eef8] bg-[#fafcff] px-2 py-1 pr-5 text-[10px] text-[var(--foreground-muted)] focus:border-[#6D5EF4] focus:outline-none"
+                              value={task.assignedMemberId ?? ""}
+                              onChange={(e) => changeAssignee(task, e.target.value)}
+                              disabled={isBusy}
+                            >
+                              <option value="">Non assigné</option>
+                              {state.profile.members.map((member) => (
+                                <option key={`${task.id}-${member.id}`} value={member.id}>
+                                  {member.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                           <button
                             type="button"
                             className="rounded-lg p-1 text-[#a0aec0] hover:bg-[#f0f4ff] hover:text-[#6D5EF4]"
@@ -660,9 +664,8 @@ export function TasksWeeklyBoard() {
               {/* Template picker */}
               {editor.type === "create" && quickTemplates.length > 0 ? (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-[var(--foreground-muted)]">Modèle rapide</p>
-                  <select
-                    className="w-full rounded-2xl border border-[#ede9fe] bg-[#faf8ff] px-3.5 py-2.5 text-sm text-[var(--foreground)] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/12"
+                  <p className="text-xs font-semibold text-[var(--foreground-muted)]">Modèle rapide</p>
+                  <Select
                     value={form.templateTitle}
                     onChange={(event) => {
                       const selected = quickTemplates.find((t) => t.title === event.target.value);
@@ -681,15 +684,14 @@ export function TasksWeeklyBoard() {
                         {template.title}
                       </option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               ) : null}
 
               {/* Task name */}
               <div className="space-y-2">
-                <p className="text-xs font-medium text-[var(--foreground-muted)]">Nom de la tâche</p>
-                <input
-                  className="w-full rounded-2xl border border-[#e8e4f8] bg-[#fdfcff] px-4 py-3 text-sm font-medium text-[var(--foreground)] placeholder-[#c4bde8] transition focus:border-[#6D5EF4] focus:bg-white focus:outline-none focus:ring-3 focus:ring-[#6D5EF4]/10"
+                <p className="text-xs font-semibold text-[var(--foreground-muted)]">Nom de la tâche</p>
+                <Input
                   value={form.title}
                   onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
                   placeholder="Ex : Passer l'aspirateur"
@@ -724,25 +726,24 @@ export function TasksWeeklyBoard() {
                   <p className="text-xs font-medium text-[var(--foreground-muted)]">Catégorie</p>
                   <div className="flex items-center gap-2">
                     <span
-                      className="h-2.5 w-2.5 shrink-0 rounded-full"
+                      className="h-3 w-3 shrink-0 rounded-full shadow-sm"
                       style={{ backgroundColor: categoryColors[form.category] ?? "#6D5EF4" }}
                     />
-                    <select
-                      className="min-w-0 flex-1 rounded-2xl border border-[#e8e4f8] bg-white px-3 py-2.5 text-sm text-[var(--foreground)] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/10"
+                    <Select
+                      className="min-w-0 flex-1"
                       value={form.category}
                       onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value as Task["category"] }))}
                     >
                       {categoryValues.map((cat) => (
                         <option key={cat} value={cat}>{categoryLabels[cat]}</option>
                       ))}
-                    </select>
+                    </Select>
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-[var(--foreground-muted)]">Pour qui</p>
-                  <select
-                    className="w-full rounded-2xl border border-[#e8e4f8] bg-white px-3.5 py-2.5 text-sm text-[var(--foreground)] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/10"
+                  <p className="text-xs font-semibold text-[var(--foreground-muted)]">Pour qui</p>
+                  <Select
                     value={form.assignedMemberId ?? ""}
                     onChange={(event) => setForm((prev) => ({ ...prev, assignedMemberId: event.target.value || null }))}
                   >
@@ -750,7 +751,7 @@ export function TasksWeeklyBoard() {
                     {state.profile.members.map((member) => (
                       <option key={member.id} value={member.id}>{member.name}</option>
                     ))}
-                  </select>
+                  </Select>
                 </div>
               </div>
 
@@ -783,9 +784,9 @@ export function TasksWeeklyBoard() {
 
               {/* Notes */}
               <div className="space-y-2">
-                <p className="text-xs font-medium text-[var(--foreground-muted)]">Notes <span className="opacity-50">(optionnel)</span></p>
+                <p className="text-xs font-semibold text-[var(--foreground-muted)]">Notes <span className="font-normal opacity-50">(optionnel)</span></p>
                 <textarea
-                  className="w-full resize-none rounded-2xl border border-[#e8e4f8] bg-[#fdfcff] px-4 py-3 text-sm placeholder-[#c4bde8] transition focus:border-[#6D5EF4] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/10"
+                  className="w-full resize-none rounded-2xl border border-[#d6e2ff] bg-[rgba(255,255,255,0.94)] px-4 py-3 text-sm shadow-[0_8px_22px_rgba(24,53,123,0.05)] outline-none transition placeholder:text-[var(--foreground-subtle)] focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[rgba(53,89,230,0.14)]"
                   rows={2}
                   value={form.description}
                   onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
