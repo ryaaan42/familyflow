@@ -149,6 +149,7 @@ export interface HouseholdMember {
   memberCategory?: "adulte" | "ado" | "enfant" | "bebe";
   avatarColor: string;
   availabilityHoursPerWeek: number;
+  isFemale?: boolean;
   isPregnant?: boolean;
   favoriteCategories: TaskCategory[];
   blockedCategories: TaskCategory[];

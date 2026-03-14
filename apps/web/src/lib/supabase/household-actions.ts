@@ -21,6 +21,7 @@ export interface CreateMemberInput {
   role?: "parent" | "adulte" | "ado" | "enfant" | "autre";
   avatarColor: string;
   isAdmin?: boolean;
+  isFemale?: boolean;
   isPregnant?: boolean;
 }
 
@@ -66,6 +67,7 @@ export async function createHouseholdWithMembers(
       role,
       avatarColor: m.avatarColor,
       isAdmin: i === 0,
+      isFemale: m.isFemale ?? false,
       isPregnant: m.isPregnant ?? false
     };
   });
@@ -112,6 +114,7 @@ export async function addHouseholdMember(
       avatar_color: member.avatarColor,
       availability_hours_per_week: 10,
       is_admin: member.isAdmin ?? false,
+      is_female: member.isFemale ?? false,
       is_pregnant: member.isPregnant ?? false
     })
     .select("id")
@@ -131,6 +134,7 @@ export async function updateHouseholdMember(
     age: number;
     role?: "parent" | "adulte" | "ado" | "enfant" | "autre";
     avatarColor: string;
+    isFemale: boolean;
     isPregnant: boolean;
   }>
 ): Promise<{ error: string | null }> {
@@ -140,6 +144,7 @@ export async function updateHouseholdMember(
   if (updates.displayName !== undefined) dbUpdates.display_name = updates.displayName;
   if (updates.age !== undefined) dbUpdates.age = updates.age;
   if (updates.avatarColor !== undefined) dbUpdates.avatar_color = updates.avatarColor;
+  if (updates.isFemale !== undefined) dbUpdates.is_female = updates.isFemale;
   if (updates.isPregnant !== undefined) dbUpdates.is_pregnant = updates.isPregnant;
 
   const { error } = await supabase

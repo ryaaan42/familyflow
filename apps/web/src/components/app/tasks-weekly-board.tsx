@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Circle,
   FileText,
+  GripVertical,
   Home,
   Pencil,
   Plus,
@@ -26,21 +27,34 @@ import { getTaskTemplatesForPets } from "@/lib/task-library";
 
 const categoryValues = Object.keys(categoryLabels) as Array<keyof typeof categoryLabels>;
 
-const statusColumns: Array<{ value: Task["status"]; label: string; description: string }> = [
-  { value: "todo", label: "À faire", description: "Tâches à démarrer" },
-  { value: "in_progress", label: "En cours", description: "Tâches en traitement" },
-  { value: "done", label: "Terminé", description: "Tâches validées" },
-  { value: "late", label: "En retard", description: "À rattraper" }
+const categoryColors: Record<string, string> = {
+  menage: "#6D5EF4",
+  cuisine: "#FF7E6B",
+  animaux: "#56C7A1",
+  enfants: "#FFBF5A",
+  administratif: "#468BFF",
+  budget: "#4AB5A4",
+  courses: "#FF8DB2",
+  hygiene: "#A07BFF",
+  entretien: "#3AB0FF",
+  routine: "#7AC74F"
+};
+
+const statusColumns: Array<{ value: Task["status"]; label: string }> = [
+  { value: "todo", label: "À faire" },
+  { value: "in_progress", label: "En cours" },
+  { value: "done", label: "Terminé" },
+  { value: "late", label: "En retard" }
 ];
 
 const weekdays = [
-  { value: 1, label: "Lundi" },
-  { value: 2, label: "Mardi" },
-  { value: 3, label: "Mercredi" },
-  { value: 4, label: "Jeudi" },
-  { value: 5, label: "Vendredi" },
-  { value: 6, label: "Samedi" },
-  { value: 7, label: "Dimanche" }
+  { value: 1, label: "Lun", full: "Lundi" },
+  { value: 2, label: "Mar", full: "Mardi" },
+  { value: 3, label: "Mer", full: "Mercredi" },
+  { value: 4, label: "Jeu", full: "Jeudi" },
+  { value: 5, label: "Ven", full: "Vendredi" },
+  { value: 6, label: "Sam", full: "Samedi" },
+  { value: 7, label: "Dim", full: "Dimanche" }
 ];
 
 type TaskEditorMode = { type: "create" } | { type: "edit"; task: Task } | null;
@@ -53,12 +67,6 @@ type TaskFormState = {
   status: Task["status"];
   description: string;
   templateTitle: string;
-};
-
-const weekdayFromDate = (dateLike: string) => {
-  const date = new Date(dateLike);
-  const day = date.getDay();
-  return day === 0 ? 7 : day;
 };
 
 const currentDayOfWeek = () => ((new Date().getDay() + 6) % 7) + 1;
@@ -88,24 +96,15 @@ const resolveTaskIcon = (task: Task): LucideIcon => {
   if (titleIncludes(task.title, ["bébé", "enfant", "devoir", "école"])) return Baby;
 
   switch (task.category) {
-    case "courses":
-      return ShoppingCart;
-    case "cuisine":
-      return Utensils;
-    case "hygiene":
-      return ShowerHead;
-    case "administratif":
-      return FileText;
-    case "budget":
-      return Wallet;
-    case "entretien":
-      return Wrench;
-    case "enfants":
-      return Baby;
-    case "menage":
-      return Sparkles;
-    default:
-      return Home;
+    case "courses": return ShoppingCart;
+    case "cuisine": return Utensils;
+    case "hygiene": return ShowerHead;
+    case "administratif": return FileText;
+    case "budget": return Wallet;
+    case "entretien": return Wrench;
+    case "enfants": return Baby;
+    case "menage": return Sparkles;
+    default: return Home;
   }
 };
 
@@ -117,12 +116,14 @@ export function TasksWeeklyBoard() {
   const [busyTaskIds, setBusyTaskIds] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+  const [dragOverDay, setDragOverDay] = useState<number | null>(null);
 
   const quickTemplates = useMemo(() => getTaskTemplatesForPets(state.profile.pets), [state.profile.pets]);
+  const todayDow = currentDayOfWeek();
 
-  const openCreateModal = () => {
+  const openCreateModal = (dayOfWeek?: number) => {
     setFeedback(null);
-    setForm(createDefaultForm());
+    setForm({ ...createDefaultForm(), dayOfWeek: dayOfWeek ?? currentDayOfWeek() });
     setEditor({ type: "create" });
   };
 
@@ -132,7 +133,7 @@ export function TasksWeeklyBoard() {
       title: task.title,
       category: task.category,
       assignedMemberId: task.assignedMemberId ?? null,
-      dayOfWeek: task.dayOfWeek ?? weekdayFromDate(task.dueDate),
+      dayOfWeek: task.dayOfWeek ?? currentDayOfWeek(),
       status: task.status,
       description: task.description ?? "",
       templateTitle: ""
@@ -217,8 +218,8 @@ export function TasksWeeklyBoard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           status: task.status === "done" ? "todo" : "done",
-          dayOfWeek: task.dayOfWeek ?? weekdayFromDate(task.dueDate),
-          assignedMemberId: task.assignedMemberId ?? null
+          dayOfWeek: task.dayOfWeek ?? currentDayOfWeek(),
+          ...(task.assignedMemberId ? { assignedMemberId: task.assignedMemberId } : {})
         })
       });
 
@@ -231,16 +232,15 @@ export function TasksWeeklyBoard() {
   };
 
   const moveTaskToDay = async (task: Task, dayOfWeek: number) => {
-    if ((task.dayOfWeek ?? weekdayFromDate(task.dueDate)) === dayOfWeek) return;
+    if (task.dayOfWeek === dayOfWeek) return;
     await withBusyTask(task.id, async () => {
+      const body: Record<string, unknown> = { status: task.status, dayOfWeek };
+      if (task.assignedMemberId) body.assignedMemberId = task.assignedMemberId;
+
       const response = await fetch(`/api/tasks/${task.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          status: task.status,
-          dayOfWeek,
-          assignedMemberId: task.assignedMemberId ?? null
-        })
+        body: JSON.stringify(body)
       });
 
       if (!response.ok) {
@@ -259,7 +259,7 @@ export function TasksWeeklyBoard() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           assignedMemberId: memberId || null,
-          dayOfWeek: task.dayOfWeek ?? weekdayFromDate(task.dueDate),
+          dayOfWeek: task.dayOfWeek ?? currentDayOfWeek(),
           status: task.status
         })
       });
@@ -272,151 +272,262 @@ export function TasksWeeklyBoard() {
     });
   };
 
-  return (
-    <div className="space-y-4">
-      {feedback ? (
-        <p
-          className={`rounded-xl px-3 py-2 text-sm ${
-            feedback.type === "success" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
-          }`}
-        >
-          {feedback.message}
-        </p>
-      ) : null}
+  const totalTasks = state.tasks.length;
+  const doneTasks = state.tasks.filter((t) => t.status === "done").length;
+  const progressPct = totalTasks > 0 ? Math.round((doneTasks / totalTasks) * 100) : 0;
 
-      <div className="flex justify-end">
+  return (
+    <div className="space-y-5">
+      {/* Header summary */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex items-center gap-4">
+          <div>
+            <p className="text-sm text-[var(--foreground-muted)]">
+              <span className="font-semibold text-[var(--foreground)]">{doneTasks}</span> / {totalTasks} tâches complétées
+            </p>
+            <div className="mt-1.5 h-1.5 w-40 overflow-hidden rounded-full bg-[#edf0f7]">
+              <div
+                className="h-full rounded-full bg-[#6D5EF4] transition-all duration-500"
+                style={{ width: `${progressPct}%` }}
+              />
+            </div>
+          </div>
+        </div>
         <button
           type="button"
-          className="inline-flex items-center gap-1 rounded-xl bg-[var(--brand-primary)] px-3 py-1.5 text-xs font-semibold text-white"
-          onClick={openCreateModal}
+          className="inline-flex items-center gap-1.5 rounded-2xl bg-[#6D5EF4] px-4 py-2 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(109,94,244,0.35)] transition hover:bg-[#5b4ee0] active:scale-95"
+          onClick={() => openCreateModal()}
         >
-          <Plus className="h-3.5 w-3.5" /> Ajouter une tâche
+          <Plus className="h-4 w-4" /> Ajouter une tâche
         </button>
       </div>
 
-      <div className="space-y-3">
+      {feedback ? (
+        <div
+          className={`flex items-center gap-2 rounded-2xl px-4 py-2.5 text-sm font-medium ${
+            feedback.type === "success"
+              ? "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+              : "bg-rose-50 text-rose-700 ring-1 ring-rose-200"
+          }`}
+        >
+          <span className={`h-2 w-2 rounded-full ${feedback.type === "success" ? "bg-emerald-500" : "bg-rose-500"}`} />
+          {feedback.message}
+          <button
+            type="button"
+            className="ml-auto opacity-60 hover:opacity-100"
+            onClick={() => setFeedback(null)}
+          >
+            <X className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      ) : null}
+
+      {/* Weekly columns */}
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
         {weekdays.map((day) => {
-          const dayTasks = state.tasks.filter((task) => (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) === day.value);
+          const dayTasks = state.tasks.filter((task) => task.dayOfWeek === day.value);
+          const isToday = day.value === todayDow;
+          const isDragOver = dragOverDay === day.value;
 
           return (
             <section
               key={day.value}
-              onDragOver={(event) => event.preventDefault()}
+              onDragOver={(event) => {
+                event.preventDefault();
+                setDragOverDay(day.value);
+              }}
+              onDragLeave={(event) => {
+                if (!event.currentTarget.contains(event.relatedTarget as Node)) {
+                  setDragOverDay(null);
+                }
+              }}
               onDrop={(event) => {
                 event.preventDefault();
-                const taskId = event.dataTransfer.getData("text/task-id");
+                setDragOverDay(null);
+                const taskId = event.dataTransfer.getData("text/plain");
                 const task = state.tasks.find((t) => t.id === taskId);
                 if (task) void moveTaskToDay(task, day.value);
                 setDraggingTaskId(null);
               }}
-              className="w-full rounded-3xl border border-[#d8e5ff] bg-[linear-gradient(180deg,#ffffff,#f8fbff)] p-4 shadow-[0_10px_24px_rgba(31,66,135,0.08)]"
+              className={`flex flex-col rounded-3xl border transition-all duration-200 ${
+                isDragOver
+                  ? "border-[#6D5EF4] bg-[rgba(109,94,244,0.06)] shadow-[0_0_0_2px_rgba(109,94,244,0.18)]"
+                  : isToday
+                  ? "border-[#6D5EF4]/30 bg-[linear-gradient(180deg,#fdfcff,#f5f3ff)]"
+                  : "border-[#e4ebf5] bg-[linear-gradient(180deg,#ffffff,#f8fbff)]"
+              } shadow-[0_2px_12px_rgba(31,66,135,0.06)]`}
             >
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <h3 className="text-base font-semibold">{day.label}</h3>
-                <p className="text-xs text-[var(--foreground-muted)]">{dayTasks.length} tâche(s)</p>
-              </div>
-
-              <div className="space-y-2">
-                {dayTasks.length === 0 ? (
-                  <p className="rounded-2xl border border-dashed border-[#d5def2] px-3 py-5 text-center text-sm text-[var(--foreground-muted)]">
-                    Glissez une tâche ici pour {day.label.toLowerCase()}.
-                  </p>
-                ) : null}
-
-                {dayTasks.map((task) => {
-                  const memberName =
-                    state.profile.members.find((member) => member.id === task.assignedMemberId)?.name ?? "Non assigné";
-                  const isBusy = busyTaskIds.includes(task.id);
-                  const Icon = resolveTaskIcon(task);
-
-                  return (
-                    <article
-                      key={task.id}
-                      draggable
-                      onDragStart={(event) => {
-                        event.dataTransfer.setData("text/task-id", task.id);
-                        setDraggingTaskId(task.id);
-                      }}
-                      onDragEnd={() => setDraggingTaskId(null)}
-                      className={`rounded-2xl border border-[#e5ecfa] bg-white px-3 py-2.5 ${
-                        draggingTaskId === task.id ? "opacity-60" : ""
+              {/* Day header */}
+              <div
+                className={`flex items-center justify-between rounded-t-3xl px-3 py-2.5 ${
+                  isToday ? "bg-[#6D5EF4]" : "bg-transparent"
+                }`}
+              >
+                <div className="flex items-center gap-1.5">
+                  <span
+                    className={`text-xs font-bold uppercase tracking-wider ${
+                      isToday ? "text-white" : "text-[var(--foreground-muted)]"
+                    }`}
+                  >
+                    {day.label}
+                  </span>
+                  {dayTasks.length > 0 && (
+                    <span
+                      className={`inline-flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold ${
+                        isToday ? "bg-white/25 text-white" : "bg-[#6D5EF4]/10 text-[#6D5EF4]"
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        <Icon className="h-4 w-4 shrink-0 text-[var(--brand-primary)]" />
-                        <button
-                          type="button"
-                          className="rounded-full p-1 text-[var(--brand-primary)]"
-                          onClick={() => toggleStatus(task)}
-                          disabled={isBusy}
-                          title="Terminé / non terminé"
-                        >
-                          {task.status === "done" ? (
-                            <CheckCircle2 className="h-4 w-4" />
-                          ) : (
-                            <Circle className="h-4 w-4 text-[var(--foreground-muted)]" />
-                          )}
-                        </button>
+                      {dayTasks.length}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => openCreateModal(day.value)}
+                  className={`flex h-5 w-5 items-center justify-center rounded-full transition hover:scale-110 ${
+                    isToday ? "bg-white/20 text-white hover:bg-white/30" : "bg-[#6D5EF4]/10 text-[#6D5EF4] hover:bg-[#6D5EF4]/20"
+                  }`}
+                  title={`Ajouter pour ${day.full}`}
+                >
+                  <Plus className="h-3 w-3" />
+                </button>
+              </div>
 
-                        <div className="min-w-0 flex-1">
-                          <p
-                            className={`text-sm font-medium ${
-                              task.status === "done" ? "text-[var(--foreground-muted)] line-through" : ""
-                            }`}
+              {/* Tasks */}
+              <div className="flex flex-1 flex-col gap-2 p-2">
+                {dayTasks.length === 0 ? (
+                  <div
+                    className={`flex flex-1 items-center justify-center rounded-2xl border border-dashed py-6 text-center text-xs transition-colors ${
+                      isDragOver
+                        ? "border-[#6D5EF4] bg-[rgba(109,94,244,0.04)] text-[#6D5EF4]"
+                        : "border-[#dce4f0] text-[var(--foreground-muted)]"
+                    }`}
+                  >
+                    {isDragOver ? "Déposer ici" : "Aucune tâche"}
+                  </div>
+                ) : (
+                  dayTasks.map((task) => {
+                    const memberName = state.profile.members.find((m) => m.id === task.assignedMemberId)?.name;
+                    const isBusy = busyTaskIds.includes(task.id);
+                    const isDraggingThis = draggingTaskId === task.id;
+                    const Icon = resolveTaskIcon(task);
+                    const catColor = categoryColors[task.category] ?? "#6D5EF4";
+                    const isDone = task.status === "done";
+
+                    return (
+                      <article
+                        key={task.id}
+                        draggable
+                        onDragStart={(event) => {
+                          event.dataTransfer.setData("text/plain", task.id);
+                          event.dataTransfer.effectAllowed = "move";
+                          setDraggingTaskId(task.id);
+                        }}
+                        onDragEnd={() => {
+                          setDraggingTaskId(null);
+                          setDragOverDay(null);
+                        }}
+                        className={`group relative rounded-2xl bg-white p-2.5 shadow-[0_1px_4px_rgba(31,66,135,0.08)] ring-1 ring-[#e8eef8] transition-all duration-200 hover:shadow-[0_4px_16px_rgba(109,94,244,0.15)] hover:ring-[#6D5EF4]/30 ${
+                          isDraggingThis ? "opacity-40 scale-95" : ""
+                        } ${isBusy ? "opacity-60" : ""}`}
+                      >
+                        {/* Color accent */}
+                        <div
+                          className="absolute left-0 top-2 bottom-2 w-0.5 rounded-full"
+                          style={{ backgroundColor: catColor }}
+                        />
+
+                        <div className="flex items-start gap-1.5 pl-2">
+                          {/* Drag handle */}
+                          <GripVertical className="mt-0.5 h-3.5 w-3.5 shrink-0 cursor-grab text-[var(--foreground-muted)] opacity-0 group-hover:opacity-60 active:cursor-grabbing" />
+
+                          {/* Status toggle */}
+                          <button
+                            type="button"
+                            className={`mt-0.5 shrink-0 transition-colors ${isDone ? "text-emerald-500" : "text-[#c0ccde] hover:text-[#6D5EF4]"}`}
+                            onClick={() => toggleStatus(task)}
+                            disabled={isBusy}
                           >
-                            {task.title}
-                          </p>
-                          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--foreground-muted)]">
-                            <span className="rounded-full bg-[#edf3ff] px-2 py-0.5">{categoryLabels[task.category]}</span>
-                            <span className="rounded-full bg-[#f2f4f8] px-2 py-0.5">
-                              {statusColumns.find((column) => column.value === task.status)?.label}
-                            </span>
-                            <span>{memberName}</span>
+                            {isDone ? (
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                            ) : (
+                              <Circle className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-start gap-1">
+                              <Icon className="mt-0.5 h-3 w-3 shrink-0" style={{ color: catColor }} />
+                              <p
+                                className={`text-xs font-medium leading-snug ${
+                                  isDone ? "text-[var(--foreground-muted)] line-through" : "text-[var(--foreground)]"
+                                }`}
+                              >
+                                {task.title}
+                              </p>
+                            </div>
+
+                            <div className="mt-1 flex flex-wrap items-center gap-1">
+                              <span
+                                className="rounded-md px-1.5 py-0.5 text-[10px] font-medium"
+                                style={{ backgroundColor: `${catColor}18`, color: catColor }}
+                              >
+                                {categoryLabels[task.category]}
+                              </span>
+                              {memberName && (
+                                <span className="rounded-md bg-[#f0f4ff] px-1.5 py-0.5 text-[10px] text-[#6D5EF4]">
+                                  {memberName}
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
 
-                        <select
-                          className="rounded-lg border border-[#d8e5ff] bg-white px-2 py-1 text-[11px]"
-                          value={task.assignedMemberId ?? ""}
-                          onChange={(event) => changeAssignee(task, event.target.value)}
-                          disabled={isBusy}
-                        >
-                          <option value="">Non assigné</option>
-                          {state.profile.members.map((member) => (
-                            <option key={`${task.id}-${member.id}`} value={member.id}>
-                              {member.name}
-                            </option>
-                          ))}
-                        </select>
-
-                        <button
-                          type="button"
-                          className="rounded-lg border border-[#d8e5ff] p-1.5 text-[var(--foreground-muted)] hover:text-[var(--brand-primary)]"
-                          onClick={() => openEditModal(task)}
-                          title="Modifier"
-                          disabled={isBusy}
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          type="button"
-                          className="rounded-lg border border-rose-200 p-1.5 text-rose-600"
-                          onClick={() => deleteTask(task.id)}
-                          title="Supprimer"
-                          disabled={isBusy}
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </article>
-                  );
-                })}
+                        {/* Actions (hover) */}
+                        <div className="mt-2 flex items-center justify-between gap-1 border-t border-[#f0f4f8] pt-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                          <select
+                            className="flex-1 rounded-lg border border-[#e8eef8] bg-[#fafcff] px-1.5 py-0.5 text-[10px] text-[var(--foreground-muted)] focus:border-[#6D5EF4] focus:outline-none"
+                            value={task.assignedMemberId ?? ""}
+                            onChange={(e) => changeAssignee(task, e.target.value)}
+                            disabled={isBusy}
+                          >
+                            <option value="">Non assigné</option>
+                            {state.profile.members.map((member) => (
+                              <option key={`${task.id}-${member.id}`} value={member.id}>
+                                {member.name}
+                              </option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            className="rounded-lg p-1 text-[#a0aec0] hover:bg-[#f0f4ff] hover:text-[#6D5EF4]"
+                            onClick={() => openEditModal(task)}
+                            disabled={isBusy}
+                            title="Modifier"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </button>
+                          <button
+                            type="button"
+                            className="rounded-lg p-1 text-[#a0aec0] hover:bg-rose-50 hover:text-rose-500"
+                            onClick={() => deleteTask(task.id)}
+                            disabled={isBusy}
+                            title="Supprimer"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        </div>
+                      </article>
+                    );
+                  })
+                )}
               </div>
             </section>
           );
         })}
       </div>
 
+      {/* Create/Edit modal */}
       {editor ? (
         <div
           className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-3 pb-3 pt-10 backdrop-blur-sm md:items-center"
@@ -424,34 +535,36 @@ export function TasksWeeklyBoard() {
             if (event.target === event.currentTarget) setEditor(null);
           }}
         >
-          <div className="w-full max-w-xl rounded-3xl bg-white p-5 shadow-2xl">
-            <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-[#e0eaff]">
+            <div className="mb-5 flex items-center justify-between">
               <div>
-                <h4 className="text-lg font-semibold">
-                  {editor.type === "edit" ? "Modifier la tâche" : "Ajouter une tâche"}
+                <h4 className="text-base font-bold">
+                  {editor.type === "edit" ? "Modifier la tâche" : "Nouvelle tâche"}
                 </h4>
-                <p className="text-sm text-[var(--foreground-muted)]">
-                  Vue en cartes glissables avec icônes automatiques selon la tâche.
+                <p className="mt-0.5 text-xs text-[var(--foreground-muted)]">
+                  {editor.type === "edit" ? "Modifiez les champs souhaités" : "Remplissez les détails de la tâche"}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setEditor(null)}
-                className="rounded-lg border border-[#d8e5ff] p-1.5 text-[var(--foreground-muted)]"
+                className="rounded-xl p-1.5 text-[var(--foreground-muted)] hover:bg-[#f0f4ff]"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="space-y-3">
-              {editor.type === "create" ? (
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Tâche suggérée (optionnel)</label>
+            <div className="space-y-4">
+              {editor.type === "create" && quickTemplates.length > 0 ? (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
+                    Modèle rapide
+                  </label>
                   <select
-                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
+                    className="w-full rounded-2xl border border-[#e0eaff] bg-[#fafcff] px-3 py-2 text-sm focus:border-[#6D5EF4] focus:outline-none"
                     value={form.templateTitle}
                     onChange={(event) => {
-                      const selected = quickTemplates.find((template) => template.title === event.target.value);
+                      const selected = quickTemplates.find((t) => t.title === event.target.value);
                       setForm((prev) => ({
                         ...prev,
                         templateTitle: event.target.value,
@@ -461,7 +574,7 @@ export function TasksWeeklyBoard() {
                       }));
                     }}
                   >
-                    <option value="">Sélectionner une base rapide</option>
+                    <option value="">Sélectionner un modèle…</option>
                     {quickTemplates.map((template) => (
                       <option key={template.title} value={template.title}>
                         {template.title}
@@ -471,42 +584,61 @@ export function TasksWeeklyBoard() {
                 </div>
               ) : null}
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-sm font-medium">Nom de la tâche</label>
-                  <input
-                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
-                    value={form.title}
-                    onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-                    placeholder="Ex: Passer l'aspirateur"
-                  />
-                </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
+                  Nom de la tâche *
+                </label>
+                <input
+                  className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm placeholder-[#b0bbcc] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/15"
+                  value={form.title}
+                  onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+                  placeholder="Ex: Passer l'aspirateur"
+                />
+              </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Catégorie</label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
+                    Catégorie
+                  </label>
                   <select
-                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
+                    className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm focus:border-[#6D5EF4] focus:outline-none"
                     value={form.category}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, category: event.target.value as Task["category"] }))
-                    }
+                    onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value as Task["category"] }))}
                   >
-                    {categoryValues.map((category) => (
-                      <option key={category} value={category}>
-                        {categoryLabels[category]}
+                    {categoryValues.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {categoryLabels[cat]}
                       </option>
                     ))}
                   </select>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Assigné à</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
+                    Jour
+                  </label>
                   <select
-                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
+                    className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm focus:border-[#6D5EF4] focus:outline-none"
+                    value={form.dayOfWeek}
+                    onChange={(event) => setForm((prev) => ({ ...prev, dayOfWeek: Number(event.target.value) }))}
+                  >
+                    {weekdays.map((d) => (
+                      <option key={d.value} value={d.value}>
+                        {d.full}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
+                    Assigné à
+                  </label>
+                  <select
+                    className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm focus:border-[#6D5EF4] focus:outline-none"
                     value={form.assignedMemberId ?? ""}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, assignedMemberId: event.target.value || null }))
-                    }
+                    onChange={(event) => setForm((prev) => ({ ...prev, assignedMemberId: event.target.value || null }))}
                   >
                     <option value="">Non assigné</option>
                     {state.profile.members.map((member) => (
@@ -517,48 +649,52 @@ export function TasksWeeklyBoard() {
                   </select>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium">Statut</label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
+                    Statut
+                  </label>
                   <select
-                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
+                    className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm focus:border-[#6D5EF4] focus:outline-none"
                     value={form.status}
-                    onChange={(event) =>
-                      setForm((prev) => ({ ...prev, status: event.target.value as Task["status"] }))
-                    }
+                    onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as Task["status"] }))}
                   >
-                    <option value="todo">À faire</option>
-                    <option value="in_progress">En cours</option>
-                    <option value="done">Terminé</option>
-                    <option value="late">En retard</option>
+                    {statusColumns.map((s) => (
+                      <option key={s.value} value={s.value}>
+                        {s.label}
+                      </option>
+                    ))}
                   </select>
-                </div>
-
-                <div className="space-y-1 md:col-span-2">
-                  <label className="text-sm font-medium">Détails (optionnel)</label>
-                  <textarea
-                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
-                    rows={3}
-                    value={form.description}
-                    onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
-                  />
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-1">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
+                  Notes (optionnel)
+                </label>
+                <textarea
+                  className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm placeholder-[#b0bbcc] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/15"
+                  rows={2}
+                  value={form.description}
+                  onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+                  placeholder="Détails supplémentaires…"
+                />
+              </div>
+
+              <div className="flex gap-2 pt-1">
                 <button
                   type="button"
-                  className="rounded-xl border border-[#d8e5ff] px-4 py-2 text-sm"
+                  className="flex-1 rounded-2xl border border-[#e0eaff] py-2.5 text-sm font-medium text-[var(--foreground-muted)] hover:bg-[#f6f8ff]"
                   onClick={() => setEditor(null)}
                 >
                   Annuler
                 </button>
                 <button
                   type="button"
-                  className="rounded-xl bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                  className="flex-1 rounded-2xl bg-[#6D5EF4] py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(109,94,244,0.3)] transition hover:bg-[#5b4ee0] disabled:opacity-60"
                   onClick={persistTask}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Enregistrement..." : "Enregistrer"}
+                  {isSubmitting ? "Enregistrement…" : "Enregistrer"}
                 </button>
               </div>
             </div>

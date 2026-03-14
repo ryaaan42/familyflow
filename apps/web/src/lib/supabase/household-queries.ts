@@ -31,6 +31,7 @@ export interface DbHouseholdMember {
   favorite_categories: string[];
   blocked_categories: string[];
   is_admin: boolean;
+  is_female?: boolean;
   is_pregnant?: boolean;
 }
 
@@ -63,6 +64,7 @@ function mapMember(m: DbHouseholdMember): HouseholdMember {
     memberCategory: m.member_category ?? (m.age <= 3 ? "bebe" : m.age <= 11 ? "enfant" : m.age <= 17 ? "ado" : "adulte"),
     avatarColor: m.avatar_color,
     availabilityHoursPerWeek: m.availability_hours_per_week,
+    isFemale: m.is_female,
     isPregnant: m.is_pregnant,
     favoriteCategories: (m.favorite_categories ?? []) as HouseholdMember["favoriteCategories"],
     blockedCategories: (m.blocked_categories ?? []) as HouseholdMember["blockedCategories"]

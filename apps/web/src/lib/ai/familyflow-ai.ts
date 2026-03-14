@@ -60,32 +60,41 @@ const extractJsonBlock = (value: string) => {
   return value.trim();
 };
 
+const getMemberCategory = (m: { memberCategory?: string; age: number }) =>
+  m.memberCategory ?? (m.age <= 3 ? "bebe" : m.age <= 11 ? "enfant" : m.age <= 17 ? "ado" : "adulte");
+
 const buildFallbackPlan = ({ profile, tasks, budgetItems, birthListItems }: AiHouseholdRequest): AiHouseholdPlan => {
-  const mainAdult = profile.members.find((m) => (m.memberCategory ?? (m.age <= 3 ? "bebe" : m.age <= 11 ? "enfant" : m.age <= 17 ? "ado" : "adulte")) === "adulte");
-  const hasBaby = profile.members.some((m) => (m.memberCategory ?? (m.age <= 3 ? "bebe" : m.age <= 11 ? "enfant" : m.age <= 17 ? "ado" : "adulte")) === "bebe");
-  const hasKids = profile.members.some((m) => ["enfant", "ado"].includes(m.memberCategory ?? ""));
+  const mainAdult = profile.members.find((m) => getMemberCategory(m) === "adulte");
+  const pregnantMember = profile.members.find((m) => m.isPregnant);
+  const hasBaby = profile.members.some((m) => getMemberCategory(m) === "bebe");
+  const hasKids = profile.members.some((m) => ["enfant", "ado"].includes(getMemberCategory(m)));
   const hasCat = profile.pets.some((pet) => pet.type === "chat");
   const hasDog = profile.pets.some((pet) => pet.type === "chien");
   const hasOtherPet = profile.pets.some((pet) => pet.type === "autre");
+  const hasPets = profile.pets.length > 0;
   const eatSpend = budgetItems.filter((item) => ["restaurant_fast_food", "courses"].includes(item.category)).reduce((sum, item) => sum + item.amount, 0);
 
   return {
     headline: "Plan de continuité généré automatiquement",
-    summary: `L'IA n'est pas disponible actuellement. Nous avons préparé un plan de continuité basé sur le profil du foyer (${profile.members.length} membre(s), logement ${profile.household.housingType}${profile.household.hasPets ? ", animaux présents" : ""}). L'objectif est d'assurer une base opérationnelle immédiate: tâches essentielles, routines matin/soir et arbitrages budget prioritaires.`,
+    summary: `L'IA n'est pas disponible actuellement. Nous avons préparé un plan de continuité basé sur le profil du foyer (${profile.members.length} membre(s), logement ${profile.household.housingType}${hasPets ? `, ${profile.pets.length} animal(aux): ${profile.pets.map((p) => p.name).join(", ")}` : ""}${hasKids ? ", enfant(s) présent(s)" : ""}${pregnantMember ? `, grossesse de ${pregnantMember.name}` : ""}). L'objectif est d'assurer une base opérationnelle immédiate: tâches essentielles, routines matin/soir et arbitrages budget prioritaires.`,
     taskFocus: [
       { title: "Sortir les poubelles", reason: "Évite l'accumulation et garde les zones communes saines.", who: mainAdult?.name ?? "Adulte du foyer", when: "Lundi", category: "entretien", frequency: "hebdomadaire", estimatedMinutes: 10, suggestedMemberId: mainAdult?.id, suggestedDayOfWeek: 1 },
       { title: "Vider le lave-vaisselle", reason: "Maintient une cuisine fonctionnelle chaque jour.", who: "Ado ou adulte", when: "Mardi", category: "cuisine", frequency: "hebdomadaire", estimatedMinutes: 10, suggestedDayOfWeek: 2 },
       { title: "Planifier les repas", reason: "Réduit les achats impulsifs et le stress des soirs de semaine.", who: mainAdult?.name ?? "Adulte", when: "Dimanche", category: "courses", frequency: "hebdomadaire", estimatedMinutes: 25, suggestedMemberId: mainAdult?.id, suggestedDayOfWeek: 7 },
       { title: "Lancer une lessive", reason: "Évite les pics de charge en fin de semaine.", who: "Ado ou adulte", when: "Mercredi", category: "routine", frequency: "hebdomadaire", estimatedMinutes: 20, suggestedDayOfWeek: 3 },
-      { title: "Nettoyer la salle de bain", reason: "Préserve l'hygiène générale du foyer.", who: "Adulte", when: "Samedi", category: "hygiene", frequency: "hebdomadaire", estimatedMinutes: 30, suggestedDayOfWeek: 6 },
-      ...(profile.household.hasPets ? [{ title: "Remplir les gamelles", reason: "Routine essentielle pour le bien-être animal.", who: "Enfant + supervision adulte", when: "Matin et soir", category: "animaux" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 8 }] : []),
-      ...(hasCat ? [{ title: "Changer la litière", reason: "Maintient un environnement propre pour le chat.", who: "Ado ou adulte", when: "Milieu de semaine", category: "animaux" as TaskCategory, frequency: "hebdomadaire" as Frequency, estimatedMinutes: 12 }] : []),
-      ...(hasCat ? [{ title: "Brosser le chat", reason: "Confort de l'animal et réduction des poils dans le logement.", who: "Ado ou adulte", when: "Week-end", category: "animaux" as TaskCategory, frequency: "hebdomadaire" as Frequency, estimatedMinutes: 10 }] : []),
-      ...(hasDog ? [{ title: "Promener le chien", reason: "Sorties régulières pour l'équilibre et l'hygiène.", who: "Adulte ou ado", when: "Quotidien", category: "animaux" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 25 }] : []),
-      ...(hasDog ? [{ title: "Nettoyer les accessoires du chien", reason: "Garder gamelles, laisse et couchage propres.", who: "Adulte", when: "Fin de semaine", category: "animaux" as TaskCategory, frequency: "hebdomadaire" as Frequency, estimatedMinutes: 18 }] : []),
-      ...(hasOtherPet ? [{ title: "Vérifier eau et confort des animaux", reason: "Contrôle rapide des besoins essentiels des animaux du foyer.", who: "Adulte", when: "Chaque jour", category: "animaux" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 6 }] : []),
-      ...(hasKids ? [{ title: "Préparer les cartables", reason: "Réduit les oublis et la tension matinale.", who: "Enfant/Ado avec validation adulte", when: "Chaque soir", category: "routine" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 12 }] : []),
-      ...(hasBaby ? [{ title: "Routine bain bébé", reason: "Sécurise le coucher et fluidifie la soirée.", who: "Adulte", when: "Chaque soir", category: "enfants" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 25, suggestedMemberId: mainAdult?.id }] : [])
+      { title: "Nettoyer la salle de bain", reason: "Préserve l'hygiène générale du foyer.", who: "Adulte", when: "Jeudi", category: "hygiene", frequency: "hebdomadaire", estimatedMinutes: 30, suggestedDayOfWeek: 4 },
+      { title: "Passer l'aspirateur", reason: "Maintient les sols propres et sains pour toute la famille.", who: mainAdult?.name ?? "Adulte", when: "Vendredi", category: "menage", frequency: "hebdomadaire", estimatedMinutes: 25, suggestedMemberId: mainAdult?.id, suggestedDayOfWeek: 5 },
+      { title: "Faire les courses", reason: "Assure le ravitaillement de la semaine.", who: mainAdult?.name ?? "Adulte", when: "Samedi", category: "courses", frequency: "hebdomadaire", estimatedMinutes: 60, suggestedMemberId: mainAdult?.id, suggestedDayOfWeek: 6 },
+      { title: "Suivi des dépenses", reason: "Anticipe les dépassements de budget.", who: mainAdult?.name ?? "Adulte", when: "Dimanche", category: "budget", frequency: "hebdomadaire", estimatedMinutes: 20, suggestedMemberId: mainAdult?.id, suggestedDayOfWeek: 7 },
+      ...(hasPets ? [{ title: "Remplir les gamelles", reason: `Routine essentielle pour le bien-être de ${profile.pets.map((p) => p.name).join(", ")}.`, who: "Enfant + supervision adulte", when: "Lundi et Jeudi", category: "animaux" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 8, suggestedDayOfWeek: 1 }] : []),
+      ...(hasCat ? [{ title: "Changer la litière", reason: `Maintient un environnement propre pour ${profile.pets.filter((p) => p.type === "chat").map((p) => p.name).join(", ")}.`, who: "Ado ou adulte", when: "Mercredi", category: "animaux" as TaskCategory, frequency: "hebdomadaire" as Frequency, estimatedMinutes: 12, suggestedDayOfWeek: 3 }] : []),
+      ...(hasDog ? [{ title: "Promener le chien", reason: `Sorties régulières pour l'équilibre de ${profile.pets.filter((p) => p.type === "chien").map((p) => p.name).join(", ")}.`, who: "Adulte ou ado", when: "Mardi", category: "animaux" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 25, suggestedDayOfWeek: 2 }] : []),
+      ...(hasOtherPet ? [{ title: "Vérifier eau et confort des animaux", reason: "Contrôle rapide des besoins essentiels des animaux du foyer.", who: "Adulte", when: "Vendredi", category: "animaux" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 6, suggestedDayOfWeek: 5 }] : []),
+      ...(hasKids ? [{ title: "Préparer les cartables", reason: "Réduit les oublis et la tension matinale.", who: "Enfant/Ado avec validation adulte", when: "Lundi soir", category: "routine" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 12, suggestedDayOfWeek: 1 }] : []),
+      ...(hasKids ? [{ title: "Aide aux devoirs", reason: "Accompagnement scolaire et suivi des apprentissages.", who: mainAdult?.name ?? "Adulte", when: "Mardi", category: "enfants" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 30, suggestedMemberId: mainAdult?.id, suggestedDayOfWeek: 2 }] : []),
+      ...(hasBaby ? [{ title: "Routine bain bébé", reason: "Sécurise le coucher et fluidifie la soirée.", who: "Adulte", when: "Chaque soir", category: "enfants" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 25, suggestedMemberId: mainAdult?.id, suggestedDayOfWeek: 3 }] : []),
+      ...(pregnantMember ? [{ title: "Rendez-vous prénatal", reason: `Suivi médical essentiel pour ${pregnantMember.name} et le bébé à venir.`, who: pregnantMember.name, when: "Jeudi", category: "hygiene" as TaskCategory, frequency: "mensuelle" as Frequency, estimatedMinutes: 60, suggestedMemberId: pregnantMember.id, suggestedDayOfWeek: 4 }] : []),
+      ...(pregnantMember ? [{ title: "Préparer la valise maternité", reason: "Anticipation des préparatifs pour l'accouchement.", who: pregnantMember.name, when: "Samedi", category: "administratif" as TaskCategory, frequency: "personnalisee" as Frequency, estimatedMinutes: 45, suggestedMemberId: pregnantMember.id, suggestedDayOfWeek: 6 }] : [])
     ],
     routines: [
       "Routine matin: réveil échelonné, petit-déjeuner, sacs prêts puis départ.",
@@ -160,14 +169,18 @@ export const createAiHouseholdPlan = async (request: AiHouseholdRequest): Promis
         model,
         instructions:
           "Tu es l'assistant IA Planille. Réponds en JSON strict, sans markdown. " +
-          "Tu dois proposer un plan détaillé pour un foyer, structuré et exploitable par le code. " +
+          "Tu dois proposer un plan détaillé, personnalisé et bienveillant pour un foyer réel, structuré et exploitable par le code. " +
           "Respect absolu des catégories d'âge: bebe (0-3), enfant (4-11), ado (12-17), adulte (18+). " +
           "N'assigne jamais une tâche non adaptée à l'âge/capacité. " +
+          "Si un membre est enceinte (isPregnant=true), génère des tâches spécifiques: suivi prénatal, préparation chambre bébé, liste naissance. " +
+          "Si des animaux sont présents, génère des tâches pour chaque animal (par nom et type: chat=litière/brossage, chien=promenade/bain). " +
+          "Si des enfants ou ados sont présents, génère des tâches d'accompagnement (devoirs, activités, cartables). " +
           "Retourne exactement les clés: headline, summary, taskFocus, routineSuggestions, routines, savingsMoves, notes, budgetSuggestions, birthListSuggestions.",
         input:
-          "Génère un plan long, concret et actionnable: au moins 8 taskFocus, 3 routineSuggestions détaillées, 4 routines, 3 savingsMoves, 3 notes. " +
-          "Les taskFocus doivent inclure titre, raison, qui, quand, catégorie, fréquence, durée estimée, suggestedMemberId quand possible et suggestedDayOfWeek (1=lundi..7=dimanche) pour structurer le planning hebdomadaire. " +
-          "Si des animaux existent, adapte explicitement les tâches selon le type (chat/chien/autre). " +
+          "Génère un plan long, concret et actionnable: au moins 12 taskFocus bien répartis sur la semaine, 3 routineSuggestions détaillées, 4 routines, 3 savingsMoves, 3 notes. " +
+          "Les taskFocus doivent OBLIGATOIREMENT inclure: titre, raison (25+ chars), qui, quand, catégorie, fréquence, durée estimée, suggestedMemberId quand possible et suggestedDayOfWeek (1=lundi..7=dimanche). " +
+          "Distribue les tâches sur TOUS les jours de la semaine (1 à 7), évite de tout mettre le même jour. " +
+          "Personnalise CHAQUE tâche en fonction du profil exact: noms des animaux, prénoms des membres, grossesse si applicable, âge des enfants. " +
           `Données foyer:\n${JSON.stringify(compactContext)}`,
         max_output_tokens: 2400
       })

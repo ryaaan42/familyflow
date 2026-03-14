@@ -33,7 +33,7 @@ const toTask = (row: Record<string, unknown>, assignment?: AssignmentRow): Task 
   difficulty: Number(row.difficulty ?? 1) as Task["difficulty"],
   indirectCostPerMonth: row.indirect_cost_per_month != null ? Number(row.indirect_cost_per_month) : undefined,
   assignedMemberId: assignment?.member_id,
-  dayOfWeek: assignment?.day_of_week as Task["dayOfWeek"],
+  dayOfWeek: (assignment?.day_of_week ?? row.day_of_week) as Task["dayOfWeek"],
   templateId: (row.template_id as string | null) ?? undefined,
   minimumAge: (row.minimum_age as number | null) ?? undefined,
   recommendedRoles: (row.recommended_roles as Task["recommendedRoles"]) ?? [],
@@ -83,7 +83,6 @@ export async function bootstrapDefaultTasksIfEmpty() {
 
   if ((count ?? 0) > 0) return;
 
-  const nowDate = new Date().toISOString().slice(0, 10);
   const memberCategories = household.members.map((m) => m.memberCategory ?? "adulte");
   const templates = getDefaultTasksForHousehold({
     hasPets: household.household.hasPets,
@@ -92,39 +91,45 @@ export async function bootstrapDefaultTasksIfEmpty() {
     pets: household.pets
   });
 
-  const rows = templates.map((item) => ({
-    household_id: household.household.id,
-    title: item.title,
-    description: item.description,
-    category: item.category,
-    frequency: item.frequency,
-    due_date: nowDate,
-    estimated_minutes: item.estimatedMinutes,
-    difficulty: item.difficulty,
-    minimum_age: item.minAge,
-    origin: "template" as const
-  }));
+  const rows = templates.map((item, index) => {
+    const dayOfWeek = ((index % 7) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
+    return {
+      household_id: household.household.id,
+      title: item.title,
+      description: item.description,
+      category: item.category,
+      frequency: item.frequency,
+      due_date: toDateFromDayOfWeek(dayOfWeek),
+      estimated_minutes: item.estimatedMinutes,
+      difficulty: item.difficulty,
+      minimum_age: item.minAge,
+      origin: "template" as const
+    };
+  });
 
   await supabase.from("tasks").insert(rows);
 }
 
 export async function persistAiPlanTasks(input: { householdId: string; plan: AiHouseholdPlan }) {
   const supabase = await createSupabaseServerClient();
-  const nowDate = new Date().toISOString().slice(0, 10);
 
-  const rows = input.plan.taskFocus.map((item) => ({
-    household_id: input.householdId,
-    title: item.title,
-    description: item.reason,
-    category: item.category ?? "routine",
-    frequency: item.frequency ?? "hebdomadaire",
-    due_date: nowDate,
-    status: "todo",
-    estimated_minutes: item.estimatedMinutes ?? 20,
-    difficulty: 1,
-    origin: "smart" as const,
-    smart_reason: item.reason
-  }));
+  const rows = input.plan.taskFocus.map((item, index) => {
+    const dayOfWeek = item.suggestedDayOfWeek ?? ((index % 7) + 1);
+    return {
+      household_id: input.householdId,
+      title: item.title,
+      description: item.reason,
+      category: item.category ?? "routine",
+      frequency: item.frequency ?? "hebdomadaire",
+      due_date: toDateFromDayOfWeek(dayOfWeek),
+      day_of_week: dayOfWeek,
+      status: "todo",
+      estimated_minutes: item.estimatedMinutes ?? 20,
+      difficulty: 1,
+      origin: "smart" as const,
+      smart_reason: item.reason
+    };
+  });
 
   if (!rows.length) return;
 
@@ -135,12 +140,6 @@ export async function persistAiPlanTasks(input: { householdId: string; plan: AiH
     const created = data[index];
     const suggestion = input.plan.taskFocus.find((i) => i.title === created.title);
     const dayOfWeek = suggestion?.suggestedDayOfWeek ?? (((index % 7) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7);
-
-    await supabase
-      .from("tasks")
-      .update({ due_date: toDateFromDayOfWeek(dayOfWeek) })
-      .eq("id", created.id)
-      .eq("household_id", input.householdId);
 
     if (suggestion?.suggestedMemberId) {
       await supabase.from("task_assignments").upsert(
