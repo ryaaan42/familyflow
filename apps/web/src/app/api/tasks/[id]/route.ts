@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
 import { listTasksForCurrentUser } from "@/lib/supabase/task-actions";
 
@@ -54,11 +54,14 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
 
   const assignmentFieldsProvided = body.data.assignedMemberId !== undefined || body.data.dayOfWeek !== undefined || body.data.status !== undefined;
   if (assignmentFieldsProvided) {
+    // Use service client to bypass RLS on task_assignments
+    const serviceClient = createSupabaseServiceClient();
+
     if (body.data.assignedMemberId === null) {
-      const deletion = await supabase.from("task_assignments").delete().eq("task_id", id);
+      const deletion = await serviceClient.from("task_assignments").delete().eq("task_id", id);
       if (deletion.error) return NextResponse.json({ error: deletion.error.message }, { status: 500 });
     } else {
-      const { data: existingAssignment } = await supabase
+      const { data: existingAssignment } = await serviceClient
         .from("task_assignments")
         .select("member_id, status")
         .eq("task_id", id)
@@ -70,8 +73,8 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
         const resolvedStatus = body.data.status ?? (existingAssignment?.status as string | undefined) ?? "todo";
 
         // Delete then insert — avoids onConflict issues across schema versions
-        await supabase.from("task_assignments").delete().eq("task_id", id);
-        const { error: insertError } = await supabase.from("task_assignments").insert({
+        await serviceClient.from("task_assignments").delete().eq("task_id", id);
+        const { error: insertError } = await serviceClient.from("task_assignments").insert({
           task_id: id,
           member_id: resolvedMemberId,
           scheduled_for: toDateFromDayOfWeek(fallbackDayOfWeek),

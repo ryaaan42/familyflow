@@ -9,7 +9,7 @@ import {
 } from "@familyflow/shared";
 
 import { getUserHousehold, getUserProfile } from "@/lib/supabase/household-queries";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 
 const toNumber = (value: unknown) => {
   if (typeof value === "number") return value;
@@ -35,13 +35,22 @@ export async function buildPdfDatasetForCurrentUser(): Promise<DemoDataset | nul
 
   const taskIds = (tasksData ?? []).map((task) => task.id as string);
 
+  // Use service role to bypass any RLS restrictions on task_assignments reads
+  const serviceClient = createSupabaseServiceClient();
   const { data: assignmentsData } = taskIds.length
-    ? await supabase
+    ? await serviceClient
         .from("task_assignments")
-        .select("task_id, member_id, day_of_week, status, scheduled_for, created_at")
+        .select("task_id, member_id, status, scheduled_for, created_at")
         .in("task_id", taskIds)
         .order("created_at", { ascending: false })
     : { data: [] as Array<Record<string, unknown>> };
+
+  const utcDayOfWeek = (dateStr: string): number => {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const utcDate = new Date(Date.UTC(y, m - 1, d));
+    const day = utcDate.getUTCDay();
+    return day === 0 ? 7 : day;
+  };
 
   const assignmentByTask = new Map<string, { memberId: string; dayOfWeek?: number; status?: Task["status"] }>();
   (assignmentsData ?? []).forEach((row) => {
@@ -49,7 +58,7 @@ export async function buildPdfDatasetForCurrentUser(): Promise<DemoDataset | nul
     if (!assignmentByTask.has(taskId)) {
       assignmentByTask.set(taskId, {
         memberId: row.member_id as string,
-        dayOfWeek: (row.day_of_week as number | null) ?? undefined,
+        dayOfWeek: row.scheduled_for ? utcDayOfWeek(row.scheduled_for as string) : undefined,
         status: (row.status as Task["status"] | null) ?? undefined
       });
     }
@@ -69,7 +78,7 @@ export async function buildPdfDatasetForCurrentUser(): Promise<DemoDataset | nul
     indirectCostPerMonth:
       task.indirect_cost_per_month !== null ? toNumber(task.indirect_cost_per_month) : undefined,
     assignedMemberId: assignmentByTask.get(task.id as string)?.memberId,
-    dayOfWeek: assignmentByTask.get(task.id as string)?.dayOfWeek as Task["dayOfWeek"],
+    dayOfWeek: (assignmentByTask.get(task.id as string)?.dayOfWeek ?? utcDayOfWeek(task.due_date as string)) as Task["dayOfWeek"],
     templateId: (task.template_id as string | null) ?? undefined,
     minimumAge: (task.minimum_age as number | null) ?? undefined,
     recommendedRoles: ((task.recommended_roles as Task["recommendedRoles"]) ?? []) as Task["recommendedRoles"],
