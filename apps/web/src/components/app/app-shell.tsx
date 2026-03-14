@@ -11,7 +11,10 @@ import {
   LayoutDashboard,
   Settings,
   ShieldCheck,
+  ShoppingCart,
   Sparkles,
+  Target,
+  UtensilsCrossed,
   Users,
   ListTodo
 } from "lucide-react";
@@ -72,6 +75,30 @@ const navItems = [
     activeColor: "text-blue-600",
     activeBg: "bg-blue-100",
     activeGradient: "from-blue-500/20 to-sky-500/10"
+  },
+  {
+    href: "/app/meals",
+    label: "Repas",
+    icon: UtensilsCrossed,
+    activeColor: "text-teal-600",
+    activeBg: "bg-teal-100",
+    activeGradient: "from-teal-500/20 to-emerald-500/10"
+  },
+  {
+    href: "/app/shopping",
+    label: "Courses",
+    icon: ShoppingCart,
+    activeColor: "text-orange-600",
+    activeBg: "bg-orange-100",
+    activeGradient: "from-orange-500/20 to-amber-500/10"
+  },
+  {
+    href: "/app/goals",
+    label: "Objectifs",
+    icon: Target,
+    activeColor: "text-green-600",
+    activeBg: "bg-green-100",
+    activeGradient: "from-green-500/20 to-emerald-500/10"
   },
   {
     href: "/app/savings",

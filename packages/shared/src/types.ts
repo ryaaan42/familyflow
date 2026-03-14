@@ -263,6 +263,72 @@ export interface AiHouseholdPlan {
   usedFallback: boolean;
 }
 
+// ── Meal planning ────────────────────────────────────────────────────────────
+
+export type MealType = "lunch" | "dinner";
+
+export interface MealPlan {
+  id: string;
+  householdId: string;
+  weekStart: string; // YYYY-MM-DD (Monday)
+  dayOfWeek: number; // 0 = Monday … 6 = Sunday
+  mealType: MealType;
+  title: string;
+  notes?: string;
+}
+
+// ── Shopping list ─────────────────────────────────────────────────────────────
+
+export type ShoppingCategory =
+  | "epicerie"
+  | "frais"
+  | "boucherie_poisson"
+  | "fruits_legumes"
+  | "boissons"
+  | "hygiene_beaute"
+  | "menage"
+  | "bebe"
+  | "animaux"
+  | "autre";
+
+export interface ShoppingItem {
+  id: string;
+  householdId: string;
+  name: string;
+  quantity?: string;
+  category: ShoppingCategory;
+  isChecked: boolean;
+  addedByMemberId?: string;
+  createdAt: string;
+}
+
+// ── Goals ─────────────────────────────────────────────────────────────────────
+
+export type GoalCategory =
+  | "budget"
+  | "sante"
+  | "organisation"
+  | "education"
+  | "sport"
+  | "ecologie"
+  | "autre";
+
+export type GoalStatus = "active" | "completed" | "abandoned";
+
+export interface HouseholdGoal {
+  id: string;
+  householdId: string;
+  title: string;
+  description?: string;
+  targetValue?: number;
+  currentValue: number;
+  unit?: string;
+  category: GoalCategory;
+  dueDate?: string;
+  status: GoalStatus;
+  createdAt: string;
+}
+
 export interface DemoDataset {
   user: UserProfile;
   profile: HouseholdProfile;
