@@ -7,6 +7,9 @@ import { listTasksForCurrentUser } from "@/lib/supabase/task-actions";
 
 const itemSchema = z.object({
   taskId: z.string().uuid(),
+  title: z.string().min(2).max(150).optional(),
+  description: z.string().max(500).optional(),
+  category: z.enum(["menage", "cuisine", "animaux", "enfants", "administratif", "budget", "courses", "hygiene", "entretien", "routine"]).optional(),
   assignedMemberId: z.string().uuid().nullable(),
   dayOfWeek: z.number().int().min(1).max(7),
   status: z.enum(["todo", "in_progress", "done", "late"]).default("todo")
@@ -33,6 +36,23 @@ export async function POST(request: NextRequest) {
   if (!parsed.success) return NextResponse.json({ error: "Payload invalide" }, { status: 400 });
 
   for (const item of parsed.data.items) {
+    const taskDate = toDateFromDayOfWeek(item.dayOfWeek);
+
+    const taskUpdate: Record<string, unknown> = {
+      due_date: taskDate,
+      status: item.status
+    };
+    if (item.title !== undefined) taskUpdate.title = item.title;
+    if (item.description !== undefined) taskUpdate.description = item.description;
+    if (item.category !== undefined) taskUpdate.category = item.category;
+
+    const taskWrite = await supabase
+      .from("tasks")
+      .update(taskUpdate)
+      .eq("id", item.taskId)
+      .eq("household_id", household.household.id);
+    if (taskWrite.error) return NextResponse.json({ error: taskWrite.error.message }, { status: 500 });
+
     if (!item.assignedMemberId) {
       const { error } = await supabase
         .from("task_assignments")
@@ -49,7 +69,7 @@ export async function POST(request: NextRequest) {
         member_id: item.assignedMemberId,
         household_id: household.household.id,
         day_of_week: item.dayOfWeek,
-        scheduled_for: toDateFromDayOfWeek(item.dayOfWeek),
+        scheduled_for: taskDate,
         status: item.status
       },
       { onConflict: "task_id" }

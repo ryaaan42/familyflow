@@ -21,7 +21,8 @@ const aiPlanSchema = z.object({
       category: z.enum(["menage", "cuisine", "animaux", "enfants", "administratif", "budget", "courses", "hygiene", "entretien", "routine"]).optional(),
       frequency: z.enum(["quotidienne", "hebdomadaire", "mensuelle", "personnalisee"]).optional(),
       estimatedMinutes: z.number().int().min(5).max(180).optional(),
-      suggestedMemberId: z.string().uuid().optional()
+      suggestedMemberId: z.string().uuid().optional(),
+      suggestedDayOfWeek: z.number().int().min(1).max(7).optional()
     })
   ).min(8).max(20),
   routineSuggestions: z.array(z.object({
@@ -69,11 +70,11 @@ const buildFallbackPlan = ({ profile, tasks, budgetItems, birthListItems }: AiHo
     headline: "Plan de continuité généré automatiquement",
     summary: `L'IA n'est pas disponible actuellement. Nous avons préparé un plan de continuité basé sur le profil du foyer (${profile.members.length} membre(s), logement ${profile.household.housingType}${profile.household.hasPets ? ", animaux présents" : ""}). L'objectif est d'assurer une base opérationnelle immédiate: tâches essentielles, routines matin/soir et arbitrages budget prioritaires.`,
     taskFocus: [
-      { title: "Sortir les poubelles", reason: "Évite l'accumulation et garde les zones communes saines.", who: mainAdult?.name ?? "Adulte du foyer", when: "2 fois par semaine", category: "entretien", frequency: "hebdomadaire", estimatedMinutes: 10, suggestedMemberId: mainAdult?.id },
-      { title: "Vider le lave-vaisselle", reason: "Maintient une cuisine fonctionnelle chaque jour.", who: "Ado ou adulte", when: "Chaque soir", category: "cuisine", frequency: "quotidienne", estimatedMinutes: 10 },
-      { title: "Planifier les repas", reason: "Réduit les achats impulsifs et le stress des soirs de semaine.", who: mainAdult?.name ?? "Adulte", when: "Le week-end", category: "courses", frequency: "hebdomadaire", estimatedMinutes: 25, suggestedMemberId: mainAdult?.id },
-      { title: "Lancer une lessive", reason: "Évite les pics de charge en fin de semaine.", who: "Ado ou adulte", when: "3 fois/semaine", category: "routine", frequency: "hebdomadaire", estimatedMinutes: 20 },
-      { title: "Nettoyer la salle de bain", reason: "Préserve l'hygiène générale du foyer.", who: "Adulte", when: "1 fois/semaine", category: "hygiene", frequency: "hebdomadaire", estimatedMinutes: 30 },
+      { title: "Sortir les poubelles", reason: "Évite l'accumulation et garde les zones communes saines.", who: mainAdult?.name ?? "Adulte du foyer", when: "Lundi", category: "entretien", frequency: "hebdomadaire", estimatedMinutes: 10, suggestedMemberId: mainAdult?.id, suggestedDayOfWeek: 1 },
+      { title: "Vider le lave-vaisselle", reason: "Maintient une cuisine fonctionnelle chaque jour.", who: "Ado ou adulte", when: "Mardi", category: "cuisine", frequency: "hebdomadaire", estimatedMinutes: 10, suggestedDayOfWeek: 2 },
+      { title: "Planifier les repas", reason: "Réduit les achats impulsifs et le stress des soirs de semaine.", who: mainAdult?.name ?? "Adulte", when: "Dimanche", category: "courses", frequency: "hebdomadaire", estimatedMinutes: 25, suggestedMemberId: mainAdult?.id, suggestedDayOfWeek: 7 },
+      { title: "Lancer une lessive", reason: "Évite les pics de charge en fin de semaine.", who: "Ado ou adulte", when: "Mercredi", category: "routine", frequency: "hebdomadaire", estimatedMinutes: 20, suggestedDayOfWeek: 3 },
+      { title: "Nettoyer la salle de bain", reason: "Préserve l'hygiène générale du foyer.", who: "Adulte", when: "Samedi", category: "hygiene", frequency: "hebdomadaire", estimatedMinutes: 30, suggestedDayOfWeek: 6 },
       ...(profile.household.hasPets ? [{ title: "Nourrir les animaux", reason: "Routine essentielle pour le bien-être animal.", who: "Enfant + supervision adulte", when: "Matin et soir", category: "animaux" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 8 }] : []),
       ...(hasKids ? [{ title: "Préparer les cartables", reason: "Réduit les oublis et la tension matinale.", who: "Enfant/Ado avec validation adulte", when: "Chaque soir", category: "routine" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 12 }] : []),
       ...(hasBaby ? [{ title: "Routine bain bébé", reason: "Sécurise le coucher et fluidifie la soirée.", who: "Adulte", when: "Chaque soir", category: "enfants" as TaskCategory, frequency: "quotidienne" as Frequency, estimatedMinutes: 25, suggestedMemberId: mainAdult?.id }] : [])
@@ -157,7 +158,7 @@ export const createAiHouseholdPlan = async (request: AiHouseholdRequest): Promis
           "Retourne exactement les clés: headline, summary, taskFocus, routineSuggestions, routines, savingsMoves, notes, budgetSuggestions, birthListSuggestions.",
         input:
           "Génère un plan long, concret et actionnable: au moins 8 taskFocus, 3 routineSuggestions détaillées, 4 routines, 3 savingsMoves, 3 notes. " +
-          "Les taskFocus doivent inclure titre, raison, qui, quand, catégorie, fréquence, durée estimée et suggestedMemberId quand possible. " +
+          "Les taskFocus doivent inclure titre, raison, qui, quand, catégorie, fréquence, durée estimée, suggestedMemberId quand possible et suggestedDayOfWeek (1=lundi..7=dimanche) pour structurer le planning hebdomadaire. " +
           `Données foyer:\n${JSON.stringify(compactContext)}`,
         max_output_tokens: 2400
       })

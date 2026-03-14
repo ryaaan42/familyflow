@@ -391,11 +391,6 @@ const getWeekStart = (data: DemoDataset) => {
   return startOfWeekMonday(referenceTaskDate);
 };
 
-const getDailyTasks = (data: DemoDataset) =>
-  data.tasks
-    .filter((task) => task.frequency === "quotidienne")
-    .sort((left, right) => left.estimatedMinutes - right.estimatedMinutes);
-
 const getWeeklyBuckets = (data: DemoDataset) => {
   const weekStart = getWeekStart(data);
 
@@ -404,14 +399,10 @@ const getWeeklyBuckets = (data: DemoDataset) => {
     const dayOfWeek = (index + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
     const tasks = data.tasks
       .filter((task) => {
-        if (task.frequency === "quotidienne") return false;
         if (task.dayOfWeek) return task.dayOfWeek === dayOfWeek;
         const dueDate = new Date(task.dueDate);
-        return (
-          dueDate.getFullYear() === date.getFullYear() &&
-          dueDate.getMonth() === date.getMonth() &&
-          dueDate.getDate() === date.getDate()
-        );
+        const dueWeekday = (dueDate.getDay() + 6) % 7 + 1;
+        return dueWeekday === dayOfWeek;
       })
       .sort((left, right) => left.estimatedMinutes - right.estimatedMinutes);
 
@@ -430,8 +421,10 @@ export function PlanillePdfDocument({
   const savings = buildSavingsSummary(data.savingsScenarios, data.tasks, data.budgetItems);
   const weekStart = getWeekStart(data);
   const weekEnd = addDaysNative(weekStart, 6);
-  const dailyTasks = getDailyTasks(data);
   const weeklyBuckets = getWeeklyBuckets(data);
+  const routineTasks = data.tasks
+    .filter((task) => task.frequency === "quotidienne" || task.category === "routine")
+    .sort((left, right) => left.estimatedMinutes - right.estimatedMinutes);
 
   return (
     <Document>
@@ -573,7 +566,7 @@ export function PlanillePdfDocument({
         <View style={{ ...styles.panel, backgroundColor: palette.soft }} wrap={false}>
           <Text style={{ ...styles.sectionTitle, color: palette.text }}>Routines quotidiennes</Text>
           <View style={styles.routinesWrap}>
-            {dailyTasks.slice(0, 6).map((task, index) => (
+            {routineTasks.slice(0, 6).map((task, index) => (
               <View
                 key={task.id}
                 style={{

@@ -281,6 +281,7 @@ export interface AiHouseholdPlanItem {
   frequency?: Frequency;
   suggestedMemberId?: string;
   estimatedMinutes?: number;
+  suggestedDayOfWeek?: number;
 }
 
 export interface AiRoutineSuggestion {
