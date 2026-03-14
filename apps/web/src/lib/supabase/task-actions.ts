@@ -85,13 +85,33 @@ export async function bootstrapDefaultTasksIfEmpty() {
   const household = await getUserHousehold();
   if (!household) return;
 
-  const { count } = await supabase
+  const { data: existingTasks } = await supabase
     .from("tasks")
-    .select("id", { head: true, count: "exact" })
+    .select("id, due_date")
     .eq("household_id", household.household.id)
-    .is("deleted_at", null);
+    .is("deleted_at", null)
+    .order("created_at", { ascending: true });
 
-  if ((count ?? 0) > 0) return;
+  const tasks = existingTasks ?? [];
+
+  // If tasks exist but are all stacked on the same due_date (pre-fix bootstrap),
+  // redistribute them across the week then return.
+  if (tasks.length > 1) {
+    const uniqueDates = new Set(tasks.map((t) => t.due_date as string));
+    if (uniqueDates.size === 1) {
+      await Promise.all(
+        tasks.map((task, index) =>
+          supabase
+            .from("tasks")
+            .update({ due_date: toDateFromDayOfWeek(((index % 7) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7) })
+            .eq("id", task.id as string)
+        )
+      );
+    }
+    return;
+  }
+
+  if (tasks.length > 0) return;
 
   const memberCategories = household.members.map((m) => m.memberCategory ?? "adulte");
   const templates = getDefaultTasksForHousehold({
