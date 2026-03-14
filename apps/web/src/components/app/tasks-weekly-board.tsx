@@ -190,7 +190,9 @@ export function TasksWeeklyBoard() {
     setIsSubmitting(false);
 
     if (!response.ok) {
-      setFeedback({ type: "error", message: "Impossible d'enregistrer la tâche." });
+      let detail = "";
+      try { detail = (await response.json()).error ?? ""; } catch { /* ignore */ }
+      setFeedback({ type: "error", message: `Erreur ${response.status}${detail ? ` : ${detail}` : " : Impossible d'enregistrer la tâche."}` });
       return;
     }
 
@@ -621,13 +623,13 @@ export function TasksWeeklyBoard() {
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <p className="text-xs font-medium text-[var(--foreground-muted)]">Catégorie</p>
-                  <div className="relative">
+                  <div className="flex items-center gap-2">
                     <span
-                      className="pointer-events-none absolute left-3 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full"
+                      className="h-2.5 w-2.5 shrink-0 rounded-full"
                       style={{ backgroundColor: categoryColors[form.category] ?? "#6D5EF4" }}
                     />
                     <select
-                      className="w-full rounded-2xl border border-[#e8e4f8] bg-white py-2.5 pl-7 pr-3 text-sm text-[var(--foreground)] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/10"
+                      className="min-w-0 flex-1 rounded-2xl border border-[#e8e4f8] bg-white px-3 py-2.5 text-sm text-[var(--foreground)] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/10"
                       value={form.category}
                       onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value as Task["category"] }))}
                     >
