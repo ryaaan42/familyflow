@@ -122,6 +122,20 @@ export interface Household {
   isExpectingBaby?: boolean;
   pregnancyDueDate?: string;
   birthListShareSlug?: string;
+  aiContext?: {
+    housingDetails?: string;
+    petsDetails?: string;
+    childrenAges?: string;
+    lifestyleRhythm?: string;
+    preferredTaskDays?: string;
+    mealPreferences?: string;
+    foodConstraints?: string;
+    organizationGoals?: string;
+    scheduleConstraints?: string;
+    routinesWanted?: string;
+    weeklyBudget?: number;
+    monthlyBudget?: number;
+  };
   balanceScore: number;
   createdAt: string;
 }

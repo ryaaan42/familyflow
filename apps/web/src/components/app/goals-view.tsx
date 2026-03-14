@@ -132,6 +132,7 @@ export function GoalsView() {
   const [loading, setLoading] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<HouseholdGoal | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -149,29 +150,46 @@ export function GoalsView() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...data, currentValue: 0 })
     });
-    if (res.ok) { const g: HouseholdGoal = await res.json(); setGoals((prev) => [g, ...prev]); }
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setFeedback(data.error ?? "Impossible de créer l'objectif.");
+      return;
+    }
+    const g: HouseholdGoal = await res.json();
+    setGoals((prev) => [g, ...prev]);
+    setFeedback("Objectif enregistré.");
   };
 
   const updateProgress = async (id: string, currentValue: number) => {
-    await fetch(`/api/goals/${id}`, {
+    const res = await fetch(`/api/goals/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ currentValue })
     });
+    if (!res.ok) {
+      setFeedback("Impossible de mettre à jour la progression.");
+      return;
+    }
     setGoals((prev) => prev.map((g) => g.id === id ? { ...g, currentValue } : g));
+    setFeedback("Progression sauvegardée.");
   };
 
   const markStatus = async (id: string, status: GoalStatus) => {
-    await fetch(`/api/goals/${id}`, {
+    const res = await fetch(`/api/goals/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status })
     });
+    if (!res.ok) {
+      setFeedback("Impossible de mettre à jour le statut.");
+      return;
+    }
     setGoals((prev) => prev.map((g) => g.id === id ? { ...g, status } : g));
+    setFeedback("Statut mis à jour.");
   };
 
   const remove = async (id: string) => {
-    await fetch(`/api/goals/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/goals/${id}`, { method: "DELETE" });
     setGoals((prev) => prev.filter((g) => g.id !== id));
   };
 
@@ -183,6 +201,8 @@ export function GoalsView() {
 
   return (
     <div className="space-y-5">
+      {feedback ? <p className="rounded-xl bg-indigo-50 px-4 py-2 text-sm text-indigo-700">{feedback}</p> : null}
+
       {/* Hero */}
       <Card className="overflow-hidden hero-blue text-white hero-glow premium-shell">
         <div className="grid gap-6 p-7 md:grid-cols-[1.3fr_0.7fr] md:p-8">

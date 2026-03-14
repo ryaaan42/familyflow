@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { getUserHousehold } from "@/lib/supabase/household-queries";
 
 export async function GET() {
   const supabase = await createSupabaseServerClient();
@@ -13,21 +14,16 @@ export async function GET() {
     return NextResponse.json({ error: "Non autorise." }, { status: 401 });
   }
 
-  const { data: household, error: householdError } = await supabase
-    .from("households")
-    .select("id")
-    .is("deleted_at", null)
-    .limit(1)
-    .maybeSingle();
+  const household = await getUserHousehold();
 
-  if (householdError || !household) {
+  if (!household) {
     return NextResponse.json({ error: "Foyer introuvable." }, { status: 404 });
   }
 
   const { data: items, error } = await supabase
     .from("birth_list_items")
     .select()
-    .eq("household_id", household.id)
+    .eq("household_id", household.household.id)
     .order("created_at", { ascending: true });
 
   if (error) {
@@ -51,14 +47,9 @@ export async function POST(req: NextRequest) {
   }
 
   // Get the user's household
-  const { data: household, error: householdError } = await supabase
-    .from("households")
-    .select("id")
-    .is("deleted_at", null)
-    .limit(1)
-    .maybeSingle();
+  const household = await getUserHousehold();
 
-  if (householdError || !household) {
+  if (!household) {
     return NextResponse.json({ error: "Foyer introuvable." }, { status: 404 });
   }
 
@@ -72,7 +63,7 @@ export async function POST(req: NextRequest) {
   const { data: item, error: insertError } = await supabase
     .from("birth_list_items")
     .insert({
-      household_id: household.id,
+      household_id: household.household.id,
       title: title.trim(),
       category,
       priority,

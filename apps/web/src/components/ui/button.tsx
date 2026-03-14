@@ -47,7 +47,10 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
+    const hasWhiteBackground = typeof className === "string" && /\bbg-white(?:\b|\/)/.test(className);
+    const hasExplicitTextColor = typeof className === "string" && /\btext-/.test(className);
+
+    return <Comp className={cn(buttonVariants({ variant, size, className }), hasWhiteBackground && !hasExplicitTextColor ? "text-[#0f0e1a]" : undefined)} ref={ref} {...props} />;
   }
 );
 

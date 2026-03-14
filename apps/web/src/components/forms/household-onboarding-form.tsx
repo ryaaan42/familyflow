@@ -33,7 +33,21 @@ export function HouseholdOnboardingForm() {
       city: profile.household.city ?? "",
       isExpectingBaby: profile.household.isExpectingBaby ?? false,
       pregnancyDueDate: profile.household.pregnancyDueDate ?? "",
-      birthListShareSlug: profile.household.birthListShareSlug ?? ""
+      birthListShareSlug: profile.household.birthListShareSlug ?? "",
+      aiContext: {
+        housingDetails: profile.household.aiContext?.housingDetails ?? "",
+        petsDetails: profile.household.aiContext?.petsDetails ?? "",
+        childrenAges: profile.household.aiContext?.childrenAges ?? "",
+        lifestyleRhythm: profile.household.aiContext?.lifestyleRhythm ?? "",
+        preferredTaskDays: profile.household.aiContext?.preferredTaskDays ?? "",
+        mealPreferences: profile.household.aiContext?.mealPreferences ?? "",
+        foodConstraints: profile.household.aiContext?.foodConstraints ?? "",
+        organizationGoals: profile.household.aiContext?.organizationGoals ?? "",
+        scheduleConstraints: profile.household.aiContext?.scheduleConstraints ?? "",
+        routinesWanted: profile.household.aiContext?.routinesWanted ?? "",
+        weeklyBudget: profile.household.aiContext?.weeklyBudget ?? undefined,
+        monthlyBudget: profile.household.aiContext?.monthlyBudget ?? undefined
+      }
     }
   });
 
@@ -58,7 +72,8 @@ export function HouseholdOnboardingForm() {
         city: values.city ?? null,
         is_expecting_baby: values.isExpectingBaby,
         pregnancy_due_date: values.pregnancyDueDate || null,
-        birth_list_share_slug: resolvedSlug
+        birth_list_share_slug: resolvedSlug,
+        ai_context: values.aiContext ?? {}
       })
       .eq("id", profile.household.id);
 
@@ -82,7 +97,8 @@ export function HouseholdOnboardingForm() {
           city: values.city,
           isExpectingBaby: values.isExpectingBaby,
           pregnancyDueDate: values.pregnancyDueDate || undefined,
-          birthListShareSlug: resolvedSlug ?? undefined
+          birthListShareSlug: resolvedSlug ?? undefined,
+          aiContext: values.aiContext ?? undefined
         }
       }
     }));
@@ -149,6 +165,26 @@ export function HouseholdOnboardingForm() {
             </div>
           </>
         ) : null}
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="lifestyleRhythm">Rythme de vie & contraintes horaires</Label>
+          <textarea id="lifestyleRhythm" className="min-h-[88px] w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm" {...form.register("aiContext.lifestyleRhythm")} />
+        </div>
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="mealPreferences">Préférences repas / contraintes</Label>
+          <textarea id="mealPreferences" className="min-h-[88px] w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm" {...form.register("aiContext.mealPreferences")} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="weeklyBudget">Budget hebdo estimé (€)</Label>
+          <Input id="weeklyBudget" type="number" min={0} {...form.register("aiContext.weeklyBudget")} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="monthlyBudget">Budget mensuel (€)</Label>
+          <Input id="monthlyBudget" type="number" min={0} {...form.register("aiContext.monthlyBudget")} />
+        </div>
+        <div className="space-y-2 md:col-span-2">
+          <Label htmlFor="organizationGoals">Objectifs d’organisation & routines souhaitées</Label>
+          <textarea id="organizationGoals" className="min-h-[88px] w-full rounded-2xl border border-[var(--border)] bg-white px-4 py-2.5 text-sm" {...form.register("aiContext.organizationGoals")} />
+        </div>
         {error ? (
           <div className="md:col-span-2">
             <p className="rounded-2xl bg-rose-50 px-4 py-2 text-sm text-rose-600">{error}</p>

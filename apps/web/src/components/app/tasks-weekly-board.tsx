@@ -56,6 +56,7 @@ export function TasksWeeklyBoard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [busyTaskIds, setBusyTaskIds] = useState<string[]>([]);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
 
   const quickTemplates = useMemo(() => getTaskTemplatesForPets(state.profile.pets), [state.profile.pets]);
 
@@ -169,6 +170,23 @@ export function TasksWeeklyBoard() {
     });
   };
 
+
+
+  const moveTaskToDay = async (task: Task, dayOfWeek: DayOfWeek) => {
+    await withBusyTask(task.id, async () => {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ dayOfWeek, assignedMemberId: task.assignedMemberId ?? null, status: task.status })
+      });
+      if (!response.ok) {
+        setFeedback({ type: "error", message: "Déplacement impossible." });
+        return;
+      }
+      await refreshFrom(response);
+      setFeedback({ type: "success", message: "Tâche déplacée." });
+    });
+  };
   const changeAssignee = async (task: Task, memberId: string) => {
     await withBusyTask(task.id, async () => {
       const response = await fetch(`/api/tasks/${task.id}`, {
@@ -210,6 +228,14 @@ export function TasksWeeklyBoard() {
           return (
             <section
               key={day.value}
+              onDragOver={(event) => event.preventDefault()}
+              onDrop={(event) => {
+                event.preventDefault();
+                const taskId = event.dataTransfer.getData("text/task-id");
+                const task = state.tasks.find((t) => t.id === taskId);
+                if (task) void moveTaskToDay(task, day.value);
+                setDraggingTaskId(null);
+              }}
               className="rounded-3xl border border-[#d8e5ff] bg-[linear-gradient(180deg,#ffffff,#f8fbff)] p-4 shadow-[0_10px_24px_rgba(31,66,135,0.08)]"
             >
               <div className="mb-3 flex items-center justify-between gap-2">
@@ -241,7 +267,10 @@ export function TasksWeeklyBoard() {
                   return (
                     <article
                       key={task.id}
-                      className="rounded-2xl border border-[#e5ecfa] bg-white px-3 py-2.5"
+                      draggable
+                      onDragStart={(event) => { event.dataTransfer.setData("text/task-id", task.id); setDraggingTaskId(task.id); }}
+                      onDragEnd={() => setDraggingTaskId(null)}
+                      className={`rounded-2xl border border-[#e5ecfa] bg-white px-3 py-2.5 ${draggingTaskId === task.id ? "opacity-60" : ""}`}
                     >
                       <div className="flex items-center gap-2">
                         <button
