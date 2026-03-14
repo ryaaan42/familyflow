@@ -36,7 +36,9 @@ const memberSchema = z.object({
   displayName: z.string().min(2, "Minimum 2 caractères"),
   age: z.coerce.number().min(0).max(120),
   role: z.enum(["parent", "adulte", "ado", "enfant", "autre"]),
-  avatarColor: z.string()
+  avatarColor: z.string(),
+  isFemale: z.boolean().default(false),
+  isPregnant: z.boolean().default(false)
 });
 
 type MemberFormValues = z.infer<typeof memberSchema>;
@@ -59,20 +61,36 @@ function MemberForm({ householdId, member, onClose }: MemberFormProps) {
       displayName: member?.name ?? "",
       age: member?.age ?? 25,
       role: member?.role ?? "adulte",
-      avatarColor: member?.avatarColor ?? AVATAR_COLORS[0]
+      avatarColor: member?.avatarColor ?? AVATAR_COLORS[0],
+      isFemale: member?.isFemale ?? false,
+      isPregnant: member?.isPregnant ?? false
     }
   });
+
+  const watchedAge = form.watch("age");
+  const watchedIsFemale = form.watch("isFemale");
+  const isAdult = watchedAge >= 18;
+
+  // If not female or not adult, reset pregnancy
+  const handleIsFemaleChange = (val: boolean) => {
+    form.setValue("isFemale", val);
+    if (!val) form.setValue("isPregnant", false);
+  };
 
   const onSubmit = form.handleSubmit(async (values) => {
     setSubmitting(true);
     setError(null);
+
+    const isPregnant = values.isFemale && isAdult ? values.isPregnant : false;
 
     if (member) {
       const { error: err } = await updateHouseholdMember(member.id, {
         displayName: values.displayName,
         age: values.age,
         role: values.role,
-        avatarColor: values.avatarColor
+        avatarColor: values.avatarColor,
+        isFemale: values.isFemale,
+        isPregnant
       });
       if (err) {
         setError(err);
@@ -83,14 +101,18 @@ function MemberForm({ householdId, member, onClose }: MemberFormProps) {
         name: values.displayName,
         age: values.age,
         role: values.role,
-        avatarColor: values.avatarColor
+        avatarColor: values.avatarColor,
+        isFemale: values.isFemale,
+        isPregnant
       });
     } else {
       const { memberId, error: err } = await addHouseholdMember(householdId, {
         displayName: values.displayName,
         age: values.age,
         role: values.role,
-        avatarColor: values.avatarColor
+        avatarColor: values.avatarColor,
+        isFemale: values.isFemale,
+        isPregnant
       });
       if (err || !memberId) {
         setError(err ?? "Erreur inconnue");
@@ -105,6 +127,8 @@ function MemberForm({ householdId, member, onClose }: MemberFormProps) {
         role: values.role,
         avatarColor: values.avatarColor,
         availabilityHoursPerWeek: 10,
+        isFemale: values.isFemale,
+        isPregnant,
         favoriteCategories: [],
         blockedCategories: []
       });
@@ -156,6 +180,56 @@ function MemberForm({ householdId, member, onClose }: MemberFormProps) {
           </select>
         </div>
       </div>
+
+      {/* Genre — affiché uniquement pour les membres adultes (18+) */}
+      {isAdult && (
+        <div className="space-y-2">
+          <Label>Genre</Label>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => handleIsFemaleChange(false)}
+              className={`flex-1 rounded-2xl border py-2 text-sm font-medium transition ${
+                !watchedIsFemale
+                  ? "border-[#6D5EF4] bg-[#6D5EF4] text-white"
+                  : "border-[var(--border)] bg-white text-[var(--foreground-muted)] hover:border-[#6D5EF4]/50"
+              }`}
+            >
+              Homme
+            </button>
+            <button
+              type="button"
+              onClick={() => handleIsFemaleChange(true)}
+              className={`flex-1 rounded-2xl border py-2 text-sm font-medium transition ${
+                watchedIsFemale
+                  ? "border-[#EC4899] bg-[#EC4899] text-white"
+                  : "border-[var(--border)] bg-white text-[var(--foreground-muted)] hover:border-[#EC4899]/50"
+              }`}
+            >
+              Femme
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Grossesse — uniquement pour les femmes adultes */}
+      {isAdult && watchedIsFemale && (
+        <div className="rounded-2xl border border-[#fce7f3] bg-[#fdf2f8] p-3">
+          <label className="flex cursor-pointer items-center gap-3">
+            <input
+              type="checkbox"
+              className="h-4 w-4 rounded accent-[#EC4899]"
+              {...form.register("isPregnant")}
+            />
+            <div>
+              <p className="text-sm font-medium text-[#9d174d]">Enceinte</p>
+              <p className="text-xs text-[#be185d]/70">
+                L&apos;IA adaptera les tâches et proposera une liste de naissance
+              </p>
+            </div>
+          </label>
+        </div>
+      )}
 
       <div className="space-y-1.5">
         <Label>Couleur d'avatar</Label>
@@ -302,6 +376,8 @@ export function MemberManager({ householdId }: MemberManagerProps) {
                     <p className="font-semibold">{member.name}</p>
                     <p className="text-sm text-[var(--foreground-muted)]">
                       {ROLE_LABELS[member.role] ?? member.role}, {member.age} ans
+                      {member.isFemale ? " · Femme" : ""}
+                      {member.isPregnant ? " · Enceinte" : ""}
                     </p>
                   </div>
                 </div>
