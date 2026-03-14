@@ -7,6 +7,7 @@ import {
 } from "@/lib/ai/familyflow-ai";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
+import { bootstrapDefaultTasksIfEmpty, listTasksForCurrentUser, persistAiPlanTasks } from "@/lib/supabase/task-actions";
 
 export const runtime = "nodejs";
 
@@ -14,7 +15,9 @@ const requestSchema = z.object({
   profile: z.any(),
   tasks: z.array(z.any()),
   budgetItems: z.array(z.any()),
-  birthListItems: z.array(z.any()).default([])
+  birthListItems: z.array(z.any()).default([]),
+  onboardingAnswers: z.record(z.any()).optional(),
+  autoApplyTasks: z.boolean().optional().default(true)
 });
 
 export async function POST(request: NextRequest) {
@@ -23,31 +26,23 @@ export async function POST(request: NextRequest) {
     data: { user }
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
-  }
+  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
   const household = await getUserHousehold();
-  if (!household) {
-    return NextResponse.json({ error: "Foyer introuvable" }, { status: 404 });
-  }
+  if (!household) return NextResponse.json({ error: "Foyer introuvable" }, { status: 404 });
 
   const body = await request.json();
   const parsed = requestSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json(
-      { error: "Payload IA invalide." },
-      { status: 400 }
-    );
-  }
+  if (!parsed.success) return NextResponse.json({ error: "Payload IA invalide." }, { status: 400 });
 
   const aiRequest: AiHouseholdRequest = {
     profile: parsed.data.profile,
     tasks: parsed.data.tasks,
     budgetItems: parsed.data.budgetItems,
-    birthListItems: parsed.data.birthListItems ?? []
+    birthListItems: parsed.data.birthListItems ?? [],
+    onboardingAnswers: parsed.data.onboardingAnswers
   };
+
   const plan = await createAiHouseholdPlan(aiRequest);
 
   const { data: generation } = await supabase
@@ -55,7 +50,7 @@ export async function POST(request: NextRequest) {
     .insert({
       household_id: household.household.id,
       created_by: user.id,
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+      model: process.env.OPENAI_MODEL ?? "gpt-5-mini",
       status: plan.usedFallback ? "fallback" : "success",
       input_snapshot: aiRequest,
       output_payload: plan
@@ -66,8 +61,11 @@ export async function POST(request: NextRequest) {
   if (generation?.id) {
     const suggestions = [
       ...plan.taskFocus.map((item) => ({ suggestion_type: "task", title: item.title, body: `${item.reason} — ${item.who} (${item.when})`, metadata: item })),
+      ...(plan.routineSuggestions ?? []).map((item) => ({ suggestion_type: "routine", title: item.title, body: item.steps.join(" · "), metadata: item })),
       ...plan.routines.map((item) => ({ suggestion_type: "routine", title: null, body: item, metadata: {} })),
-      ...plan.savingsMoves.map((item) => ({ suggestion_type: "budget", title: null, body: item, metadata: {} }))
+      ...plan.savingsMoves.map((item) => ({ suggestion_type: "budget", title: null, body: item, metadata: {} })),
+      ...(plan.budgetSuggestions ?? []).map((item) => ({ suggestion_type: "budget", title: "Budget", body: item, metadata: {} })),
+      ...(plan.notes ?? []).map((item) => ({ suggestion_type: "note", title: null, body: item, metadata: {} }))
     ];
 
     if (suggestions.length) {
@@ -78,11 +76,22 @@ export async function POST(request: NextRequest) {
           suggestion_type: s.suggestion_type,
           title: s.title,
           body: s.body,
-          metadata: s.metadata
+          metadata: s.metadata,
+          is_active: true
         }))
       );
     }
   }
 
-  return NextResponse.json(plan);
+  if (parsed.data.autoApplyTasks) {
+    await persistAiPlanTasks({ householdId: household.household.id, plan });
+  }
+
+  const tasks = await listTasksForCurrentUser();
+  if (!tasks.length) {
+    await bootstrapDefaultTasksIfEmpty();
+  }
+
+  const refreshedTasks = await listTasksForCurrentUser();
+  return NextResponse.json({ ...plan, tasks: refreshedTasks });
 }

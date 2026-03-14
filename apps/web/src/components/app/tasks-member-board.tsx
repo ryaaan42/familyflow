@@ -61,7 +61,7 @@ function MemberColumn({ member, tasks, dragOverId, onDragOver, onDragLeave, onDr
             <p className="text-sm font-semibold">{member?.name ?? "Non assigné"}</p>
             {member && (
               <p className="text-xs capitalize text-[var(--foreground-muted)]">
-                {member.role}
+                {member.memberCategory ?? member.role}
                 {member.isPregnant ? " · enceinte" : ""}
               </p>
             )}

@@ -1,5 +1,5 @@
-import type { Task } from "@familyflow/shared";
-import { DEFAULT_TASK_LIBRARY } from "@/lib/task-library";
+import type { AiHouseholdPlan, Task } from "@familyflow/shared";
+import { DEFAULT_TASK_LIBRARY, getDefaultTasksForHousehold } from "@/lib/task-library";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
 
@@ -63,7 +63,14 @@ export async function bootstrapDefaultTasksIfEmpty() {
   if ((count ?? 0) > 0) return;
 
   const nowDate = new Date().toISOString().slice(0, 10);
-  const rows = DEFAULT_TASK_LIBRARY.map((item) => ({
+  const memberCategories = household.members.map((m) => m.memberCategory ?? "adulte");
+  const templates = getDefaultTasksForHousehold({
+    hasPets: household.household.hasPets,
+    housingType: household.household.housingType,
+    memberCategories
+  });
+
+  const rows = templates.map((item) => ({
     household_id: household.household.id,
     title: item.title,
     description: item.description,
@@ -77,4 +84,70 @@ export async function bootstrapDefaultTasksIfEmpty() {
   }));
 
   await supabase.from("tasks").insert(rows);
+}
+
+export async function persistAiPlanTasks(input: { householdId: string; plan: AiHouseholdPlan }) {
+  const supabase = await createSupabaseServerClient();
+  const nowDate = new Date().toISOString().slice(0, 10);
+
+  const rows = input.plan.taskFocus.map((item) => ({
+    household_id: input.householdId,
+    title: item.title,
+    description: item.reason,
+    category: item.category ?? "routine",
+    frequency: item.frequency ?? "hebdomadaire",
+    due_date: nowDate,
+    status: "todo",
+    estimated_minutes: item.estimatedMinutes ?? 20,
+    difficulty: 1,
+    origin: "smart" as const,
+    smart_reason: item.reason
+  }));
+
+  if (!rows.length) return;
+
+  const { data, error } = await supabase.from("tasks").insert(rows).select("id, title");
+  if (error || !data) return;
+
+  for (const created of data) {
+    const suggestion = input.plan.taskFocus.find((i) => i.title === created.title);
+    if (suggestion?.suggestedMemberId) {
+      await supabase.from("task_assignments").insert({
+        task_id: created.id,
+        member_id: suggestion.suggestedMemberId,
+        scheduled_for: nowDate,
+        status: "todo"
+      });
+    }
+  }
+}
+
+export function buildBaseFallbackPlanSummary() {
+  return {
+    headline: "Suggestions de base appliquées",
+    summary: "L'IA n'a pas répondu correctement, des tâches de base ont été appliquées automatiquement pour que votre planning reste utilisable.",
+    taskFocus: DEFAULT_TASK_LIBRARY.slice(0, 8).map((item) => ({
+      title: item.title,
+      reason: item.description,
+      who: "À attribuer",
+      when: item.frequency,
+      category: item.category,
+      frequency: item.frequency,
+      estimatedMinutes: item.estimatedMinutes
+    })),
+    routines: [
+      "Routine du matin: préparer petit-déjeuner, sacs et tenues.",
+      "Routine du soir: ranger les pièces de vie et préparer le lendemain.",
+      "Bloc hebdo de 30 min pour linge et salle de bain.",
+      "Revue budget hebdo de 20 min en fin de semaine."
+    ],
+    savingsMoves: [
+      "Planifier les repas pour limiter les dépenses impulsives.",
+      "Regrouper les courses sur une sortie hebdomadaire.",
+      "Vérifier les abonnements une fois par mois."
+    ],
+    notes: ["Vous pouvez modifier ou supprimer chaque suggestion avant validation finale."],
+    birthListSuggestions: [],
+    usedFallback: true
+  } as AiHouseholdPlan;
 }
