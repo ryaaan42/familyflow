@@ -146,10 +146,10 @@ export function BirthListView() {
 
   return (
     <div className="space-y-5">
-      <Card className="premium-shell overflow-hidden bg-[linear-gradient(135deg,rgba(36,25,64,0.96),rgba(135,76,176,0.88),rgba(255,126,107,0.78),rgba(255,191,90,0.72))] text-white hero-glow">
+      <Card className="overflow-hidden hero-coral text-white hero-glow-coral premium-shell">
         <div className="grid gap-8 p-7 md:grid-cols-[1.08fr_0.92fr] md:p-8">
           <div className="space-y-4">
-            <Badge className="w-fit bg-white/14 text-white shadow-none">Liste de naissance</Badge>
+            <Badge variant="white">Liste de naissance</Badge>
             <h2 className="text-3xl font-semibold tracking-[-0.04em] md:text-5xl">
               Une liste elegante, partageable et raccord avec le reste du foyer.
             </h2>

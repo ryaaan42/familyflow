@@ -18,10 +18,10 @@ export function HouseholdView() {
 
   return (
     <div className="space-y-5">
-      <Card className="premium-shell overflow-hidden bg-[linear-gradient(135deg,rgba(19,18,49,0.96),rgba(104,74,188,0.9),rgba(86,199,161,0.78),rgba(255,126,107,0.72))] text-white hero-glow">
+      <Card className="overflow-hidden hero-violet text-white hero-glow-violet premium-shell">
         <div className="flex flex-col gap-6 p-7 md:flex-row md:items-center md:justify-between">
           <div className="space-y-3">
-            <Badge className="w-fit bg-white/14 text-white shadow-none">Foyer</Badge>
+            <Badge variant="white">Foyer</Badge>
             <h2 className="text-3xl font-semibold tracking-[-0.03em]">{state.profile.household.name}</h2>
             <p className="max-w-3xl text-[15px] text-white/78">
               {state.profile.household.housingType}, {state.profile.household.surfaceSqm} m²,{" "}
