@@ -530,38 +530,38 @@ export function TasksWeeklyBoard() {
       {/* Create/Edit modal */}
       {editor ? (
         <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-3 pb-3 pt-10 backdrop-blur-sm md:items-center"
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/50 px-3 pb-3 pt-10 backdrop-blur-md md:items-center"
           onClick={(event) => {
             if (event.target === event.currentTarget) setEditor(null);
           }}
         >
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl ring-1 ring-[#e0eaff]">
-            <div className="mb-5 flex items-center justify-between">
+          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-[0_32px_80px_rgba(17,24,39,0.22)] ring-1 ring-black/5">
+            {/* Modal header */}
+            <div className="flex items-center justify-between bg-gradient-to-r from-[#6D5EF4] to-[#8B7BFF] px-6 py-4">
               <div>
-                <h4 className="text-base font-bold">
+                <h4 className="text-sm font-semibold text-white">
                   {editor.type === "edit" ? "Modifier la tâche" : "Nouvelle tâche"}
                 </h4>
-                <p className="mt-0.5 text-xs text-[var(--foreground-muted)]">
-                  {editor.type === "edit" ? "Modifiez les champs souhaités" : "Remplissez les détails de la tâche"}
+                <p className="mt-0.5 text-xs text-white/70">
+                  {editor.type === "edit" ? "Modifiez les champs souhaités" : "Ajoutez une tâche à votre planning"}
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setEditor(null)}
-                className="rounded-xl p-1.5 text-[var(--foreground-muted)] hover:bg-[#f0f4ff]"
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-white/15 text-white hover:bg-white/25 transition"
               >
-                <X className="h-4 w-4" />
+                <X className="h-3.5 w-3.5" />
               </button>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-5 p-6">
+              {/* Template picker */}
               {editor.type === "create" && quickTemplates.length > 0 ? (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
-                    Modèle rapide
-                  </label>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-[var(--foreground-muted)]">Modèle rapide</p>
                   <select
-                    className="w-full rounded-2xl border border-[#e0eaff] bg-[#fafcff] px-3 py-2 text-sm focus:border-[#6D5EF4] focus:outline-none"
+                    className="w-full rounded-2xl border border-[#ede9fe] bg-[#faf8ff] px-3.5 py-2.5 text-sm text-[var(--foreground)] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/12"
                     value={form.templateTitle}
                     onChange={(event) => {
                       const selected = quickTemplates.find((t) => t.title === event.target.value);
@@ -584,95 +584,107 @@ export function TasksWeeklyBoard() {
                 </div>
               ) : null}
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
-                  Nom de la tâche *
-                </label>
+              {/* Task name */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-[var(--foreground-muted)]">Nom de la tâche</p>
                 <input
-                  className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm placeholder-[#b0bbcc] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/15"
+                  className="w-full rounded-2xl border border-[#e8e4f8] bg-[#fdfcff] px-4 py-3 text-sm font-medium text-[var(--foreground)] placeholder-[#c4bde8] transition focus:border-[#6D5EF4] focus:bg-white focus:outline-none focus:ring-3 focus:ring-[#6D5EF4]/10"
                   value={form.title}
                   onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-                  placeholder="Ex: Passer l'aspirateur"
+                  placeholder="Ex : Passer l'aspirateur"
+                  autoFocus
                 />
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-2">
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
-                    Catégorie
-                  </label>
-                  <select
-                    className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm focus:border-[#6D5EF4] focus:outline-none"
-                    value={form.category}
-                    onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value as Task["category"] }))}
-                  >
-                    {categoryValues.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {categoryLabels[cat]}
-                      </option>
-                    ))}
-                  </select>
+              {/* Day chips */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-[var(--foreground-muted)]">Jour</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {weekdays.map((d) => (
+                    <button
+                      key={d.value}
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, dayOfWeek: d.value }))}
+                      className={`rounded-xl px-3 py-1.5 text-xs font-semibold transition-all ${
+                        form.dayOfWeek === d.value
+                          ? "bg-[#6D5EF4] text-white shadow-[0_2px_8px_rgba(109,94,244,0.35)]"
+                          : "bg-[#f1f0fc] text-[#6D5EF4] hover:bg-[#e8e5f9]"
+                      }`}
+                    >
+                      {d.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Category + Assignee */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-[var(--foreground-muted)]">Catégorie</p>
+                  <div className="relative">
+                    <span
+                      className="pointer-events-none absolute left-3 top-1/2 h-2 w-2 -translate-y-1/2 rounded-full"
+                      style={{ backgroundColor: categoryColors[form.category] ?? "#6D5EF4" }}
+                    />
+                    <select
+                      className="w-full rounded-2xl border border-[#e8e4f8] bg-white py-2.5 pl-7 pr-3 text-sm text-[var(--foreground)] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/10"
+                      value={form.category}
+                      onChange={(event) => setForm((prev) => ({ ...prev, category: event.target.value as Task["category"] }))}
+                    >
+                      {categoryValues.map((cat) => (
+                        <option key={cat} value={cat}>{categoryLabels[cat]}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
-                    Jour
-                  </label>
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-[var(--foreground-muted)]">Pour qui</p>
                   <select
-                    className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm focus:border-[#6D5EF4] focus:outline-none"
-                    value={form.dayOfWeek}
-                    onChange={(event) => setForm((prev) => ({ ...prev, dayOfWeek: Number(event.target.value) }))}
-                  >
-                    {weekdays.map((d) => (
-                      <option key={d.value} value={d.value}>
-                        {d.full}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
-                    Assigné à
-                  </label>
-                  <select
-                    className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm focus:border-[#6D5EF4] focus:outline-none"
+                    className="w-full rounded-2xl border border-[#e8e4f8] bg-white px-3.5 py-2.5 text-sm text-[var(--foreground)] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/10"
                     value={form.assignedMemberId ?? ""}
                     onChange={(event) => setForm((prev) => ({ ...prev, assignedMemberId: event.target.value || null }))}
                   >
-                    <option value="">Non assigné</option>
+                    <option value="">Tout le monde</option>
                     {state.profile.members.map((member) => (
-                      <option key={member.id} value={member.id}>
-                        {member.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
-                    Statut
-                  </label>
-                  <select
-                    className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm focus:border-[#6D5EF4] focus:outline-none"
-                    value={form.status}
-                    onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value as Task["status"] }))}
-                  >
-                    {statusColumns.map((s) => (
-                      <option key={s.value} value={s.value}>
-                        {s.label}
-                      </option>
+                      <option key={member.id} value={member.id}>{member.name}</option>
                     ))}
                   </select>
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-xs font-semibold uppercase tracking-wide text-[var(--foreground-muted)]">
-                  Notes (optionnel)
-                </label>
+              {/* Status pills */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-[var(--foreground-muted)]">Statut</p>
+                <div className="flex gap-2">
+                  {statusColumns.map((s) => (
+                    <button
+                      key={s.value}
+                      type="button"
+                      onClick={() => setForm((prev) => ({ ...prev, status: s.value }))}
+                      className={`flex-1 rounded-xl py-1.5 text-xs font-semibold transition-all ${
+                        form.status === s.value
+                          ? s.value === "done"
+                            ? "bg-emerald-500 text-white shadow-sm"
+                            : s.value === "late"
+                            ? "bg-rose-500 text-white shadow-sm"
+                            : s.value === "in_progress"
+                            ? "bg-amber-400 text-white shadow-sm"
+                            : "bg-[#6D5EF4] text-white shadow-[0_2px_8px_rgba(109,94,244,0.3)]"
+                          : "bg-[#f4f4f8] text-[var(--foreground-muted)] hover:bg-[#ecedf5]"
+                      }`}
+                    >
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Notes */}
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-[var(--foreground-muted)]">Notes <span className="opacity-50">(optionnel)</span></p>
                 <textarea
-                  className="w-full rounded-2xl border border-[#e0eaff] bg-white px-3 py-2.5 text-sm placeholder-[#b0bbcc] focus:border-[#6D5EF4] focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/15"
+                  className="w-full resize-none rounded-2xl border border-[#e8e4f8] bg-[#fdfcff] px-4 py-3 text-sm placeholder-[#c4bde8] transition focus:border-[#6D5EF4] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#6D5EF4]/10"
                   rows={2}
                   value={form.description}
                   onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
@@ -680,21 +692,22 @@ export function TasksWeeklyBoard() {
                 />
               </div>
 
-              <div className="flex gap-2 pt-1">
+              {/* Actions */}
+              <div className="flex gap-2.5">
                 <button
                   type="button"
-                  className="flex-1 rounded-2xl border border-[#e0eaff] py-2.5 text-sm font-medium text-[var(--foreground-muted)] hover:bg-[#f6f8ff]"
+                  className="flex-1 rounded-2xl border border-[#e8e4f8] py-3 text-sm font-medium text-[var(--foreground-muted)] transition hover:bg-[#f9f8ff]"
                   onClick={() => setEditor(null)}
                 >
                   Annuler
                 </button>
                 <button
                   type="button"
-                  className="flex-1 rounded-2xl bg-[#6D5EF4] py-2.5 text-sm font-semibold text-white shadow-[0_4px_14px_rgba(109,94,244,0.3)] transition hover:bg-[#5b4ee0] disabled:opacity-60"
+                  className="flex-[2] rounded-2xl bg-[#6D5EF4] py-3 text-sm font-semibold text-white shadow-[0_6px_20px_rgba(109,94,244,0.4)] transition hover:bg-[#5b4ee0] active:scale-[0.98] disabled:opacity-60"
                   onClick={persistTask}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? "Enregistrement…" : "Enregistrer"}
+                  {isSubmitting ? "Enregistrement…" : editor.type === "edit" ? "Mettre à jour" : "Ajouter la tâche"}
                 </button>
               </div>
             </div>

@@ -20,6 +20,15 @@ type AssignmentRow = {
   scheduled_for: string;
 };
 
+// Parse a YYYY-MM-DD date string as UTC to avoid timezone drift when
+// converting a server-side date back to the ISO weekday (1=Mon … 7=Sun).
+const utcDayOfWeek = (dateStr: string): 1 | 2 | 3 | 4 | 5 | 6 | 7 => {
+  const [y, m, d] = dateStr.split("-").map(Number);
+  const utcDate = new Date(Date.UTC(y, m - 1, d));
+  const day = utcDate.getUTCDay(); // 0=Sun … 6=Sat
+  return (day === 0 ? 7 : day) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
+};
+
 const toTask = (row: Record<string, unknown>, assignment?: AssignmentRow): Task => ({
   id: row.id as string,
   householdId: row.household_id as string,
@@ -33,7 +42,8 @@ const toTask = (row: Record<string, unknown>, assignment?: AssignmentRow): Task 
   difficulty: Number(row.difficulty ?? 1) as Task["difficulty"],
   indirectCostPerMonth: row.indirect_cost_per_month != null ? Number(row.indirect_cost_per_month) : undefined,
   assignedMemberId: assignment?.member_id,
-  dayOfWeek: (assignment?.day_of_week ?? row.day_of_week) as Task["dayOfWeek"],
+  // Prefer assignment day, then tasks.day_of_week (if migration applied), then compute from due_date (UTC-safe)
+  dayOfWeek: (assignment?.day_of_week ?? row.day_of_week ?? utcDayOfWeek(row.due_date as string)) as Task["dayOfWeek"],
   templateId: (row.template_id as string | null) ?? undefined,
   minimumAge: (row.minimum_age as number | null) ?? undefined,
   recommendedRoles: (row.recommended_roles as Task["recommendedRoles"]) ?? [],
@@ -122,7 +132,6 @@ export async function persistAiPlanTasks(input: { householdId: string; plan: AiH
       category: item.category ?? "routine",
       frequency: item.frequency ?? "hebdomadaire",
       due_date: toDateFromDayOfWeek(dayOfWeek),
-      day_of_week: dayOfWeek,
       status: "todo",
       estimated_minutes: item.estimatedMinutes ?? 20,
       difficulty: 1,
