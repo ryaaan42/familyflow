@@ -17,7 +17,12 @@ const serif = Cormorant_Garamond({
 export const metadata: Metadata = {
   title: "Planille",
   description:
-    "Application familiale pour organiser les taches, piloter le budget et visualiser les economies."
+    "Application familiale pour organiser les taches, piloter le budget et visualiser les economies.",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    viewportFit: "cover"
+  }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
