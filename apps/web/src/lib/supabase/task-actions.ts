@@ -88,7 +88,8 @@ export async function bootstrapDefaultTasksIfEmpty() {
   const templates = getDefaultTasksForHousehold({
     hasPets: household.household.hasPets,
     housingType: household.household.housingType,
-    memberCategories
+    memberCategories,
+    pets: household.pets
   });
 
   const rows = templates.map((item) => ({

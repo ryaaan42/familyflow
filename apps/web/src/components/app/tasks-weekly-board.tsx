@@ -1,8 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { categoryLabels, useFamilyFlowStore } from "@familyflow/shared";
 import type { Task } from "@familyflow/shared";
+import { CheckCircle2, Circle, Pencil, Plus, Trash2, X } from "lucide-react";
+
+import { getTaskTemplatesForPets } from "@/lib/task-library";
 
 const weekDays = [
   { value: 1, label: "Lundi" },
@@ -16,77 +19,65 @@ const weekDays = [
 
 const categoryValues = Object.keys(categoryLabels) as Array<keyof typeof categoryLabels>;
 
-const baseTemplates = [
-  { title: "Passer l'aspirateur", category: "menage" },
-  { title: "Préparer le repas", category: "cuisine" },
-  { title: "Faire la vaisselle", category: "cuisine" },
-  { title: "Lancer une lessive", category: "routine" },
-  { title: "Faire les courses", category: "courses" },
-  { title: "Ranger les chambres", category: "enfants" },
-  { title: "Routine bébé", category: "enfants" },
-  { title: "Nourrir les animaux", category: "animaux" },
-  { title: "Administratif famille", category: "administratif" },
-  { title: "Vérifier le budget", category: "budget" },
-  { title: "Routine matin", category: "routine" },
-  { title: "Routine soir", category: "routine" }
-] as const;
+type DayOfWeek = (typeof weekDays)[number]["value"];
 
-type Draft = {
+type TaskEditorMode = { type: "create"; dayOfWeek: DayOfWeek } | { type: "edit"; task: Task } | null;
+
+type TaskFormState = {
   title: string;
   category: Task["category"];
   assignedMemberId: string | null;
-  dayOfWeek: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  dayOfWeek: DayOfWeek;
   status: Task["status"];
   description: string;
+  templateTitle: string;
 };
 
 const weekdayFromDate = (dateLike: string) => {
   const date = new Date(dateLike);
   const day = date.getDay();
-  return (day === 0 ? 7 : day) as Draft["dayOfWeek"];
+  return (day === 0 ? 7 : day) as DayOfWeek;
 };
+
+const createDefaultForm = (dayOfWeek: DayOfWeek): TaskFormState => ({
+  title: "",
+  category: "routine",
+  assignedMemberId: null,
+  dayOfWeek,
+  status: "todo",
+  description: "",
+  templateTitle: ""
+});
 
 export function TasksWeeklyBoard() {
   const state = useFamilyFlowStore();
-  const [drafts, setDrafts] = useState<Record<string, Draft>>({});
-  const [saving, setSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
-  const [saveError, setSaveError] = useState<string | null>(null);
+  const [editor, setEditor] = useState<TaskEditorMode>(null);
+  const [form, setForm] = useState<TaskFormState>(createDefaultForm(1));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [busyTaskIds, setBusyTaskIds] = useState<string[]>([]);
+  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  useEffect(() => {
-    setDrafts(
-      Object.fromEntries(
-        state.tasks.map((task) => [
-          task.id,
-          {
-            title: task.title,
-            category: task.category,
-            assignedMemberId: task.assignedMemberId ?? null,
-            dayOfWeek: (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) as Draft["dayOfWeek"],
-            status: task.status,
-            description: task.description ?? ""
-          }
-        ])
-      )
-    );
-  }, [state.tasks]);
+  const quickTemplates = useMemo(() => getTaskTemplatesForPets(state.profile.pets), [state.profile.pets]);
 
-  const hasPendingChanges = useMemo(
-    () =>
-      state.tasks.some((task) => {
-        const draft = drafts[task.id];
-        if (!draft) return false;
-        return (
-          draft.title !== task.title ||
-          draft.category !== task.category ||
-          draft.assignedMemberId !== (task.assignedMemberId ?? null) ||
-          draft.dayOfWeek !== (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) ||
-          draft.status !== task.status ||
-          draft.description !== (task.description ?? "")
-        );
-      }),
-    [drafts, state.tasks]
-  );
+  const openCreateModal = (dayOfWeek: DayOfWeek) => {
+    setFeedback(null);
+    setForm(createDefaultForm(dayOfWeek));
+    setEditor({ type: "create", dayOfWeek });
+  };
+
+  const openEditModal = (task: Task) => {
+    setFeedback(null);
+    setForm({
+      title: task.title,
+      category: task.category,
+      assignedMemberId: task.assignedMemberId ?? null,
+      dayOfWeek: (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) as DayOfWeek,
+      status: task.status,
+      description: task.description ?? "",
+      templateTitle: ""
+    });
+    setEditor({ type: "edit", task });
+  };
 
   const refreshFrom = async (response: Response) => {
     const payload = await response.json();
@@ -97,122 +88,394 @@ export function TasksWeeklyBoard() {
     }
   };
 
-  const patchDraft = (taskId: string, patch: Partial<Draft>) => {
-    setDrafts((prev) => ({ ...prev, [taskId]: { ...prev[taskId], ...patch } }));
-    setSaveMessage(null);
-    setSaveError(null);
+  const withBusyTask = async (taskId: string, action: () => Promise<void>) => {
+    setBusyTaskIds((prev) => [...prev, taskId]);
+    try {
+      await action();
+    } finally {
+      setBusyTaskIds((prev) => prev.filter((id) => id !== taskId));
+    }
   };
 
-  const addTask = async (dayOfWeek: Draft["dayOfWeek"], template?: (typeof baseTemplates)[number]) => {
-    const response = await fetch("/api/tasks", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: template?.title ?? "Nouvelle tâche",
-        category: template?.category ?? "routine",
-        frequency: "hebdomadaire",
-        estimatedMinutes: 20,
-        dayOfWeek
-      })
-    });
+  const persistTask = async () => {
+    setIsSubmitting(true);
+    setFeedback(null);
+
+    const payload = {
+      title: form.title.trim() || "Nouvelle tâche",
+      description: form.description.trim() || undefined,
+      category: form.category,
+      frequency: "hebdomadaire",
+      estimatedMinutes: 20,
+      assignedMemberId: form.assignedMemberId ?? undefined,
+      dayOfWeek: form.dayOfWeek,
+      status: form.status
+    };
+
+    const response =
+      editor?.type === "edit"
+        ? await fetch(`/api/tasks/${editor.task.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          })
+        : await fetch("/api/tasks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
+
+    setIsSubmitting(false);
+
     if (!response.ok) {
-      setSaveError("Impossible d'ajouter la tâche.");
+      setFeedback({ type: "error", message: "Impossible d'enregistrer la tâche." });
       return;
     }
+
     await refreshFrom(response);
+    setEditor(null);
+    setFeedback({ type: "success", message: editor?.type === "edit" ? "Tâche modifiée." : "Tâche ajoutée." });
   };
 
   const deleteTask = async (taskId: string) => {
-    const response = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
-    if (!response.ok) {
-      setSaveError("Impossible de supprimer la tâche.");
-      return;
-    }
-    await refreshFrom(response);
+    await withBusyTask(taskId, async () => {
+      const response = await fetch(`/api/tasks/${taskId}`, { method: "DELETE" });
+      if (!response.ok) {
+        setFeedback({ type: "error", message: "Suppression impossible." });
+        return;
+      }
+      await refreshFrom(response);
+      setFeedback({ type: "success", message: "Tâche supprimée." });
+    });
   };
 
-  const savePlanning = async () => {
-    setSaving(true);
-    setSaveError(null);
-    setSaveMessage(null);
-    const response = await fetch("/api/tasks/bulk-save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        items: Object.entries(drafts).map(([taskId, draft]) => ({ taskId, ...draft }))
-      })
+  const toggleStatus = async (task: Task) => {
+    await withBusyTask(task.id, async () => {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: task.status === "done" ? "todo" : "done",
+          dayOfWeek: (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) as DayOfWeek,
+          assignedMemberId: task.assignedMemberId ?? null
+        })
+      });
+
+      if (!response.ok) {
+        setFeedback({ type: "error", message: "Mise à jour du statut impossible." });
+        return;
+      }
+      await refreshFrom(response);
     });
-    setSaving(false);
-    if (!response.ok) {
-      setSaveError("Erreur lors de l'enregistrement.");
-      return;
-    }
-    await refreshFrom(response);
-    setSaveMessage("Planning enregistré.");
+  };
+
+  const changeAssignee = async (task: Task, memberId: string) => {
+    await withBusyTask(task.id, async () => {
+      const response = await fetch(`/api/tasks/${task.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assignedMemberId: memberId || null,
+          dayOfWeek: (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) as DayOfWeek,
+          status: task.status
+        })
+      });
+
+      if (!response.ok) {
+        setFeedback({ type: "error", message: "Assignation impossible." });
+        return;
+      }
+      await refreshFrom(response);
+    });
   };
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-xl border border-[#d9e6ff] bg-white px-4 py-2">
-        <p className="text-sm text-[var(--foreground-muted)]">Planning hebdomadaire par jour</p>
-        <button type="button" onClick={savePlanning} disabled={!hasPendingChanges || saving} className="rounded-xl bg-[var(--brand-primary)] px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-50">
-          {saving ? "Enregistrement..." : "Enregistrer"}
-        </button>
-      </div>
-      {saveMessage ? <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{saveMessage}</p> : null}
-      {saveError ? <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">{saveError}</p> : null}
+      {feedback ? (
+        <p
+          className={`rounded-xl px-3 py-2 text-sm ${
+            feedback.type === "success" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+          }`}
+        >
+          {feedback.message}
+        </p>
+      ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-4 xl:grid-cols-2">
         {weekDays.map((day) => {
-          const dayTasks = state.tasks.filter((task) => (drafts[task.id]?.dayOfWeek ?? weekdayFromDate(task.dueDate)) === day.value);
+          const dayTasks = state.tasks.filter(
+            (task) => (task.dayOfWeek ?? weekdayFromDate(task.dueDate)) === day.value
+          );
+
           return (
-            <div key={day.value} className="rounded-2xl border border-[#d9e6ff] bg-white p-4">
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-base font-semibold">{day.label}</h3>
-                <div className="flex gap-2">
-                  <select className="rounded-lg border px-2 py-1 text-xs" onChange={(e) => {
-                    const selected = baseTemplates.find((t) => t.title === e.target.value);
-                    if (selected) void addTask(day.value, selected);
-                    e.currentTarget.selectedIndex = 0;
-                  }}>
-                    <option>+ Tâche de base</option>
-                    {baseTemplates.map((template) => <option key={`${day.value}-${template.title}`} value={template.title}>{template.title}</option>)}
-                  </select>
-                  <button className="rounded-lg border px-2 py-1 text-xs" onClick={() => addTask(day.value)}>+ Ajouter</button>
+            <section
+              key={day.value}
+              className="rounded-3xl border border-[#d8e5ff] bg-[linear-gradient(180deg,#ffffff,#f8fbff)] p-4 shadow-[0_10px_24px_rgba(31,66,135,0.08)]"
+            >
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <div>
+                  <h3 className="text-base font-semibold">{day.label}</h3>
+                  <p className="text-xs text-[var(--foreground-muted)]">{dayTasks.length} tâche(s)</p>
                 </div>
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-1 rounded-xl bg-[var(--brand-primary)] px-3 py-1.5 text-xs font-semibold text-white"
+                  onClick={() => openCreateModal(day.value)}
+                >
+                  <Plus className="h-3.5 w-3.5" /> Ajouter
+                </button>
               </div>
 
               <div className="space-y-2">
-                {dayTasks.length === 0 ? <p className="text-sm text-[var(--foreground-muted)]">Aucune tâche.</p> : null}
+                {dayTasks.length === 0 ? (
+                  <p className="rounded-2xl border border-dashed border-[#d5def2] px-3 py-5 text-center text-sm text-[var(--foreground-muted)]">
+                    Aucun élément pour ce jour.
+                  </p>
+                ) : null}
+
                 {dayTasks.map((task) => {
-                  const draft = drafts[task.id];
-                  if (!draft) return null;
+                  const memberName =
+                    state.profile.members.find((member) => member.id === task.assignedMemberId)?.name ?? "Non assigné";
+                  const isBusy = busyTaskIds.includes(task.id);
+
                   return (
-                    <div key={task.id} className="rounded-xl border p-3">
-                      <div className="grid gap-2 md:grid-cols-2">
-                        <input className="rounded-lg border px-2 py-1 text-sm" value={draft.title} onChange={(e) => patchDraft(task.id, { title: e.target.value })} />
-                        <select className="rounded-lg border px-2 py-1 text-sm" value={draft.category} onChange={(e) => patchDraft(task.id, { category: e.target.value as Task["category"] })}>
-                          {categoryValues.map((cat) => <option key={cat} value={cat}>{categoryLabels[cat]}</option>)}
-                        </select>
-                        <select className="rounded-lg border px-2 py-1 text-sm" value={draft.assignedMemberId ?? ""} onChange={(e) => patchDraft(task.id, { assignedMemberId: e.target.value || null })}>
+                    <article
+                      key={task.id}
+                      className="rounded-2xl border border-[#e5ecfa] bg-white px-3 py-2.5"
+                    >
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          className="rounded-full p-1 text-[var(--brand-primary)]"
+                          onClick={() => toggleStatus(task)}
+                          disabled={isBusy}
+                          title="Terminé / non terminé"
+                        >
+                          {task.status === "done" ? (
+                            <CheckCircle2 className="h-4 w-4" />
+                          ) : (
+                            <Circle className="h-4 w-4 text-[var(--foreground-muted)]" />
+                          )}
+                        </button>
+
+                        <div className="min-w-0 flex-1">
+                          <p className={`text-sm font-medium ${task.status === "done" ? "text-[var(--foreground-muted)] line-through" : ""}`}>
+                            {task.title}
+                          </p>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-[11px] text-[var(--foreground-muted)]">
+                            <span className="rounded-full bg-[#edf3ff] px-2 py-0.5">{categoryLabels[task.category]}</span>
+                            <span>•</span>
+                            <span>{memberName}</span>
+                          </div>
+                        </div>
+
+                        <select
+                          className="rounded-lg border border-[#d8e5ff] bg-white px-2 py-1 text-[11px]"
+                          value={task.assignedMemberId ?? ""}
+                          onChange={(event) => changeAssignee(task, event.target.value)}
+                          disabled={isBusy}
+                        >
                           <option value="">Non assigné</option>
-                          {state.profile.members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
+                          {state.profile.members.map((member) => (
+                            <option key={`${task.id}-${member.id}`} value={member.id}>
+                              {member.name}
+                            </option>
+                          ))}
                         </select>
-                        <select className="rounded-lg border px-2 py-1 text-sm" value={draft.dayOfWeek} onChange={(e) => patchDraft(task.id, { dayOfWeek: Number(e.target.value) as Draft["dayOfWeek"] })}>
-                          {weekDays.map((d) => <option key={`${task.id}-${d.value}`} value={d.value}>{d.label}</option>)}
-                        </select>
-                        <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={draft.status === "done"} onChange={(e) => patchDraft(task.id, { status: e.target.checked ? "done" : "todo" })} /> Terminé</label>
-                        <button className="rounded-lg border border-rose-300 px-2 py-1 text-xs text-rose-700" onClick={() => deleteTask(task.id)}>Supprimer</button>
-                        <input className="rounded-lg border px-2 py-1 text-sm md:col-span-2" placeholder="Note / moment de la journée" value={draft.description} onChange={(e) => patchDraft(task.id, { description: e.target.value })} />
+
+                        <button
+                          type="button"
+                          className="rounded-lg border border-[#d8e5ff] p-1.5 text-[var(--foreground-muted)] hover:text-[var(--brand-primary)]"
+                          onClick={() => openEditModal(task)}
+                          title="Modifier"
+                          disabled={isBusy}
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-lg border border-rose-200 p-1.5 text-rose-600"
+                          onClick={() => deleteTask(task.id)}
+                          title="Supprimer"
+                          disabled={isBusy}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
                       </div>
-                    </div>
+                    </article>
                   );
                 })}
               </div>
-            </div>
+            </section>
           );
         })}
       </div>
+
+      {editor ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 px-3 pb-3 pt-10 backdrop-blur-sm md:items-center"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setEditor(null);
+          }}
+        >
+          <div className="w-full max-w-xl rounded-3xl bg-white p-5 shadow-2xl">
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <h4 className="text-lg font-semibold">
+                  {editor.type === "edit" ? "Modifier la tâche" : "Ajouter une tâche"}
+                </h4>
+                <p className="text-sm text-[var(--foreground-muted)]">
+                  Édition contextuelle légère pour garder la vue planning simple.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditor(null)}
+                className="rounded-lg border border-[#d8e5ff] p-1.5 text-[var(--foreground-muted)]"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {editor.type === "create" ? (
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Tâche suggérée (optionnel)</label>
+                  <select
+                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
+                    value={form.templateTitle}
+                    onChange={(event) => {
+                      const selected = quickTemplates.find((template) => template.title === event.target.value);
+                      setForm((prev) => ({
+                        ...prev,
+                        templateTitle: event.target.value,
+                        title: selected?.title ?? prev.title,
+                        category: selected?.category ?? prev.category,
+                        description: selected?.description ?? prev.description
+                      }));
+                    }}
+                  >
+                    <option value="">Sélectionner une base rapide</option>
+                    {quickTemplates.map((template) => (
+                      <option key={template.title} value={template.title}>
+                        {template.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
+
+              <div className="grid gap-3 md:grid-cols-2">
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-sm font-medium">Nom de la tâche</label>
+                  <input
+                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
+                    value={form.title}
+                    onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
+                    placeholder="Ex: Sortir les poubelles"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Catégorie</label>
+                  <select
+                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
+                    value={form.category}
+                    onChange={(event) =>
+                      setForm((prev) => ({ ...prev, category: event.target.value as Task["category"] }))
+                    }
+                  >
+                    {categoryValues.map((category) => (
+                      <option key={category} value={category}>
+                        {categoryLabels[category]}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Assigné à</label>
+                  <select
+                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
+                    value={form.assignedMemberId ?? ""}
+                    onChange={(event) =>
+                      setForm((prev) => ({ ...prev, assignedMemberId: event.target.value || null }))
+                    }
+                  >
+                    <option value="">Non assigné</option>
+                    {state.profile.members.map((member) => (
+                      <option key={member.id} value={member.id}>
+                        {member.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Jour</label>
+                  <select
+                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
+                    value={form.dayOfWeek}
+                    onChange={(event) =>
+                      setForm((prev) => ({ ...prev, dayOfWeek: Number(event.target.value) as DayOfWeek }))
+                    }
+                  >
+                    {weekDays.map((day) => (
+                      <option key={`editor-${day.value}`} value={day.value}>
+                        {day.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-sm font-medium">Statut</label>
+                  <select
+                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
+                    value={form.status}
+                    onChange={(event) =>
+                      setForm((prev) => ({ ...prev, status: event.target.value as Task["status"] }))
+                    }
+                  >
+                    <option value="todo">À faire</option>
+                    <option value="in_progress">En cours</option>
+                    <option value="done">Terminé</option>
+                    <option value="late">En retard</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1 md:col-span-2">
+                  <label className="text-sm font-medium">Détails (optionnel)</label>
+                  <textarea
+                    className="w-full rounded-xl border border-[#d8e5ff] px-3 py-2 text-sm"
+                    rows={3}
+                    value={form.description}
+                    onChange={(event) => setForm((prev) => ({ ...prev, description: event.target.value }))}
+                  />
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-1">
+                <button
+                  type="button"
+                  className="rounded-xl border border-[#d8e5ff] px-4 py-2 text-sm"
+                  onClick={() => setEditor(null)}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  className="rounded-xl bg-[var(--brand-primary)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+                  onClick={persistTask}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Enregistrement..." : "Enregistrer"}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import type { Frequency, TaskCategory } from "@familyflow/shared";
+import type { Frequency, Pet, TaskCategory } from "@familyflow/shared";
 
 import type { HouseholdMemberCategory } from "@/lib/household-member";
 
@@ -12,6 +12,7 @@ export interface TaskLibraryItem {
   maxAge?: number;
   difficulty: 1 | 2 | 3 | 4 | 5;
   tags?: Array<"pets" | "baby" | "kids" | "budget" | "morning" | "evening" | "house">;
+  petType?: "chien" | "chat" | "autre" | "any";
 }
 
 export const DEFAULT_TASK_LIBRARY: TaskLibraryItem[] = [
@@ -31,9 +32,19 @@ export const DEFAULT_TASK_LIBRARY: TaskLibraryItem[] = [
   { title: "Préparer les cartables", description: "Vérifier agenda, devoirs et affaires pour demain.", category: "routine", frequency: "quotidienne", estimatedMinutes: 12, minAge: 8, maxAge: 17, difficulty: 1, tags: ["kids", "evening"] },
   { title: "Donner le bain au bébé", description: "Bain du bébé, soin et pyjama.", category: "enfants", frequency: "quotidienne", estimatedMinutes: 25, minAge: 18, difficulty: 2, tags: ["baby", "evening"] },
   { title: "Préparer le sac bébé", description: "Couches, tenue de rechange et biberon pour sortie.", category: "routine", frequency: "quotidienne", estimatedMinutes: 12, minAge: 16, difficulty: 1, tags: ["baby", "morning"] },
-  { title: "Promener le chien", description: "Sortie hygiène et dépense quotidienne.", category: "animaux", frequency: "quotidienne", estimatedMinutes: 25, minAge: 12, difficulty: 2, tags: ["pets"] },
-  { title: "Remplir les gamelles", description: "Nourrir les animaux et vérifier l'eau.", category: "animaux", frequency: "quotidienne", estimatedMinutes: 8, minAge: 8, difficulty: 1, tags: ["pets"] },
-  { title: "Nettoyer la litière", description: "Retirer les déchets et remettre de la litière propre.", category: "animaux", frequency: "hebdomadaire", estimatedMinutes: 12, minAge: 14, difficulty: 2, tags: ["pets"] },
+
+  { title: "Remplir les gamelles", description: "Nourrir les animaux et vérifier l'eau.", category: "animaux", frequency: "quotidienne", estimatedMinutes: 8, minAge: 8, difficulty: 1, tags: ["pets"], petType: "any" },
+  { title: "Nettoyer l'espace repas des animaux", description: "Laver la zone de repas et renouveler l'eau.", category: "animaux", frequency: "hebdomadaire", estimatedMinutes: 10, minAge: 10, difficulty: 1, tags: ["pets"], petType: "any" },
+  { title: "Vérifier eau et confort des animaux", description: "Contrôle rapide eau, couchage, propreté.", category: "animaux", frequency: "quotidienne", estimatedMinutes: 6, minAge: 8, difficulty: 1, tags: ["pets"], petType: "any" },
+
+  { title: "Promener le chien", description: "Sortie hygiène et dépense quotidienne.", category: "animaux", frequency: "quotidienne", estimatedMinutes: 25, minAge: 12, difficulty: 2, tags: ["pets"], petType: "chien" },
+  { title: "Sortie rapide du chien", description: "Petite sortie complémentaire selon le rythme.", category: "animaux", frequency: "quotidienne", estimatedMinutes: 15, minAge: 12, difficulty: 2, tags: ["pets"], petType: "chien" },
+  { title: "Brosser le chien", description: "Entretien du pelage et contrôle rapide de la peau.", category: "animaux", frequency: "hebdomadaire", estimatedMinutes: 15, minAge: 12, difficulty: 2, tags: ["pets"], petType: "chien" },
+  { title: "Nettoyer les accessoires du chien", description: "Laver laisse, gamelles et couchage.", category: "animaux", frequency: "hebdomadaire", estimatedMinutes: 18, minAge: 14, difficulty: 2, tags: ["pets"], petType: "chien" },
+
+  { title: "Changer la litière", description: "Retirer les déchets et remettre de la litière propre.", category: "animaux", frequency: "hebdomadaire", estimatedMinutes: 12, minAge: 14, difficulty: 2, tags: ["pets"], petType: "chat" },
+  { title: "Brosser le chat", description: "Limiter les poils et surveiller le confort du chat.", category: "animaux", frequency: "hebdomadaire", estimatedMinutes: 10, minAge: 10, difficulty: 1, tags: ["pets"], petType: "chat" },
+
   { title: "Suivi des dépenses hebdomadaires", description: "Passer en revue les dépenses de la semaine.", category: "budget", frequency: "hebdomadaire", estimatedMinutes: 20, minAge: 18, difficulty: 2, tags: ["budget"] },
   { title: "Vérifier les abonnements", description: "Contrôler paiements, doublons et résiliations possibles.", category: "administratif", frequency: "mensuelle", estimatedMinutes: 20, minAge: 18, difficulty: 2, tags: ["budget"] },
   { title: "Routine du matin", description: "Petit-déjeuner, habillage, sacs et départ à l'heure.", category: "routine", frequency: "quotidienne", estimatedMinutes: 25, minAge: 6, difficulty: 1, tags: ["morning"] },
@@ -41,15 +52,40 @@ export const DEFAULT_TASK_LIBRARY: TaskLibraryItem[] = [
   { title: "Entretien maison rapide", description: "Tour rapide: surfaces, poussière et entrée.", category: "entretien", frequency: "hebdomadaire", estimatedMinutes: 20, minAge: 12, difficulty: 1, tags: ["house"] }
 ];
 
+const uniqByTitle = (items: TaskLibraryItem[]) => {
+  const seen = new Set<string>();
+  return items.filter((item) => {
+    if (seen.has(item.title)) return false;
+    seen.add(item.title);
+    return true;
+  });
+};
+
+export const getTaskTemplatesForPets = (pets: Pet[]) => {
+  const petTypes = new Set(pets.map((pet) => pet.type));
+  const items = DEFAULT_TASK_LIBRARY.filter((task) => {
+    if (!task.tags?.includes("pets")) return true;
+    if (pets.length === 0) return false;
+    if (!task.petType || task.petType === "any") return true;
+    if (task.petType === "autre") return petTypes.has("autre");
+    return petTypes.has(task.petType);
+  });
+
+  return uniqByTitle(items);
+};
+
 export const getDefaultTasksForHousehold = (input: {
   hasPets: boolean;
   housingType: "appartement" | "maison";
   memberCategories: HouseholdMemberCategory[];
+  pets?: Pet[];
 }) => {
   const hasBaby = input.memberCategories.includes("bebe");
   const hasKids = input.memberCategories.includes("enfant") || input.memberCategories.includes("ado");
 
-  return DEFAULT_TASK_LIBRARY.filter((task) => {
+  const petAwareLibrary = getTaskTemplatesForPets(input.pets ?? []);
+
+  return petAwareLibrary.filter((task) => {
     if (task.tags?.includes("pets") && !input.hasPets) return false;
     if (task.tags?.includes("baby") && !hasBaby) return false;
     if (task.tags?.includes("kids") && !hasKids) return false;
