@@ -9,7 +9,7 @@ import {
 } from "@familyflow/shared";
 
 import { getUserHousehold, getUserProfile } from "@/lib/supabase/household-queries";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 
 const toNumber = (value: unknown) => {
   if (typeof value === "number") return value;
@@ -35,8 +35,10 @@ export async function buildPdfDatasetForCurrentUser(): Promise<DemoDataset | nul
 
   const taskIds = (tasksData ?? []).map((task) => task.id as string);
 
+  // Use service role to bypass any RLS restrictions on task_assignments reads
+  const serviceClient = createSupabaseServiceClient();
   const { data: assignmentsData } = taskIds.length
-    ? await supabase
+    ? await serviceClient
         .from("task_assignments")
         .select("task_id, member_id, status, scheduled_for, created_at")
         .in("task_id", taskIds)

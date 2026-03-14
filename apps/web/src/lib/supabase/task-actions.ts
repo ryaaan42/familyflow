@@ -1,6 +1,6 @@
 import type { AiHouseholdPlan, Task } from "@familyflow/shared";
 import { DEFAULT_TASK_LIBRARY, getDefaultTasksForHousehold } from "@/lib/task-library";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
 
 
@@ -69,8 +69,10 @@ export async function listTasksForCurrentUser() {
     .order("created_at", { ascending: false });
 
   const taskIds = (data ?? []).map((t) => t.id as string);
+  // Use service role to bypass any RLS restrictions on task_assignments reads
+  const serviceClient = createSupabaseServiceClient();
   const { data: assignments } = taskIds.length
-    ? await supabase
+    ? await serviceClient
         .from("task_assignments")
         .select("task_id, member_id, status, scheduled_for")
         .in("task_id", taskIds)
