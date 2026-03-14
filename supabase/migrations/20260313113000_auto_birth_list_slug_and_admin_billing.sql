@@ -6,7 +6,7 @@ create extension if not exists unaccent;
 create or replace function public.generate_birth_list_slug(p_name text, p_seed text default null)
 returns text
 language plpgsql
-immutable
+volatile
 as $$
 declare
   v_base text;
