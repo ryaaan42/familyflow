@@ -29,6 +29,22 @@ export async function GET() {
   return NextResponse.json(tasks);
 }
 
+export async function DELETE() {
+  const supabase = await createSupabaseServerClient();
+  const household = await getUserHousehold();
+  if (!household) return NextResponse.json({ error: "Foyer introuvable" }, { status: 404 });
+
+  const { error } = await supabase
+    .from("tasks")
+    .update({ deleted_at: new Date().toISOString() })
+    .eq("household_id", household.household.id)
+    .is("deleted_at", null);
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+
+  return NextResponse.json([]);
+}
+
 export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
   const household = await getUserHousehold();
