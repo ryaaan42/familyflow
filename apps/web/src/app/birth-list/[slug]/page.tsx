@@ -1,11 +1,49 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { createDemoDataset } from "@familyflow/shared";
+import type { BirthListItem } from "@familyflow/shared";
 import { Heart } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { BirthListItemCard } from "@/components/birth-list/birth-list-item-card";
+import { createSupabaseServiceClient } from "@/lib/supabase/server";
+
+async function getBirthListBySlug(slug: string): Promise<{
+  householdName: string;
+  items: BirthListItem[];
+} | null> {
+  const supabase = createSupabaseServiceClient();
+
+  const { data: household } = await supabase
+    .from("households")
+    .select("id, name")
+    .eq("birth_list_share_slug", slug)
+    .maybeSingle();
+
+  if (!household) return null;
+
+  const { data: rows } = await supabase
+    .from("birth_list_items")
+    .select()
+    .eq("household_id", household.id)
+    .order("created_at");
+
+  const items: BirthListItem[] = (rows ?? []).map((row) => ({
+    id: row.id,
+    householdId: row.household_id,
+    title: row.title,
+    description: row.description ?? undefined,
+    category: row.category,
+    priority: row.priority,
+    status: row.status,
+    quantity: row.quantity,
+    reservedQuantity: row.reserved_quantity,
+    estimatedPrice: row.estimated_price ? Number(row.estimated_price) : undefined,
+    storeUrl: row.store_url ?? undefined
+  }));
+
+  return { householdName: household.name, items };
+}
 
 export default async function SharedBirthListPage({
   params
@@ -13,13 +51,11 @@ export default async function SharedBirthListPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const dataset = createDemoDataset();
+  const result = await getBirthListBySlug(slug);
 
-  if (slug !== dataset.profile.household.birthListShareSlug) {
-    notFound();
-  }
+  if (!result) notFound();
 
-  const householdName = dataset.profile.household.name;
+  const { householdName, items } = result;
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-6 px-4 py-8 md:px-6">
@@ -37,34 +73,42 @@ export default async function SharedBirthListPage({
           <div className="grid gap-4 sm:grid-cols-3 md:grid-cols-1">
             <div className="rounded-[28px] border border-white/18 bg-white/10 p-5 backdrop-blur-md">
               <p className="text-sm text-white/64">Articles</p>
-              <p className="mt-3 text-3xl font-semibold">{dataset.birthListItems.length}</p>
+              <p className="mt-3 text-3xl font-semibold">{items.length}</p>
             </div>
             <div className="rounded-[28px] border border-white/18 bg-white/10 p-5 backdrop-blur-md">
               <p className="text-sm text-white/64">Reserves</p>
               <p className="mt-3 text-3xl font-semibold">
-                {dataset.birthListItems.filter((item) => item.status === "reserved").length}
+                {items.filter((item) => item.status === "reserved").length}
               </p>
             </div>
             <div className="rounded-[28px] border border-white/18 bg-white/10 p-5 backdrop-blur-md">
               <p className="text-sm text-white/64">Recus</p>
               <p className="mt-3 text-3xl font-semibold">
-                {dataset.birthListItems.filter((item) => item.status === "received").length}
+                {items.filter((item) => item.status === "received").length}
               </p>
             </div>
           </div>
         </div>
       </Card>
 
-      <section className="grid gap-5 md:grid-cols-3">
-        {dataset.birthListItems.map((item) => (
-          <BirthListItemCard
-            key={item.id}
-            item={item}
-            slug={slug}
-            householdName={householdName}
-          />
-        ))}
-      </section>
+      {items.length === 0 ? (
+        <Card>
+          <div className="px-6 py-12 text-center text-sm text-[var(--foreground-muted)]">
+            Aucun article dans cette liste pour l'instant.
+          </div>
+        </Card>
+      ) : (
+        <section className="grid gap-5 md:grid-cols-3">
+          {items.map((item) => (
+            <BirthListItemCard
+              key={item.id}
+              item={item}
+              slug={slug}
+              householdName={householdName}
+            />
+          ))}
+        </section>
+      )}
 
       <Card>
         <div className="flex flex-col gap-3 p-6 md:flex-row md:items-center md:justify-between">
