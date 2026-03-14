@@ -12,8 +12,17 @@ const createSchema = z.object({
   frequency: z.enum(["quotidienne", "hebdomadaire", "mensuelle", "personnalisee"]),
   estimatedMinutes: z.number().int().min(5).max(240),
   minimumAge: z.number().int().min(0).max(120).optional(),
-  assignedMemberId: z.string().uuid().optional()
+  assignedMemberId: z.string().uuid().optional(),
+  dayOfWeek: z.number().int().min(1).max(7).optional()
 });
+
+const toDateFromDayOfWeek = (dayOfWeek: number) => {
+  const now = new Date();
+  const monday = new Date(now);
+  const mondayOffset = (monday.getDay() + 6) % 7;
+  monday.setDate(monday.getDate() - mondayOffset + (dayOfWeek - 1));
+  return monday.toISOString().slice(0, 10);
+};
 
 export async function GET() {
   const tasks = await listTasksForCurrentUser();
@@ -49,12 +58,21 @@ export async function POST(request: NextRequest) {
   if (error || !data) return NextResponse.json({ error: error?.message ?? "Erreur création" }, { status: 500 });
 
   if (body.data.assignedMemberId) {
-    await supabase.from("task_assignments").insert({
-      task_id: data.id,
-      member_id: body.data.assignedMemberId,
-      scheduled_for: new Date().toISOString().slice(0, 10),
-      status: "todo"
-    });
+    const dayOfWeek = body.data.dayOfWeek ?? (((new Date().getDay() + 6) % 7) + 1);
+    const assignmentResult = await supabase.from("task_assignments").upsert(
+      {
+        task_id: data.id,
+        member_id: body.data.assignedMemberId,
+        scheduled_for: toDateFromDayOfWeek(dayOfWeek),
+        day_of_week: dayOfWeek,
+        status: "todo"
+      },
+      { onConflict: "task_id" }
+    );
+
+    if (assignmentResult.error) {
+      return NextResponse.json({ error: assignmentResult.error.message }, { status: 500 });
+    }
   }
 
   const tasks = await listTasksForCurrentUser();

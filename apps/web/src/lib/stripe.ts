@@ -1,4 +1,8 @@
+import crypto from "node:crypto";
+
 export const getStripeSecretKey = () => process.env.STRIPE_SECRET_KEY ?? null;
+
+export const getStripeWebhookSecret = () => process.env.STRIPE_WEBHOOK_SECRET ?? null;
 
 export async function stripeApi<T>(path: string, body: Record<string, string>) {
   const key = getStripeSecretKey();
@@ -23,3 +27,30 @@ export async function stripeApi<T>(path: string, body: Record<string, string>) {
 
   return (await response.json()) as T;
 }
+
+const parseStripeSignature = (header: string) => {
+  const parts = header.split(",");
+  const parsed: Record<string, string> = {};
+  for (const part of parts) {
+    const [key, value] = part.split("=");
+    if (key && value) parsed[key.trim()] = value.trim();
+  }
+  return parsed;
+};
+
+export const verifyStripeWebhookSignature = (rawBody: string, signatureHeader: string) => {
+  const secret = getStripeWebhookSecret();
+  if (!secret) return false;
+
+  const parsed = parseStripeSignature(signatureHeader);
+  if (!parsed.t || !parsed.v1) return false;
+
+  const signedPayload = `${parsed.t}.${rawBody}`;
+  const expected = crypto.createHmac("sha256", secret).update(signedPayload).digest("hex");
+
+  try {
+    return crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(parsed.v1));
+  } catch {
+    return false;
+  }
+};

@@ -182,6 +182,7 @@ export interface Task {
   difficulty: 1 | 2 | 3 | 4 | 5;
   indirectCostPerMonth?: number;
   assignedMemberId?: string;
+  dayOfWeek?: 1 | 2 | 3 | 4 | 5 | 6 | 7;
   templateId?: string;
   minimumAge?: number;
   recommendedRoles?: Role[];

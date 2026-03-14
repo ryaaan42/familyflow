@@ -3,7 +3,15 @@ import { DEFAULT_TASK_LIBRARY, getDefaultTasksForHousehold } from "@/lib/task-li
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
 
-const toTask = (row: Record<string, unknown>, assignedMemberId?: string): Task => ({
+type AssignmentRow = {
+  task_id: string;
+  member_id: string;
+  day_of_week: number;
+  status: Task["status"];
+  scheduled_for: string;
+};
+
+const toTask = (row: Record<string, unknown>, assignment?: AssignmentRow): Task => ({
   id: row.id as string,
   householdId: row.household_id as string,
   title: row.title as string,
@@ -11,11 +19,12 @@ const toTask = (row: Record<string, unknown>, assignedMemberId?: string): Task =
   category: row.category as Task["category"],
   frequency: row.frequency as Task["frequency"],
   dueDate: row.due_date as string,
-  status: row.status as Task["status"],
+  status: (assignment?.status ?? row.status) as Task["status"],
   estimatedMinutes: Number(row.estimated_minutes ?? 15),
   difficulty: Number(row.difficulty ?? 1) as Task["difficulty"],
   indirectCostPerMonth: row.indirect_cost_per_month != null ? Number(row.indirect_cost_per_month) : undefined,
-  assignedMemberId,
+  assignedMemberId: assignment?.member_id,
+  dayOfWeek: assignment?.day_of_week as Task["dayOfWeek"],
   templateId: (row.template_id as string | null) ?? undefined,
   minimumAge: (row.minimum_age as number | null) ?? undefined,
   recommendedRoles: (row.recommended_roles as Task["recommendedRoles"]) ?? [],
@@ -38,15 +47,18 @@ export async function listTasksForCurrentUser() {
 
   const taskIds = (data ?? []).map((t) => t.id as string);
   const { data: assignments } = taskIds.length
-    ? await supabase.from("task_assignments").select("task_id, member_id").in("task_id", taskIds)
-    : { data: [] as Array<Record<string, unknown>> };
+    ? await supabase
+        .from("task_assignments")
+        .select("task_id, member_id, day_of_week, status, scheduled_for")
+        .in("task_id", taskIds)
+    : { data: [] as AssignmentRow[] };
 
-  const map = new Map<string, string>();
+  const assignmentMap = new Map<string, AssignmentRow>();
   (assignments ?? []).forEach((a) => {
-    if (!map.has(a.task_id as string)) map.set(a.task_id as string, a.member_id as string);
+    assignmentMap.set(a.task_id as string, a as AssignmentRow);
   });
 
-  return (data ?? []).map((row) => toTask(row as Record<string, unknown>, map.get(row.id as string)));
+  return (data ?? []).map((row) => toTask(row as Record<string, unknown>, assignmentMap.get(row.id as string)));
 }
 
 export async function bootstrapDefaultTasksIfEmpty() {
@@ -112,12 +124,17 @@ export async function persistAiPlanTasks(input: { householdId: string; plan: AiH
   for (const created of data) {
     const suggestion = input.plan.taskFocus.find((i) => i.title === created.title);
     if (suggestion?.suggestedMemberId) {
-      await supabase.from("task_assignments").insert({
-        task_id: created.id,
-        member_id: suggestion.suggestedMemberId,
-        scheduled_for: nowDate,
-        status: "todo"
-      });
+      const dayOfWeek = (((new Date(nowDate).getDay() + 6) % 7) + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
+      await supabase.from("task_assignments").upsert(
+        {
+          task_id: created.id,
+          member_id: suggestion.suggestedMemberId,
+          scheduled_for: nowDate,
+          day_of_week: dayOfWeek,
+          status: "todo"
+        },
+        { onConflict: "task_id" }
+      );
     }
   }
 }

@@ -401,9 +401,11 @@ const getWeeklyBuckets = (data: DemoDataset) => {
 
   return weekdayLabels.map((label, index) => {
     const date = addDaysNative(weekStart, index);
+    const dayOfWeek = (index + 1) as 1 | 2 | 3 | 4 | 5 | 6 | 7;
     const tasks = data.tasks
       .filter((task) => {
         if (task.frequency === "quotidienne") return false;
+        if (task.dayOfWeek) return task.dayOfWeek === dayOfWeek;
         const dueDate = new Date(task.dueDate);
         return (
           dueDate.getFullYear() === date.getFullYear() &&

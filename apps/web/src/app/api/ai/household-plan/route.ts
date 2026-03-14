@@ -11,6 +11,13 @@ import { bootstrapDefaultTasksIfEmpty, listTasksForCurrentUser, persistAiPlanTas
 
 export const runtime = "nodejs";
 
+const getCurrentMonthPeriod = () => {
+  const now = new Date();
+  const start = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const end = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0));
+  return { start: start.toISOString().slice(0, 10), end: end.toISOString().slice(0, 10) };
+};
+
 const requestSchema = z.object({
   profile: z.any(),
   tasks: z.array(z.any()),
@@ -31,6 +38,21 @@ export async function POST(request: NextRequest) {
   const household = await getUserHousehold();
   if (!household) return NextResponse.json({ error: "Foyer introuvable" }, { status: 404 });
 
+  const { data: profile } = await supabase.from("users").select("plan").eq("id", user.id).maybeSingle();
+  const { start, end } = getCurrentMonthPeriod();
+  const { data: usageCounter } = await supabase
+    .from("usage_counters")
+    .select("id, usage_count")
+    .eq("user_id", user.id)
+    .eq("metric", "ai_generations")
+    .eq("period_start", start)
+    .maybeSingle();
+
+  const currentUsage = Number(usageCounter?.usage_count ?? 0);
+  if ((profile?.plan as string | undefined) === "free" && currentUsage >= 3) {
+    return NextResponse.json({ error: "Limite du plan gratuit atteinte (3 suggestions IA/mois)." }, { status: 402 });
+  }
+
   const body = await request.json();
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Payload IA invalide." }, { status: 400 });
@@ -44,6 +66,19 @@ export async function POST(request: NextRequest) {
   };
 
   const plan = await createAiHouseholdPlan(aiRequest);
+
+  if (usageCounter?.id) {
+    await supabase.from("usage_counters").update({ usage_count: currentUsage + 1 }).eq("id", usageCounter.id);
+  } else {
+    await supabase.from("usage_counters").insert({
+      user_id: user.id,
+      household_id: household.household.id,
+      metric: "ai_generations",
+      period_start: start,
+      period_end: end,
+      usage_count: 1
+    });
+  }
 
   const { data: generation } = await supabase
     .from("ai_generations")
