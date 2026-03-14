@@ -95,22 +95,6 @@ const navItems = [
     activeGradient: "from-lime-500/20 to-emerald-500/10"
   },
   {
-    href: "/app/meals",
-    label: "Repas",
-    icon: UtensilsCrossed,
-    activeColor: "text-teal-600",
-    activeBg: "bg-teal-100",
-    activeGradient: "from-teal-500/20 to-emerald-500/10"
-  },
-  {
-    href: "/app/shopping",
-    label: "Courses",
-    icon: ShoppingCart,
-    activeColor: "text-orange-600",
-    activeBg: "bg-orange-100",
-    activeGradient: "from-orange-500/20 to-amber-500/10"
-  },
-  {
     href: "/app/goals",
     label: "Objectifs",
     icon: Target,

@@ -2,6 +2,42 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 
+export async function GET() {
+  const supabase = await createSupabaseServerClient();
+
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return NextResponse.json({ error: "Non autorise." }, { status: 401 });
+  }
+
+  const { data: household, error: householdError } = await supabase
+    .from("households")
+    .select("id")
+    .is("deleted_at", null)
+    .limit(1)
+    .maybeSingle();
+
+  if (householdError || !household) {
+    return NextResponse.json({ error: "Foyer introuvable." }, { status: 404 });
+  }
+
+  const { data: items, error } = await supabase
+    .from("birth_list_items")
+    .select()
+    .eq("household_id", household.id)
+    .order("created_at", { ascending: true });
+
+  if (error) {
+    console.error("[birth-list/items] fetch error:", error);
+    return NextResponse.json({ error: "Erreur lors du chargement." }, { status: 500 });
+  }
+
+  return NextResponse.json({ items: items ?? [] });
+}
+
 export async function POST(req: NextRequest) {
   const supabase = await createSupabaseServerClient();
 

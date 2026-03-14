@@ -118,7 +118,7 @@ export const createAiHouseholdPlan = async (
   request: AiHouseholdRequest
 ): Promise<AiHouseholdPlan> => {
   const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL ?? "gpt-5-mini";
+  const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
 
   if (!apiKey) {
     return buildFallbackPlan(request);
@@ -196,11 +196,23 @@ export const createAiHouseholdPlan = async (
     return buildFallbackPlan(request);
   }
 
-  const payload = (await response.json()) as { output_text?: string };
+  const payload = (await response.json()) as {
+    output_text?: string;
+    output?: Array<{ type: string; content?: Array<{ type: string; text?: string }> }>;
+    choices?: Array<{ message?: { content?: string } }>;
+  };
+
+  // Support both Responses API (output_text or output[].content[].text) and Chat Completions API
+  let rawText: string =
+    payload.output_text ??
+    payload.output?.[0]?.content?.find((c) => c.type === "output_text")?.text ??
+    payload.choices?.[0]?.message?.content ??
+    "";
+
   let maybeJson: unknown;
 
   try {
-    maybeJson = JSON.parse(extractJsonBlock(payload.output_text ?? ""));
+    maybeJson = JSON.parse(extractJsonBlock(rawText));
   } catch {
     return buildFallbackPlan(request);
   }
