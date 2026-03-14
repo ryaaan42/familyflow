@@ -21,10 +21,13 @@ export function MealsView() {
   const [rows, setRows] = useState<MealRow[]>([]);
   const [goal, setGoal] = useState("equilibre");
   const [servings, setServings] = useState(4);
+  const [loadError, setLoadError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const load = async () => {
+    setLoadError(null);
     const res = await fetch(`/api/meals?weekStart=${weekStart()}`);
-    if (!res.ok) return;
+    if (!res.ok) { setLoadError("Impossible de charger les repas."); return; }
     const data = await res.json();
     setRows(data ?? []);
   };
@@ -38,15 +41,15 @@ export function MealsView() {
   }), [rows]);
 
   const saveMeal = async (dayOfWeek: number, mealType: "lunch" | "dinner", title: string) => {
+    setSaveError(null);
     const res = await fetch("/api/meals", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ weekStart: weekStart(), dayOfWeek, mealType, title })
     });
-    if (res.ok) {
-      const saved = await res.json();
-      setRows((prev) => [...prev.filter((r) => !(r.dayOfWeek === dayOfWeek && r.mealType === mealType)), saved]);
-    }
+    if (!res.ok) { setSaveError("Impossible de sauvegarder le repas."); return; }
+    const saved = await res.json();
+    setRows((prev) => [...prev.filter((r) => !(r.dayOfWeek === dayOfWeek && r.mealType === mealType)), saved]);
   };
 
   const adaptWithAi = async (dayOfWeek: number, mealType: "lunch" | "dinner") => {
@@ -85,6 +88,9 @@ export function MealsView() {
         ))}
       </div>
 
+      {(loadError ?? saveError) ? (
+        <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">{loadError ?? saveError}</p>
+      ) : null}
       <Card><div className="flex items-center gap-3 p-4 text-sm text-[var(--foreground-muted)]"><UtensilsCrossed className="h-4 w-4" />Les repas sont sauvegardés à chaque édition et retrouvés après refresh.</div></Card>
     </div>
   );

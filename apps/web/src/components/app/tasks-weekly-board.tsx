@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { categoryLabels, useFamilyFlowStore } from "@familyflow/shared";
+import { categoryColors, categoryLabels, useFamilyFlowStore } from "@familyflow/shared";
 import type { Task } from "@familyflow/shared";
 import {
   Baby,
@@ -27,18 +27,6 @@ import { getTaskTemplatesForPets } from "@/lib/task-library";
 
 const categoryValues = Object.keys(categoryLabels) as Array<keyof typeof categoryLabels>;
 
-const categoryColors: Record<string, string> = {
-  menage: "#6D5EF4",
-  cuisine: "#FF7E6B",
-  animaux: "#56C7A1",
-  enfants: "#FFBF5A",
-  administratif: "#468BFF",
-  budget: "#4AB5A4",
-  courses: "#FF8DB2",
-  hygiene: "#A07BFF",
-  entretien: "#3AB0FF",
-  routine: "#7AC74F"
-};
 
 const statusColumns: Array<{ value: Task["status"]; label: string }> = [
   { value: "todo", label: "À faire" },
