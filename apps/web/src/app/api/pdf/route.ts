@@ -7,14 +7,48 @@ import {
   PdfTheme,
   type BudgetItem,
   type BudgetMonth,
-  type DemoDataset
+  type DemoDataset,
+  type MealPlan
 } from "@familyflow/shared";
 
 import { getUserHousehold } from "@/lib/supabase/household-queries";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { createFamilyFlowPdfDocument } from "@/components/pdf/familyflow-pdf-document";
 
-async function buildRealDataset(): Promise<DemoDataset | null> {
+function getMondayOfCurrentWeek(): string {
+  const d = new Date();
+  const day = d.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + diff);
+  d.setHours(0, 0, 0, 0);
+  return d.toISOString().slice(0, 10);
+}
+
+async function fetchMealPlans(
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>,
+  householdId: string
+): Promise<MealPlan[]> {
+  const weekStart = getMondayOfCurrentWeek();
+  const { data } = await supabase
+    .from("meal_plans")
+    .select()
+    .eq("household_id", householdId)
+    .eq("week_start", weekStart)
+    .order("day_of_week")
+    .order("meal_type");
+
+  return (data ?? []).map((row) => ({
+    id: row.id,
+    householdId: row.household_id,
+    weekStart: row.week_start,
+    dayOfWeek: row.day_of_week,
+    mealType: row.meal_type as "lunch" | "dinner",
+    title: row.title,
+    notes: row.notes ?? undefined
+  }));
+}
+
+async function buildRealDataset(): Promise<{ dataset: DemoDataset; mealPlans: MealPlan[] } | null> {
   try {
     const supabase = await createSupabaseServerClient();
     const {
@@ -117,30 +151,37 @@ async function buildRealDataset(): Promise<DemoDataset | null> {
           }))
         : buildTaskSuggestions(householdProfile).slice(0, 20);
 
+    const [mealPlans] = await Promise.all([
+      fetchMealPlans(supabase, householdProfile.household.id)
+    ]);
+
     return {
-      user: {
-        id: user.id,
-        email: user.email ?? "",
-        displayName: userData?.display_name ?? user.email ?? "Utilisateur",
-        locale: userData?.locale ?? "fr-FR",
-        currency: userData?.currency ?? "EUR",
-        plan: (userData?.plan as DemoDataset["user"]["plan"]) ?? "free",
-        isAdmin: false
+      dataset: {
+        user: {
+          id: user.id,
+          email: user.email ?? "",
+          displayName: userData?.display_name ?? user.email ?? "Utilisateur",
+          locale: userData?.locale ?? "fr-FR",
+          currency: userData?.currency ?? "EUR",
+          plan: (userData?.plan as DemoDataset["user"]["plan"]) ?? "free",
+          isAdmin: false
+        },
+        profile: householdProfile,
+        tasks,
+        completions: [],
+        budget,
+        budgetItems,
+        savingsScenarios: [],
+        birthListItems,
+        pdfPreferences: { theme: "premium", includeBudgetSummary: true, includeBirthList: true },
+        notificationSettings: {
+          channels: [],
+          types: [],
+          budgetThreshold: 80,
+          taskReminderHours: 24
+        }
       },
-      profile: householdProfile,
-      tasks,
-      completions: [],
-      budget,
-      budgetItems,
-      savingsScenarios: [],
-      birthListItems,
-      pdfPreferences: { theme: "premium", includeBudgetSummary: true, includeBirthList: true },
-      notificationSettings: {
-        channels: [],
-        types: [],
-        budgetThreshold: 80,
-        taskReminderHours: 24
-      }
+      mealPlans
     };
   } catch {
     return null;
@@ -149,8 +190,10 @@ async function buildRealDataset(): Promise<DemoDataset | null> {
 
 export async function GET(request: NextRequest) {
   const theme = (request.nextUrl.searchParams.get("theme") as PdfTheme | null) ?? "premium";
-  const data = (await buildRealDataset()) ?? createDemoDataset();
-  const pdfBuffer = await renderToBuffer(createFamilyFlowPdfDocument(data, theme));
+  const real = await buildRealDataset();
+  const data = real?.dataset ?? createDemoDataset();
+  const mealPlans = real?.mealPlans ?? [];
+  const pdfBuffer = await renderToBuffer(createFamilyFlowPdfDocument(data, theme, mealPlans));
 
   return new Response(new Uint8Array(pdfBuffer), {
     headers: {
