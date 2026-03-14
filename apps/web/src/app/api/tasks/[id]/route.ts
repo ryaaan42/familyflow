@@ -45,7 +45,6 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (body.data.origin !== undefined) updates.origin = body.data.origin;
   if (body.data.dayOfWeek !== undefined) {
     updates.due_date = toDateFromDayOfWeek(body.data.dayOfWeek);
-    updates.day_of_week = body.data.dayOfWeek;
   }
 
   if (Object.keys(updates).length) {
