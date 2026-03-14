@@ -11,7 +11,8 @@ const patchSchema = z.object({
   frequency: z.enum(["quotidienne", "hebdomadaire", "mensuelle", "personnalisee"]).optional(),
   estimatedMinutes: z.number().int().min(5).max(240).optional(),
   status: z.enum(["todo", "in_progress", "done", "late"]).optional(),
-  assignedMemberId: z.string().uuid().nullable().optional()
+  assignedMemberId: z.string().uuid().nullable().optional(),
+  origin: z.enum(["template", "custom", "smart"]).optional()
 });
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -28,6 +29,7 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   if (body.data.frequency !== undefined) updates.frequency = body.data.frequency;
   if (body.data.estimatedMinutes !== undefined) updates.estimated_minutes = body.data.estimatedMinutes;
   if (body.data.status !== undefined) updates.status = body.data.status;
+  if (body.data.origin !== undefined) updates.origin = body.data.origin;
 
   if (Object.keys(updates).length) {
     const { error } = await supabase.from("tasks").update(updates).eq("id", id);

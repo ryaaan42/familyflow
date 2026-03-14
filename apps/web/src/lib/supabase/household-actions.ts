@@ -44,15 +44,16 @@ export async function createHouseholdWithMembers(
   }
 
   // Vérifier si un household existe déjà (idempotent)
-  const { data: existingHousehold } = await supabase
-    .from("households")
-    .select("id")
+  const { data: existingMembership } = await supabase
+    .from("household_members")
+    .select("household_id")
+    .eq("user_id", user.id)
     .is("deleted_at", null)
     .limit(1)
     .maybeSingle();
 
-  if (existingHousehold) {
-    return { householdId: existingHousehold.id as string, error: null };
+  if (existingMembership?.household_id) {
+    return { householdId: existingMembership.household_id as string, error: null };
   }
 
   // Utiliser la fonction RPC pour créer le foyer + membres en une seule transaction.

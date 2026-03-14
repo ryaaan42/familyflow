@@ -24,6 +24,7 @@ export interface DbHouseholdMember {
   display_name: string;
   age: number;
   role: "parent" | "adulte" | "ado" | "enfant" | "autre";
+  member_category?: "adulte" | "ado" | "enfant" | "bebe";
   avatar_color: string;
   availability_hours_per_week: number;
   favorite_categories: string[];
@@ -57,6 +58,7 @@ function mapMember(m: DbHouseholdMember): HouseholdMember {
     name: m.display_name,
     age: m.age,
     role: m.role,
+    memberCategory: m.member_category ?? (m.age <= 3 ? "bebe" : m.age <= 11 ? "enfant" : m.age <= 17 ? "ado" : "adulte"),
     avatarColor: m.avatar_color,
     availabilityHoursPerWeek: m.availability_hours_per_week,
     isPregnant: m.is_pregnant,
@@ -68,9 +70,28 @@ function mapMember(m: DbHouseholdMember): HouseholdMember {
 export async function getUserHousehold(): Promise<HouseholdProfile | null> {
   const supabase = await createSupabaseServerClient();
 
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return null;
+  }
+
+  const { data: memberLink } = await supabase
+    .from("household_members")
+    .select("household_id")
+    .eq("user_id", user.id)
+    .is("deleted_at", null)
+    .limit(1)
+    .maybeSingle();
+
+  const householdId = (memberLink?.household_id as string | undefined) ?? null;
+
   const { data: householdData, error: householdError } = await supabase
     .from("households")
     .select("*")
+    .eq("id", householdId ?? "")
     .is("deleted_at", null)
     .limit(1)
     .maybeSingle();

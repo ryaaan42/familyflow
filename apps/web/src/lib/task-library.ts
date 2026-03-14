@@ -1,4 +1,6 @@
-import type { TaskCategory, Frequency } from "@familyflow/shared";
+import type { Frequency, TaskCategory } from "@familyflow/shared";
+
+import type { HouseholdMemberCategory } from "@/lib/household-member";
 
 export interface TaskLibraryItem {
   title: string;
@@ -7,18 +9,53 @@ export interface TaskLibraryItem {
   frequency: Frequency;
   estimatedMinutes: number;
   minAge: number;
+  maxAge?: number;
   difficulty: 1 | 2 | 3 | 4 | 5;
+  tags?: Array<"pets" | "baby" | "kids" | "budget" | "morning" | "evening" | "house">;
 }
 
 export const DEFAULT_TASK_LIBRARY: TaskLibraryItem[] = [
-  { title: "Ranger le salon", description: "Remettre en ordre le salon et les jouets.", category: "menage", frequency: "quotidienne", estimatedMinutes: 15, minAge: 8, difficulty: 1 },
-  { title: "Lancer une machine de linge", description: "Trier et lancer une lessive.", category: "routine", frequency: "hebdomadaire", estimatedMinutes: 20, minAge: 14, difficulty: 2 },
-  { title: "Vider le lave-vaisselle", description: "Ranger la vaisselle propre.", category: "cuisine", frequency: "quotidienne", estimatedMinutes: 10, minAge: 10, difficulty: 1 },
-  { title: "Préparer le menu de la semaine", description: "Prévoir 5 repas et la liste de courses.", category: "courses", frequency: "hebdomadaire", estimatedMinutes: 25, minAge: 18, difficulty: 2 },
-  { title: "Nettoyer la salle de bain", description: "Lavabo, miroir et toilettes.", category: "hygiene", frequency: "hebdomadaire", estimatedMinutes: 25, minAge: 14, difficulty: 2 },
-  { title: "Routine du matin", description: "Petit-déjeuner, sacs, tenue prête.", category: "routine", frequency: "quotidienne", estimatedMinutes: 20, minAge: 6, difficulty: 1 },
-  { title: "Routine du soir", description: "Rangement express, vêtements pour demain.", category: "routine", frequency: "quotidienne", estimatedMinutes: 20, minAge: 6, difficulty: 1 },
-  { title: "Suivi budget hebdomadaire", description: "Passer en revue les dépenses de la semaine.", category: "budget", frequency: "hebdomadaire", estimatedMinutes: 30, minAge: 18, difficulty: 2 },
-  { title: "Sortir les poubelles", description: "Vider les bacs et sortir les sacs.", category: "entretien", frequency: "hebdomadaire", estimatedMinutes: 10, minAge: 12, difficulty: 1 },
-  { title: "Nourrir les animaux", description: "Repas et eau des animaux.", category: "animaux", frequency: "quotidienne", estimatedMinutes: 10, minAge: 8, difficulty: 1 }
+  { title: "Passer l'aspirateur", description: "Aspirer les pièces de vie et l'entrée.", category: "menage", frequency: "hebdomadaire", estimatedMinutes: 30, minAge: 14, difficulty: 2, tags: ["house"] },
+  { title: "Sortir les poubelles", description: "Vider les bacs et sortir les sacs de tri.", category: "entretien", frequency: "hebdomadaire", estimatedMinutes: 10, minAge: 12, difficulty: 1, tags: ["house"] },
+  { title: "Changer les draps", description: "Retirer, laver et remettre les draps des chambres.", category: "menage", frequency: "hebdomadaire", estimatedMinutes: 25, minAge: 14, difficulty: 2, tags: ["house"] },
+  { title: "Vider le lave-vaisselle", description: "Ranger la vaisselle propre dans les placards.", category: "cuisine", frequency: "quotidienne", estimatedMinutes: 10, minAge: 10, difficulty: 1 },
+  { title: "Mettre la table", description: "Préparer assiettes et couverts avant le repas.", category: "cuisine", frequency: "quotidienne", estimatedMinutes: 8, minAge: 6, difficulty: 1 },
+  { title: "Débarrasser la table", description: "Retirer assiettes et nettoyer la table.", category: "cuisine", frequency: "quotidienne", estimatedMinutes: 10, minAge: 7, difficulty: 1 },
+  { title: "Planifier les repas", description: "Préparer un menu de semaine simple et équilibré.", category: "courses", frequency: "hebdomadaire", estimatedMinutes: 25, minAge: 18, difficulty: 2, tags: ["budget"] },
+  { title: "Faire les courses", description: "Acheter les produits de base de la semaine.", category: "courses", frequency: "hebdomadaire", estimatedMinutes: 60, minAge: 16, difficulty: 2 },
+  { title: "Lancer une lessive", description: "Trier le linge et démarrer une machine.", category: "routine", frequency: "hebdomadaire", estimatedMinutes: 20, minAge: 12, difficulty: 2 },
+  { title: "Plier le linge", description: "Plier et répartir le linge propre.", category: "routine", frequency: "hebdomadaire", estimatedMinutes: 20, minAge: 10, difficulty: 1 },
+  { title: "Nettoyer la salle de bain", description: "Lavabo, miroir, WC et douche.", category: "hygiene", frequency: "hebdomadaire", estimatedMinutes: 30, minAge: 15, difficulty: 2, tags: ["house"] },
+  { title: "Ranger les chambres", description: "Remettre vêtements et objets à leur place.", category: "enfants", frequency: "quotidienne", estimatedMinutes: 15, minAge: 4, maxAge: 17, difficulty: 1, tags: ["kids"] },
+  { title: "Ranger les jouets", description: "Trier et ranger les jouets après la journée.", category: "enfants", frequency: "quotidienne", estimatedMinutes: 10, minAge: 4, maxAge: 12, difficulty: 1, tags: ["kids"] },
+  { title: "Préparer les cartables", description: "Vérifier agenda, devoirs et affaires pour demain.", category: "routine", frequency: "quotidienne", estimatedMinutes: 12, minAge: 8, maxAge: 17, difficulty: 1, tags: ["kids", "evening"] },
+  { title: "Donner le bain au bébé", description: "Bain du bébé, soin et pyjama.", category: "enfants", frequency: "quotidienne", estimatedMinutes: 25, minAge: 18, difficulty: 2, tags: ["baby", "evening"] },
+  { title: "Préparer le sac bébé", description: "Couches, tenue de rechange et biberon pour sortie.", category: "routine", frequency: "quotidienne", estimatedMinutes: 12, minAge: 16, difficulty: 1, tags: ["baby", "morning"] },
+  { title: "Promener le chien", description: "Sortie hygiène et dépense quotidienne.", category: "animaux", frequency: "quotidienne", estimatedMinutes: 25, minAge: 12, difficulty: 2, tags: ["pets"] },
+  { title: "Remplir les gamelles", description: "Nourrir les animaux et vérifier l'eau.", category: "animaux", frequency: "quotidienne", estimatedMinutes: 8, minAge: 8, difficulty: 1, tags: ["pets"] },
+  { title: "Nettoyer la litière", description: "Retirer les déchets et remettre de la litière propre.", category: "animaux", frequency: "hebdomadaire", estimatedMinutes: 12, minAge: 14, difficulty: 2, tags: ["pets"] },
+  { title: "Suivi des dépenses hebdomadaires", description: "Passer en revue les dépenses de la semaine.", category: "budget", frequency: "hebdomadaire", estimatedMinutes: 20, minAge: 18, difficulty: 2, tags: ["budget"] },
+  { title: "Vérifier les abonnements", description: "Contrôler paiements, doublons et résiliations possibles.", category: "administratif", frequency: "mensuelle", estimatedMinutes: 20, minAge: 18, difficulty: 2, tags: ["budget"] },
+  { title: "Routine du matin", description: "Petit-déjeuner, habillage, sacs et départ à l'heure.", category: "routine", frequency: "quotidienne", estimatedMinutes: 25, minAge: 6, difficulty: 1, tags: ["morning"] },
+  { title: "Routine du soir", description: "Rangement rapide, préparation du lendemain et coucher.", category: "routine", frequency: "quotidienne", estimatedMinutes: 25, minAge: 6, difficulty: 1, tags: ["evening"] },
+  { title: "Entretien maison rapide", description: "Tour rapide: surfaces, poussière et entrée.", category: "entretien", frequency: "hebdomadaire", estimatedMinutes: 20, minAge: 12, difficulty: 1, tags: ["house"] }
 ];
+
+export const getDefaultTasksForHousehold = (input: {
+  hasPets: boolean;
+  housingType: "appartement" | "maison";
+  memberCategories: HouseholdMemberCategory[];
+}) => {
+  const hasBaby = input.memberCategories.includes("bebe");
+  const hasKids = input.memberCategories.includes("enfant") || input.memberCategories.includes("ado");
+
+  return DEFAULT_TASK_LIBRARY.filter((task) => {
+    if (task.tags?.includes("pets") && !input.hasPets) return false;
+    if (task.tags?.includes("baby") && !hasBaby) return false;
+    if (task.tags?.includes("kids") && !hasKids) return false;
+    if (task.tags?.includes("house") && input.housingType === "appartement" && task.title === "Entretien maison rapide") {
+      return true;
+    }
+    return true;
+  });
+};
