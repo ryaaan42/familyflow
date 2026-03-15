@@ -1,3 +1,4 @@
+import { revalidatePath, revalidateTag } from "next/cache";
 "use server";
 
 import type { SubscriptionPlan } from "@familyflow/shared";
@@ -74,6 +75,16 @@ export async function exportAllDataGdpr(): Promise<string> {
   return JSON.stringify(exportData, null, 2);
 }
 
+
+export async function clearApplicationCache() {
+  await requireAdmin();
+  revalidateTag("app-shell");
+  revalidateTag("ai-status");
+  revalidatePath("/", "layout");
+  revalidatePath("/app", "layout");
+  revalidatePath("/app/admin", "layout");
+  return { ok: true };
+}
 export async function updateAdminSetting(key: string, value: string) {
   const supabase = await requireAdmin();
   const { error } = await supabase.from("site_settings").update({ value }).eq("key", key);
