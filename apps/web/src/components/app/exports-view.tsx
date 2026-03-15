@@ -12,7 +12,9 @@ const themes = [
   { value: "minimal", label: "Minimal" },
   { value: "familial-kawaii", label: "Familial kawaii" },
   { value: "premium", label: "Premium" },
-  { value: "print", label: "Noir & blanc" }
+  { value: "print", label: "Noir & blanc" },
+  { value: "aurora", label: "Aurora" },
+  { value: "terracotta", label: "Terracotta" }
 ] as const;
 
 const previewDays = ["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"];
@@ -94,12 +96,16 @@ export function ExportsView() {
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-medium">{theme.label}</p>
                     <Badge variant={theme.value === "premium" ? "default" : theme.value === "print" ? "outline" : "mint"}>
-                      {theme.value === "premium" ? "Le plus beau" : theme.value === "print" ? "Impression" : "Ambiance"}
+                      {theme.value === "premium" ? "Le plus beau" : theme.value === "print" ? "Impression" : theme.value === "aurora" || theme.value === "terracotta" ? "Nouveau" : "Ambiance"}
                     </Badge>
                   </div>
                   <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">
                     {theme.value === "premium"
                       ? "Rendu riche, editorial, colore et plus proche d'un produit fintech premium."
+                      : theme.value === "aurora"
+                        ? "Dégradés modernes bleu/vert pour un PDF très digital et contemporain."
+                        : theme.value === "terracotta"
+                          ? "Palette chaude et élégante, idéale pour une impression conviviale."
                       : theme.value === "familial-kawaii"
                         ? "Palette plus douce pour une feuille familiale chaleureuse."
                         : theme.value === "print"

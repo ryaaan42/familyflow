@@ -12,11 +12,11 @@ type UrlPreview = {
 };
 
 const META_PATTERNS: Array<[keyof Omit<UrlPreview, "url">, RegExp[]]> = [
-  ["title", [/property=["']og:title["'][^>]*content=["']([^"']+)/i, /name=["']twitter:title["'][^>]*content=["']([^"']+)/i, /<title[^>]*>([^<]+)</i]],
-  ["description", [/property=["']og:description["'][^>]*content=["']([^"']+)/i, /name=["']description["'][^>]*content=["']([^"']+)/i]],
-  ["image", [/property=["']og:image["'][^>]*content=["']([^"']+)/i, /name=["']twitter:image["'][^>]*content=["']([^"']+)/i]],
-  ["siteName", [/property=["']og:site_name["'][^>]*content=["']([^"']+)/i]],
-  ["price", [/property=["']product:price:amount["'][^>]*content=["']([^"']+)/i, /name=["']price["'][^>]*content=["']([^"']+)/i]]
+  ["title", [/<meta[^>]+(?:property|name)=["'](?:og:title|twitter:title)["'][^>]+content=["']([^"']+)["']/i, /<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:title|twitter:title)["']/i, /<title[^>]*>([^<]+)</i]],
+  ["description", [/<meta[^>]+(?:property|name)=["'](?:og:description|description|twitter:description)["'][^>]+content=["']([^"']+)["']/i, /<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:description|description|twitter:description)["']/i]],
+  ["image", [/<meta[^>]+(?:property|name)=["'](?:og:image|twitter:image)["'][^>]+content=["']([^"']+)["']/i, /<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:og:image|twitter:image)["']/i]],
+  ["siteName", [/<meta[^>]+property=["']og:site_name["'][^>]+content=["']([^"']+)["']/i, /<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:site_name["']/i]],
+  ["price", [/<meta[^>]+(?:property|name)=["'](?:product:price:amount|price|twitter:data1)["'][^>]+content=["']([^"']+)["']/i, /<meta[^>]+content=["']([^"']+)["'][^>]+(?:property|name)=["'](?:product:price:amount|price|twitter:data1)["']/i]]
 ];
 
 function decodeHtmlEntities(value: string) {
@@ -32,13 +32,21 @@ function decodeHtmlEntities(value: string) {
 function extractMeta(html: string, baseUrl: URL): UrlPreview {
   const preview: UrlPreview = { url: baseUrl.toString() };
 
+  const resolveMaybeRelativeUrl = (value: string) => {
+    try {
+      return new URL(value, baseUrl).toString();
+    } catch {
+      return value;
+    }
+  };
+
   for (const [field, patterns] of META_PATTERNS) {
     for (const pattern of patterns) {
       const match = html.match(pattern);
       const value = match?.[1] ? decodeHtmlEntities(match[1]) : "";
       if (!value) continue;
-      if (field === "image" && value.startsWith("/")) {
-        preview[field] = `${baseUrl.origin}${value}`;
+      if (field === "image") {
+        preview[field] = resolveMaybeRelativeUrl(value);
       } else {
         preview[field] = value;
       }
@@ -81,8 +89,10 @@ export async function GET(request: NextRequest) {
     const response = await fetch(parsed.toString(), {
       headers: {
         "User-Agent": "Mozilla/5.0 (compatible; FamilyFlowBot/1.0; +https://familyflow.app)",
-        Accept: "text/html,application/xhtml+xml"
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8"
       },
+      redirect: "follow",
       signal: AbortSignal.timeout(7000)
     });
 
