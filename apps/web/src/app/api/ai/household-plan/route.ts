@@ -200,7 +200,7 @@ export async function POST(request: NextRequest) {
     .insert({
       household_id: household.household.id,
       created_by: user.id,
-      model: process.env.OPENAI_MODEL ?? "gpt-4o-mini",
+      model: "gpt-5-mini",
       status: plan.usedFallback ? "fallback" : "success",
       input_snapshot: aiRequest,
       output_payload: plan

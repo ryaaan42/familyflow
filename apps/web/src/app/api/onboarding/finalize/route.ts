@@ -81,7 +81,7 @@ export async function POST() {
     .insert({
       household_id: household.household.id,
       created_by: user.id,
-      model: process.env.OPENAI_MODEL ?? "gpt-5-mini",
+      model: "gpt-5-mini",
       status: plan.usedFallback ? "fallback" : "success",
       input_snapshot: { profile: household, onboardingAnswers },
       output_payload: plan

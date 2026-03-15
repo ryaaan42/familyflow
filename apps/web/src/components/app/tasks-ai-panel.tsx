@@ -63,7 +63,7 @@ export function TasksAiPanel() {
         .then((r) => (r.ok ? r.json() : []))
         .catch(() => [])
     ]).then(([status, suggs]) => {
-      if (status) setAiStatus({ configured: Boolean(status.configured), model: String(status.model ?? "gpt-4o-mini") });
+      if (status) setAiStatus({ configured: Boolean(status.configured), model: String(status.model ?? "gpt-5-mini") });
       if (Array.isArray(suggs) && suggs.length > 0) {
         setSuggestions(suggs);
         setIsExpanded(true);

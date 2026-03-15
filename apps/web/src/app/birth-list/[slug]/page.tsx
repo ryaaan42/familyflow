@@ -2,19 +2,28 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import type { BirthListItem } from "@familyflow/shared";
 import { Heart } from "lucide-react";
+import { createServerClient } from "@supabase/ssr";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { BirthListItemCard } from "@/components/birth-list/birth-list-item-card";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 
+function createAnonSupabaseClient() {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL ?? "",
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "",
+    { cookies: { getAll: () => [], setAll: () => {} } }
+  );
+}
+
 async function getBirthListBySlug(slug: string): Promise<{
   householdName: string;
   items: BirthListItem[];
 } | null> {
-  const supabase = createSupabaseServiceClient();
+  const client = process.env.SUPABASE_SERVICE_ROLE_KEY ? createSupabaseServiceClient() : createAnonSupabaseClient();
 
-  const { data: household } = await supabase
+  const { data: household } = await client
     .from("households")
     .select("id, name")
     .eq("birth_list_share_slug", slug)
@@ -22,7 +31,7 @@ async function getBirthListBySlug(slug: string): Promise<{
 
   if (!household) return null;
 
-  const { data: rows } = await supabase
+  const { data: rows } = await client
     .from("birth_list_items")
     .select()
     .eq("household_id", household.id)
