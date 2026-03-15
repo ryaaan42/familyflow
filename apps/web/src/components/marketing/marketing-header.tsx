@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 
+import { PlanilleLogo } from "@/components/brand/planille-logo";
 import { Button } from "@/components/ui/button";
 
 export function MarketingHeader() {
@@ -8,10 +9,7 @@ export function MarketingHeader() {
     <header className="sticky top-0 z-40 mx-auto flex w-full max-w-7xl items-center justify-between rounded-full border border-white/60 bg-white/80 px-5 py-3 shadow-[0_4px_24px_rgba(24,53,123,0.08)] backdrop-blur-xl xl:px-8">
       {/* Logo */}
       <Link href="/" className="flex items-center gap-2.5 text-sm font-bold tracking-tight">
-        <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[linear-gradient(135deg,#6D5EF4,#3559e6,#00a9ff)] shadow-[0_8px_20px_rgba(53,89,230,0.32)]">
-          <span className="text-base leading-none text-white">🏠</span>
-        </span>
-        <span className="text-[var(--foreground)]">Planille</span>
+        <PlanilleLogo />
         <span className="hidden rounded-full bg-[rgba(46,197,161,0.18)] px-2 py-0.5 text-[10px] font-bold uppercase tracking-widest text-[var(--brand-mint-strong)] sm:inline">
           Beta
         </span>

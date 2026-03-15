@@ -117,16 +117,17 @@ export default async function AdminOverviewPage() {
       </Card>
 
       {/* Quick links */}
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {[
           { href: "/app/admin/users", label: "Gérer les utilisateurs", desc: "Voir, modifier les plans, statuts", color: "violet" },
           { href: "/app/admin/content", label: "Éditer le contenu", desc: "Textes marketing et messages app", color: "blue" },
-          { href: "/app/admin/flags", label: "Feature flags", desc: "Activer / désactiver des modules", color: "emerald" }
+          { href: "/app/admin/flags", label: "Feature flags", desc: "Activer / désactiver des modules", color: "emerald" },
+          { href: "/app/admin/newsletter", label: "Newsletter", desc: "Templates email + campagnes", color: "fuchsia" }
         ].map((link) => (
           <a
             key={link.href}
             href={link.href}
-            className="block rounded-2xl border border-[var(--border)] bg-white p-5 hover:shadow-md transition-shadow"
+            className="block rounded-2xl border border-[var(--border)] bg-white p-5 transition-all duration-100 active:scale-[0.99] hover:shadow-md"
           >
             <p className="font-semibold">{link.label}</p>
             <p className="mt-1 text-sm text-[var(--foreground-muted)]">{link.desc}</p>

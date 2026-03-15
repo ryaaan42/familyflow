@@ -18,7 +18,8 @@ import { Label } from "@/components/ui/label";
 const schema = z.object({
   displayName: z.string().min(2),
   email: z.string().email(),
-  password: z.string().min(8)
+  password: z.string().min(8),
+  newsletterOptIn: z.boolean()
 });
 
 type SignUpValues = z.infer<typeof schema>;
@@ -33,7 +34,7 @@ export function SignUpForm({ nextPath }: SignUpFormProps) {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const form = useForm<SignUpValues>({
     resolver: zodResolver(schema),
-    defaultValues: { displayName: "", email: "", password: "" }
+    defaultValues: { displayName: "", email: "", password: "", newsletterOptIn: true }
   });
   const safeNextPath = getSafeNextPath(nextPath, "/onboarding");
 
@@ -48,7 +49,8 @@ export function SignUpForm({ nextPath }: SignUpFormProps) {
       options: {
         emailRedirectTo: buildAuthCallbackUrl(safeNextPath),
         data: {
-          display_name: values.displayName
+          display_name: values.displayName,
+          newsletter_opt_in: values.newsletterOptIn
         }
       }
     });
@@ -67,7 +69,8 @@ export function SignUpForm({ nextPath }: SignUpFormProps) {
     form.reset({
       displayName: values.displayName,
       email: values.email,
-      password: ""
+      password: "",
+      newsletterOptIn: values.newsletterOptIn
     });
   });
 
@@ -124,6 +127,12 @@ export function SignUpForm({ nextPath }: SignUpFormProps) {
             <p className="text-sm text-rose-600">{form.formState.errors.password.message}</p>
           ) : null}
         </div>
+        <label className="flex items-start gap-2 rounded-xl border border-[var(--border)] bg-[var(--card-muted)] px-3 py-2 text-sm">
+          <input type="checkbox" className="mt-0.5" {...form.register("newsletterOptIn")} />
+          <span>
+            Je souhaite recevoir les astuces, nouveautés et newsletters PLANILLE.
+          </span>
+        </label>
         {authError ? <p className="text-sm text-rose-600">{authError}</p> : null}
         {successMessage ? <p className="text-sm text-emerald-600">{successMessage}</p> : null}
         <div className="grid gap-3">

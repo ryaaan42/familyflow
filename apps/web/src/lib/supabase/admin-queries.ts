@@ -1,4 +1,4 @@
-import type { AdminSetting, AdminStats, AdminUserRow, FeatureFlag, PromoCode, SiteContent, SubscriptionPlan, SubscriptionPlanConfig } from "@familyflow/shared";
+import type { AdminSetting, AdminStats, AdminUserRow, EmailTemplate, FeatureFlag, NewsletterCampaign, PromoCode, SiteContent, SubscriptionPlan, SubscriptionPlanConfig } from "@familyflow/shared";
 
 import { createSupabaseServerClient } from "./server";
 
@@ -145,5 +145,42 @@ export async function getSubscriptionPlansConfig(): Promise<SubscriptionPlanConf
     description: row.description as string,
     features: (row.features as string[]) ?? [],
     active: Boolean(row.active)
+  }));
+}
+
+
+export async function getEmailTemplates(): Promise<EmailTemplate[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase.from("email_templates").select("*").order("key");
+  if (error || !data) return [];
+  return data.map((row) => ({
+    key: row.key as string,
+    label: row.label as string,
+    subject: row.subject as string,
+    previewText: row.preview_text as string,
+    htmlContent: row.html_content as string,
+    updatedAt: row.updated_at as string
+  }));
+}
+
+export async function getNewsletterCampaigns(): Promise<NewsletterCampaign[]> {
+  const supabase = await createSupabaseServerClient();
+  const { data, error } = await supabase
+    .from("newsletter_campaigns")
+    .select("id, title, subject, preheader, html_content, status, recipient_count, sent_at, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error || !data) return [];
+
+  return data.map((row) => ({
+    id: row.id as string,
+    title: row.title as string,
+    subject: row.subject as string,
+    preheader: row.preheader as string,
+    htmlContent: row.html_content as string,
+    status: row.status as "draft" | "sent",
+    recipientCount: (row.recipient_count as number) ?? 0,
+    sentAt: (row.sent_at as string | null) ?? undefined,
+    createdAt: row.created_at as string
   }));
 }

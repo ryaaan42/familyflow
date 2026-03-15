@@ -7,11 +7,12 @@ import {
   FileText,
   Flag,
   LayoutDashboard,
+  Mail,
   Settings,
-  Shield,
   Users2
 } from "lucide-react";
 
+import { PlanilleLogo } from "@/components/brand/planille-logo";
 import { cn } from "@/lib/utils";
 
 const nav = [
@@ -41,6 +42,15 @@ const nav = [
     activeColor: "text-amber-600",
     activeBg: "bg-amber-100",
     activeGradient: "from-amber-500/20 to-orange-500/10"
+  },
+  {
+    href: "/app/admin/newsletter",
+    label: "Newsletter",
+    icon: Mail,
+    exact: false,
+    activeColor: "text-fuchsia-600",
+    activeBg: "bg-fuchsia-100",
+    activeGradient: "from-fuchsia-500/20 to-pink-500/10"
   },
   {
     href: "/app/admin/flags",
@@ -83,10 +93,10 @@ export function AdminShell({ children, adminName, adminEmail }: AdminShellProps)
         {/* Brand header */}
         <div className="mb-5 rounded-[24px] border border-white/60 bg-[linear-gradient(140deg,rgba(53,89,230,0.92),rgba(109,94,244,0.86),rgba(0,169,255,0.82),rgba(46,197,161,0.76))] p-4 text-white shadow-[0_16px_40px_rgba(53,89,230,0.28)]">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/20">
-              <Shield className="h-4 w-4 text-white" />
-            </div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/70">FamilyFlow</p>
+            <PlanilleLogo
+              markClassName="h-8 w-8 rounded-xl bg-white/20 shadow-none"
+              textClassName="text-xs uppercase tracking-[0.2em] text-white/75"
+            />
           </div>
           <h1 className="mt-2 text-2xl font-bold tracking-[-0.03em]">Admin Panel</h1>
           <p className="mt-1.5 text-sm text-white/80">Gestion et supervision de la plateforme.</p>
@@ -106,7 +116,7 @@ export function AdminShell({ children, adminName, adminEmail }: AdminShellProps)
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "group flex shrink-0 items-center gap-3 rounded-2xl border px-3 py-2.5 text-sm font-semibold transition-all duration-200",
+                  "group flex shrink-0 items-center gap-3 rounded-2xl border px-3 py-2.5 text-sm font-semibold transition-all duration-100 active:scale-[0.99]",
                   active
                     ? `border-transparent bg-gradient-to-r ${item.activeGradient} ${item.activeColor} shadow-[0_8px_20px_rgba(0,0,0,0.08)]`
                     : "border-transparent text-[var(--foreground-muted)] hover:border-[#d9e6ff] hover:bg-white/90"
@@ -114,7 +124,7 @@ export function AdminShell({ children, adminName, adminEmail }: AdminShellProps)
               >
                 <span
                   className={cn(
-                    "rounded-xl p-2 transition-all duration-200",
+                    "rounded-xl p-2 transition-all duration-100 active:scale-[0.99]",
                     active
                       ? `${item.activeBg} ${item.activeColor}`
                       : "bg-[#f1f6ff] text-[var(--foreground-subtle)] group-hover:bg-white"
