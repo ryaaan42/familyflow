@@ -291,6 +291,7 @@ export interface BirthListItem {
   id: string;
   householdId: string;
   title: string;
+  imageUrl?: string;
   description?: string;
   category: "mobilier" | "repas" | "sorties" | "hygiene" | "vetements" | "eveil" | "soin";
   priority: BirthListPriority;

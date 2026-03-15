@@ -54,7 +54,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json();
-  const { title, category, priority, estimatedPrice, quantity, storeUrl, description } = body;
+  const { title, category, priority, estimatedPrice, quantity, storeUrl, description, imageUrl } = body;
 
   if (!title?.trim() || !category || !priority) {
     return NextResponse.json({ error: "Champs obligatoires manquants." }, { status: 400 });
@@ -72,7 +72,8 @@ export async function POST(req: NextRequest) {
       reserved_quantity: 0,
       estimated_price: estimatedPrice ? parseFloat(estimatedPrice) : null,
       store_url: storeUrl?.trim() || null,
-      description: description?.trim() || null
+      description: description?.trim() || null,
+      image_url: imageUrl?.trim() || null
     })
     .select()
     .single();

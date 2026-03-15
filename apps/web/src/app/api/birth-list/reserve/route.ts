@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 
 export interface ReservePayload {
@@ -22,6 +23,81 @@ function createAnonSupabaseClient() {
   );
 }
 
+async function reserveWithServiceDirect({
+  slug,
+  itemId,
+  buyerName,
+  buyerMessage
+}: {
+  slug: string;
+  itemId: string;
+  buyerName: string;
+  buyerMessage?: string;
+}) {
+  const serviceClient = createSupabaseServiceClient();
+
+  const { data: household, error: householdError } = await serviceClient
+    .from("households")
+    .select("id")
+    .eq("birth_list_share_slug", slug)
+    .maybeSingle();
+
+  if (householdError || !household) {
+    return { success: false, error: "Liste introuvable" };
+  }
+
+  const { data: item, error: itemError } = await serviceClient
+    .from("birth_list_items")
+    .select("id, status, quantity, reserved_quantity")
+    .eq("id", itemId)
+    .eq("household_id", household.id)
+    .maybeSingle();
+
+  if (itemError || !item) {
+    return { success: false, error: "Article introuvable" };
+  }
+
+  if (item.status === "received") {
+    return { success: false, error: "Article deja recu" };
+  }
+
+  const currentReserved = item.reserved_quantity ?? 0;
+  const totalQuantity = item.quantity ?? 1;
+
+  if (currentReserved >= totalQuantity) {
+    return { success: false, error: "Article deja entierement reserve" };
+  }
+
+  const nextReserved = currentReserved + 1;
+  const nextStatus = nextReserved >= totalQuantity ? "reserved" : item.status;
+
+  const { error: updateError } = await serviceClient
+    .from("birth_list_items")
+    .update({
+      reserved_quantity: nextReserved,
+      status: nextStatus
+    })
+    .eq("id", item.id)
+    .eq("reserved_quantity", currentReserved);
+
+  if (updateError) {
+    return { success: false, error: "Erreur lors de la reservation." };
+  }
+
+  const { error: reservationError } = await serviceClient
+    .from("birth_list_reservations")
+    .insert({
+      item_id: item.id,
+      buyer_name: buyerName.trim(),
+      buyer_message: buyerMessage?.trim() || null
+    });
+
+  if (reservationError) {
+    return { success: false, error: "Erreur lors de la reservation." };
+  }
+
+  return { success: true };
+}
 
 async function reserveWithFallback({
   slug,
@@ -45,7 +121,7 @@ async function reserveWithFallback({
   const anonResult = await anonClient.rpc("reserve_birth_list_item", rpcPayload);
 
   if (!anonResult.error) {
-    return anonResult;
+    return { data: anonResult.data, error: null };
   }
 
   const serviceClient = createSupabaseServiceClient();
@@ -53,10 +129,19 @@ async function reserveWithFallback({
 
   if (!serviceResult.error) {
     console.warn("[birth-list/reserve] anon rpc failed, service fallback succeeded:", anonResult.error);
-    return serviceResult;
+    return { data: serviceResult.data, error: null };
   }
 
-  return anonResult;
+  console.warn("[birth-list/reserve] rpc failed with both anon and service clients, trying direct fallback", {
+    anonError: anonResult.error,
+    serviceError: serviceResult.error
+  });
+
+  const directResult = await reserveWithServiceDirect({ slug, itemId, buyerName, buyerMessage });
+  return {
+    data: directResult,
+    error: directResult.success ? null : serviceResult.error ?? anonResult.error
+  };
 }
 
 export async function POST(req: NextRequest) {
@@ -80,7 +165,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Erreur lors de la reservation." }, { status: 500 });
     }
 
-    const result = data as { success: boolean; error?: string };
+    const parsed = typeof data === "string" ? JSON.parse(data) : data;
+    const result = (parsed ?? {}) as { success?: boolean; error?: string };
 
     if (!result.success) {
       return NextResponse.json({ error: result.error ?? "Reservation impossible." }, { status: 409 });

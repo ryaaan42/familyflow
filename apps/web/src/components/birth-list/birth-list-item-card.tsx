@@ -86,6 +86,14 @@ export function BirthListItemCard({ item, slug, householdName }: Props) {
           </Badge>
         </div>
 
+        {item.imageUrl ? (
+          <img
+            src={item.imageUrl}
+            alt={item.title}
+            className="h-44 w-full rounded-2xl border border-[var(--border)] object-cover"
+          />
+        ) : null}
+
         <div>
           <h2 className="text-lg font-semibold">{item.title}</h2>
           <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">
