@@ -61,21 +61,35 @@ export function HouseholdOnboardingForm() {
       ? (values.birthListShareSlug?.trim() || buildBirthListSlug(values.name, profile.household.id.slice(0, 6)))
       : null;
 
-    const { error: dbError } = await supabase
+    const householdPayload = {
+      name: values.name,
+      housing_type: values.housingType,
+      surface_sqm: values.surfaceSqm,
+      rooms: values.rooms,
+      children_count: values.childrenCount,
+      city: values.city ?? null,
+      is_expecting_baby: values.isExpectingBaby,
+      pregnancy_due_date: values.pregnancyDueDate || null,
+      birth_list_share_slug: resolvedSlug,
+      ai_context: values.aiContext ?? {}
+    };
+
+    let { error: dbError } = await supabase
       .from("households")
-      .update({
-        name: values.name,
-        housing_type: values.housingType,
-        surface_sqm: values.surfaceSqm,
-        rooms: values.rooms,
-        children_count: values.childrenCount,
-        city: values.city ?? null,
-        is_expecting_baby: values.isExpectingBaby,
-        pregnancy_due_date: values.pregnancyDueDate || null,
-        birth_list_share_slug: resolvedSlug,
-        ai_context: values.aiContext ?? {}
-      })
+      .update(householdPayload)
       .eq("id", profile.household.id);
+
+    const missingAiContextColumn =
+      dbError &&
+      (dbError.code === "PGRST204" || dbError.message.includes("ai_context"));
+
+    if (missingAiContextColumn) {
+      const { ai_context: _ignored, ...legacyPayload } = householdPayload;
+      ({ error: dbError } = await supabase
+        .from("households")
+        .update(legacyPayload)
+        .eq("id", profile.household.id));
+    }
 
     setSaving(false);
 

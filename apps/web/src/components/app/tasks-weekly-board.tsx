@@ -382,7 +382,8 @@ export function TasksWeeklyBoard() {
       </div>
 
       {/* Weekly columns */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-7">
+      <div className="overflow-x-auto pb-2">
+        <div className="grid min-w-full grid-flow-col auto-cols-[minmax(240px,1fr)] gap-3 xl:auto-cols-[minmax(260px,1fr)]">
         {weekdays.map((day) => {
           const dayTasks = state.tasks.filter((task) => task.dayOfWeek === day.value);
           const isToday = day.value === todayDow;
@@ -409,7 +410,7 @@ export function TasksWeeklyBoard() {
                 if (task) void moveTaskToDay(task, day.value);
                 setDraggingTaskId(null);
               }}
-              className={`flex flex-col rounded-3xl border transition-all duration-200 ${
+              className={`flex min-h-[460px] flex-col rounded-3xl border transition-all duration-200 ${
                 isDragOver
                   ? "border-[#6D5EF4] bg-[rgba(109,94,244,0.06)] shadow-[0_0_0_2px_rgba(109,94,244,0.18)]"
                   : isToday
@@ -454,7 +455,7 @@ export function TasksWeeklyBoard() {
               </div>
 
               {/* Tasks */}
-              <div className="flex flex-1 flex-col gap-2 p-2">
+              <div className="flex flex-1 flex-col gap-2.5 p-2.5">
                 {dayTasks.length === 0 ? (
                   <div
                     className={`flex flex-1 items-center justify-center rounded-2xl border border-dashed py-6 text-center text-xs transition-colors ${
@@ -487,7 +488,7 @@ export function TasksWeeklyBoard() {
                           setDraggingTaskId(null);
                           setDragOverDay(null);
                         }}
-                        className={`group relative rounded-2xl bg-white p-2.5 shadow-[0_1px_4px_rgba(31,66,135,0.08)] ring-1 ring-[#e8eef8] transition-all duration-200 hover:shadow-[0_4px_16px_rgba(109,94,244,0.15)] hover:ring-[#6D5EF4]/30 ${
+                        className={`group relative rounded-2xl bg-white p-3 shadow-[0_4px_14px_rgba(31,66,135,0.08)] ring-1 ring-[#e8eef8] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(109,94,244,0.18)] hover:ring-[#6D5EF4]/30 ${
                           isDraggingThis ? "opacity-40 scale-95" : ""
                         } ${isBusy ? "opacity-60" : ""}`}
                       >
@@ -497,9 +498,9 @@ export function TasksWeeklyBoard() {
                           style={{ backgroundColor: catColor }}
                         />
 
-                        <div className="flex items-start gap-1.5 pl-2">
+                        <div className="flex items-start gap-2 pl-2.5">
                           {/* Drag handle */}
-                          <GripVertical className="mt-0.5 h-3.5 w-3.5 shrink-0 cursor-grab text-[var(--foreground-muted)] opacity-0 group-hover:opacity-60 active:cursor-grabbing" />
+                          <GripVertical className="mt-0.5 h-4 w-4 shrink-0 cursor-grab text-[var(--foreground-muted)] opacity-40 transition group-hover:opacity-80 active:cursor-grabbing" />
 
                           {/* Status toggle */}
                           <button
@@ -517,9 +518,9 @@ export function TasksWeeklyBoard() {
 
                           <div className="min-w-0 flex-1">
                             <div className="flex items-start gap-1">
-                              <Icon className="mt-0.5 h-3 w-3 shrink-0" style={{ color: catColor }} />
+                              <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: catColor }} />
                               <p
-                                className={`text-xs font-medium leading-snug ${
+                                className={`text-sm font-semibold leading-snug ${
                                   isDone ? "text-[var(--foreground-muted)] line-through" : "text-[var(--foreground)]"
                                 }`}
                               >
@@ -527,15 +528,15 @@ export function TasksWeeklyBoard() {
                               </p>
                             </div>
 
-                            <div className="mt-1 flex flex-wrap items-center gap-1">
+                            <div className="mt-2 flex flex-wrap items-center gap-1.5">
                               <span
-                                className="rounded-md px-1.5 py-0.5 text-[10px] font-medium"
+                                className="rounded-full px-2 py-0.5 text-[11px] font-medium"
                                 style={{ backgroundColor: `${catColor}18`, color: catColor }}
                               >
                                 {categoryLabels[task.category]}
                               </span>
                               {memberName && (
-                                <span className="rounded-md bg-[#f0f4ff] px-1.5 py-0.5 text-[10px] text-[#6D5EF4]">
+                                <span className="rounded-full bg-[#f0f4ff] px-2 py-0.5 text-[11px] font-medium text-[#6D5EF4]">
                                   {memberName}
                                 </span>
                               )}
@@ -544,10 +545,10 @@ export function TasksWeeklyBoard() {
                         </div>
 
                         {/* Actions (hover) */}
-                        <div className="mt-2 flex items-center justify-between gap-1 border-t border-[#f0f4f8] pt-1.5 opacity-0 transition-opacity group-hover:opacity-100">
+                        <div className="mt-3 flex items-center justify-between gap-1.5 border-t border-[#f0f4f8] pt-2">
                           <div className="relative flex-1">
                             <select
-                              className="w-full appearance-none rounded-lg border border-[#e8eef8] bg-[#fafcff] px-2 py-1 pr-5 text-[10px] text-[var(--foreground-muted)] focus:border-[#6D5EF4] focus:outline-none"
+                              className="w-full appearance-none rounded-xl border border-[#e8eef8] bg-[#fafcff] px-2.5 py-1.5 pr-5 text-xs text-[var(--foreground-muted)] focus:border-[#6D5EF4] focus:outline-none"
                               value={task.assignedMemberId ?? ""}
                               onChange={(e) => changeAssignee(task, e.target.value)}
                               disabled={isBusy}
@@ -562,7 +563,7 @@ export function TasksWeeklyBoard() {
                           </div>
                           <button
                             type="button"
-                            className="rounded-lg p-1 text-[#a0aec0] hover:bg-[#f0f4ff] hover:text-[#6D5EF4]"
+                            className="rounded-xl p-1.5 text-[#a0aec0] transition hover:bg-[#f0f4ff] hover:text-[#6D5EF4]"
                             onClick={() => openEditModal(task)}
                             disabled={isBusy}
                             title="Modifier"
@@ -571,7 +572,7 @@ export function TasksWeeklyBoard() {
                           </button>
                           <button
                             type="button"
-                            className="rounded-lg p-1 text-[#a0aec0] hover:bg-rose-50 hover:text-rose-500"
+                            className="rounded-xl p-1.5 text-[#a0aec0] transition hover:bg-rose-50 hover:text-rose-500"
                             onClick={() => deleteTask(task.id)}
                             disabled={isBusy}
                             title="Supprimer"
@@ -587,6 +588,7 @@ export function TasksWeeklyBoard() {
             </section>
           );
         })}
+        </div>
       </div>
 
       {/* Delete-all confirmation */}
