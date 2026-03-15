@@ -77,10 +77,14 @@ export async function exportAllDataGdpr(): Promise<string> {
 
 export async function clearApplicationCache() {
   await requireAdmin();
-  // NOTE: This project relies on the `pages/` router, where `next/cache`
-  // invalidation APIs (`revalidatePath` / `revalidateTag`) are not supported.
-  // The admin UI does a client-side refresh after this action.
-  return { ok: true };
+  // NOTE: Keep this action free of `next/cache` imports.
+  // Some deployment targets still compile `pages/` routes, where
+  // `revalidatePath` / `revalidateTag` are rejected at build time.
+  // The admin UI handles refreshes on the client after mutations.
+  return {
+    ok: true,
+    strategy: "client-refresh" as const
+  };
 }
 export async function updateAdminSetting(key: string, value: string) {
   const supabase = await requireAdmin();
