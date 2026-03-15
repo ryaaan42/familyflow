@@ -6,6 +6,7 @@ import {
   BrainCircuit,
   FileSpreadsheet,
   PiggyBank,
+  Trophy,
   Sparkles,
   UsersRound
 } from "lucide-react";
@@ -85,6 +86,20 @@ const modules = [
     href: "/app/assistant"
   },
   {
+    icon: Trophy,
+    emoji: "🏆",
+    title: "Défis famille gamifiés",
+    description:
+      "Objectifs collectifs avec points, badges enfants/ados, et récompenses maison configurables.",
+    color: "text-orange-600",
+    bg: "bg-orange-100",
+    gradient: "from-orange-50 to-amber-50",
+    border: "border-orange-100",
+    badge: "Fun",
+    badgeVariant: "yellow" as const,
+    href: "/app/goals"
+  },
+  {
     icon: FileSpreadsheet,
     emoji: "🖨️",
     title: "PDF premium",
@@ -133,7 +148,7 @@ export function ModulesSection() {
     <section id="modules" className="space-y-10 py-10 md:py-16">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div className="max-w-2xl space-y-4">
-          <Badge variant="yellow">8 modules actifs</Badge>
+          <Badge variant="yellow">9 modules actifs</Badge>
           <h2 className="text-3xl font-semibold tracking-[-0.03em] md:text-5xl">
             Organisation du foyer et maîtrise du budget,{" "}
             <span className="text-gradient">tout en un</span>.
