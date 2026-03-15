@@ -30,7 +30,7 @@ export default async function SubscriptionPage() {
           {subscription?.current_period_end ? ` · fin période: ${new Date(subscription.current_period_end).toLocaleDateString("fr-FR")}` : ""}
         </p>
         <p className="mt-2 text-sm text-[var(--foreground-muted)]">
-          Activez Stripe Checkout + webhook pour la synchronisation automatique des statuts d&apos;abonnement.
+          Synchronisation abonnement: {process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET ? "active (Checkout + webhook)" : "incomplète — configurez STRIPE_SECRET_KEY et STRIPE_WEBHOOK_SECRET"}.
         </p>
       </Card>
       <div className="grid gap-4 md:grid-cols-3">

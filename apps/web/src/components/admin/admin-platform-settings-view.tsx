@@ -7,7 +7,8 @@ import {
   createPromoCode,
   togglePromoCode,
   updateAdminSetting,
-  updateSubscriptionPlanConfig
+  updateSubscriptionPlanConfig,
+  clearApplicationCache
 } from "@/lib/supabase/admin-actions";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -87,6 +88,26 @@ export function AdminPlatformSettingsView({ settings, promoCodes, plans }: Props
               </div>
             </div>
           ))}
+        </div>
+      </Card>
+
+
+      <Card>
+        <div className="space-y-4 p-6">
+          <h2 className="text-lg font-semibold">Maintenance applicative</h2>
+          <p className="text-sm text-[var(--foreground-muted)]">Purge le cache Next.js (SSR/RSC) après modification des paramètres, contenus ou variables IA.</p>
+          <Button
+            variant="secondary"
+            disabled={pending}
+            onClick={() =>
+              startTransition(async () => {
+                await clearApplicationCache();
+                setMessage("Cache applicatif vidé.");
+              })
+            }
+          >
+            Vider le cache
+          </Button>
         </div>
       </Card>
 

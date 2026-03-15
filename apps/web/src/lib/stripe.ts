@@ -54,3 +54,21 @@ export const verifyStripeWebhookSignature = (rawBody: string, signatureHeader: s
     return false;
   }
 };
+
+
+export async function stripeGet<T>(path: string) {
+  const key = getStripeSecretKey();
+  if (!key) throw new Error("Stripe non configuré");
+
+  const response = await fetch(`https://api.stripe.com/v1/${path}`, {
+    method: "GET",
+    headers: { Authorization: `Bearer ${key}` }
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || "Stripe API error");
+  }
+
+  return (await response.json()) as T;
+}

@@ -43,7 +43,7 @@ export function AssistantView() {
   );
 
   useEffect(() => {
-    fetch("/api/ai/status")
+    fetch("/api/ai/status", { cache: "no-store" })
       .then((r) => r.json())
       .then((p) => setAiStatus({ configured: Boolean(p.configured), model: String(p.model ?? "gpt-5-mini") }))
       .catch(() => null);

@@ -94,7 +94,7 @@ do $$ begin
 exception when duplicate_object then null;
 end $$;
 
-create table public.users (
+create table if not exists public.users (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null unique,
   display_name text not null,
@@ -105,7 +105,7 @@ create table public.users (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
-create table public.households (
+create table if not exists public.households (
   id uuid primary key default gen_random_uuid(),
   owner_user_id uuid not null references public.users(id) on delete restrict,
   name text not null,
@@ -121,7 +121,7 @@ create table public.households (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
-create table public.household_members (
+create table if not exists public.household_members (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
   user_id uuid references public.users(id) on delete set null,
@@ -139,7 +139,7 @@ create table public.household_members (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
-create table public.pets (
+create table if not exists public.pets (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
   name text not null,
@@ -150,7 +150,7 @@ create table public.pets (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
-create table public.task_templates (
+create table if not exists public.task_templates (
   id uuid primary key default gen_random_uuid(),
   household_id uuid references public.households(id) on delete cascade,
   created_by uuid references public.users(id) on delete set null,
@@ -172,7 +172,7 @@ create table public.task_templates (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
-create table public.tasks (
+create table if not exists public.tasks (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
   template_id uuid references public.task_templates(id) on delete set null,
@@ -194,7 +194,7 @@ create table public.tasks (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
-create table public.task_assignments (
+create table if not exists public.task_assignments (
   id uuid primary key default gen_random_uuid(),
   task_id uuid not null references public.tasks(id) on delete cascade,
   member_id uuid not null references public.household_members(id) on delete cascade,
@@ -206,7 +206,7 @@ create table public.task_assignments (
   unique (task_id, member_id, scheduled_for)
 );
 
-create table public.task_completions (
+create table if not exists public.task_completions (
   id uuid primary key default gen_random_uuid(),
   task_assignment_id uuid references public.task_assignments(id) on delete cascade,
   task_id uuid not null references public.tasks(id) on delete cascade,
@@ -216,7 +216,7 @@ create table public.task_completions (
   completed_at timestamptz not null default timezone('utc', now())
 );
 
-create table public.budgets (
+create table if not exists public.budgets (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
   month date not null,
@@ -228,7 +228,7 @@ create table public.budgets (
   unique (household_id, month)
 );
 
-create table public.budget_items (
+create table if not exists public.budget_items (
   id uuid primary key default gen_random_uuid(),
   budget_id uuid not null references public.budgets(id) on delete cascade,
   type public.budget_item_type not null,
@@ -243,7 +243,7 @@ create table public.budget_items (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
-create table public.savings_scenarios (
+create table if not exists public.savings_scenarios (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
   title text not null,
@@ -259,7 +259,7 @@ create table public.savings_scenarios (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
-create table public.savings_projections (
+create table if not exists public.savings_projections (
   id uuid primary key default gen_random_uuid(),
   scenario_id uuid not null references public.savings_scenarios(id) on delete cascade,
   horizon_months integer not null check (horizon_months in (3, 6, 12)),
@@ -270,7 +270,7 @@ create table public.savings_projections (
   unique (scenario_id, horizon_months)
 );
 
-create table public.pdf_exports (
+create table if not exists public.pdf_exports (
   id uuid primary key default gen_random_uuid(),
   household_id uuid not null references public.households(id) on delete cascade,
   created_by uuid references public.users(id) on delete set null,
@@ -281,7 +281,7 @@ create table public.pdf_exports (
   created_at timestamptz not null default timezone('utc', now())
 );
 
-create table public.notifications (
+create table if not exists public.notifications (
   id uuid primary key default gen_random_uuid(),
   household_id uuid references public.households(id) on delete cascade,
   user_id uuid not null references public.users(id) on delete cascade,
@@ -296,7 +296,7 @@ create table public.notifications (
   created_at timestamptz not null default timezone('utc', now())
 );
 
-create table public.user_settings (
+create table if not exists public.user_settings (
   user_id uuid primary key references public.users(id) on delete cascade,
   theme text not null default 'light',
   preferred_pdf_theme public.pdf_theme not null default 'premium',
@@ -309,18 +309,18 @@ create table public.user_settings (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
-create index idx_household_members_household on public.household_members(household_id) where deleted_at is null;
-create index idx_household_members_user on public.household_members(user_id) where deleted_at is null;
-create index idx_pets_household on public.pets(household_id) where deleted_at is null;
-create index idx_task_templates_household on public.task_templates(household_id) where deleted_at is null;
-create index idx_tasks_household_due_date on public.tasks(household_id, due_date) where deleted_at is null;
-create index idx_task_assignments_member_schedule on public.task_assignments(member_id, scheduled_for);
-create index idx_task_completions_member on public.task_completions(member_id, completed_at desc);
-create index idx_budgets_household_month on public.budgets(household_id, month desc) where deleted_at is null;
-create index idx_budget_items_budget on public.budget_items(budget_id) where deleted_at is null;
-create index idx_savings_scenarios_household on public.savings_scenarios(household_id) where deleted_at is null;
-create index idx_pdf_exports_household on public.pdf_exports(household_id, created_at desc);
-create index idx_notifications_user on public.notifications(user_id, created_at desc);
+create index if not exists idx_household_members_household on public.household_members(household_id) where deleted_at is null;
+create index if not exists idx_household_members_user on public.household_members(user_id) where deleted_at is null;
+create index if not exists idx_pets_household on public.pets(household_id) where deleted_at is null;
+create index if not exists idx_task_templates_household on public.task_templates(household_id) where deleted_at is null;
+create index if not exists idx_tasks_household_due_date on public.tasks(household_id, due_date) where deleted_at is null;
+create index if not exists idx_task_assignments_member_schedule on public.task_assignments(member_id, scheduled_for);
+create index if not exists idx_task_completions_member on public.task_completions(member_id, completed_at desc);
+create index if not exists idx_budgets_household_month on public.budgets(household_id, month desc) where deleted_at is null;
+create index if not exists idx_budget_items_budget on public.budget_items(budget_id) where deleted_at is null;
+create index if not exists idx_savings_scenarios_household on public.savings_scenarios(household_id) where deleted_at is null;
+create index if not exists idx_pdf_exports_household on public.pdf_exports(household_id, created_at desc);
+create index if not exists idx_notifications_user on public.notifications(user_id, created_at desc);
 
 create or replace function public.set_updated_at()
 returns trigger

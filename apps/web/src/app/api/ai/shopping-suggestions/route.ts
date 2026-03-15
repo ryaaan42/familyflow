@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
+import { buildHouseholdAiContext } from "@/lib/ai/household-context";
 
 const normalize = (v: string) => v.toLowerCase();
 
@@ -15,6 +16,7 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => ({}));
   const context = normalize(String(body.context ?? ""));
+  const aiContext = await buildHouseholdAiContext(supabase, household);
 
   const { data: meals } = await supabase
     .from("meal_plans")
@@ -49,8 +51,11 @@ export async function POST(request: NextRequest) {
     ["Légumineuses (lentilles/pois chiches)", "Flocons d'avoine", "Produits marque distributeur"].forEach((i) => items.add(i));
   }
 
-  if (context.includes("veggie") || context.includes("végét")) ["Tofu", "Pois chiches", "Haricots rouges"].forEach((i) => items.add(i));
-  if (context.includes("allerg") || context.includes("sans gluten")) ["Farine de riz", "Pâtes sans gluten"].forEach((i) => items.add(i));
+  const prefText = normalize(JSON.stringify(aiContext.mealPreferences));
+  if (context.includes("veggie") || context.includes("végét") || prefText.includes("vegetar")) ["Tofu", "Pois chiches", "Haricots rouges"].forEach((i) => items.add(i));
+  if (context.includes("allerg") || context.includes("sans gluten") || prefText.includes("gluten")) ["Farine de riz", "Pâtes sans gluten"].forEach((i) => items.add(i));
+  if (prefText.includes("lactose")) ["Lait végétal", "Yaourt sans lactose"].forEach((i) => items.add(i));
+  if (prefText.includes("halal")) items.add("Viande halal");
 
   return NextResponse.json({
     items: Array.from(items).slice(0, 24),

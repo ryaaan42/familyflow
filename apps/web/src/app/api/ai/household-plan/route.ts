@@ -8,6 +8,7 @@ import {
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
 import { bootstrapDefaultTasksIfEmpty, listTasksForCurrentUser, persistAiPlanTasks } from "@/lib/supabase/task-actions";
+import { OPENAI_MODEL } from "@/lib/ai/model";
 
 export const runtime = "nodejs";
 
@@ -200,7 +201,7 @@ export async function POST(request: NextRequest) {
     .insert({
       household_id: household.household.id,
       created_by: user.id,
-      model: process.env.OPENAI_MODEL ?? "gpt-5-mini",
+      model: OPENAI_MODEL,
       status: plan.usedFallback ? "fallback" : "success",
       input_snapshot: aiRequest,
       output_payload: plan
