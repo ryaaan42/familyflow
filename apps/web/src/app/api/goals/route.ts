@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
 
 const createSchema = z.object({
@@ -50,6 +50,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const supabase = await createSupabaseServerClient();
+  const service = process.env.SUPABASE_SERVICE_ROLE_KEY ? createSupabaseServiceClient() : null;
+  const writer = service ?? supabase;
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
@@ -59,7 +61,7 @@ export async function POST(request: NextRequest) {
   const body = createSchema.safeParse(await request.json());
   if (!body.success) return NextResponse.json({ error: "Données invalides" }, { status: 400 });
 
-  const { data, error } = await supabase
+  const { data, error } = await writer
     .from("household_goals")
     .insert({
       household_id: household.household.id,

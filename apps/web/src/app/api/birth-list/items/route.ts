@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
 
 export async function GET() {
@@ -36,6 +36,8 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const supabase = await createSupabaseServerClient();
+  const service = process.env.SUPABASE_SERVICE_ROLE_KEY ? createSupabaseServiceClient() : null;
+  const writer = service ?? supabase;
 
   // Verify the user is authenticated
   const {
@@ -60,7 +62,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Champs obligatoires manquants." }, { status: 400 });
   }
 
-  const { data: item, error: insertError } = await supabase
+  const { data: item, error: insertError } = await writer
     .from("birth_list_items")
     .insert({
       household_id: household.household.id,
