@@ -14,7 +14,8 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "vitest run",
-    "setup": "bash ./scripts/setup.sh"
+    "setup": "bash ./scripts/setup.sh",
+    "audit:db": "node ./scripts/audit-db-schema.mjs"
   },
   "devDependencies": {
     "turbo": "^2.5.0",
