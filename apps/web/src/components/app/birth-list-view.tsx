@@ -45,12 +45,24 @@ const defaultForm = {
   description: ""
 };
 
+type ProductPreview = {
+  title?: string;
+  description?: string;
+  image?: string;
+  siteName?: string;
+  price?: string;
+  url: string;
+};
+
 export function BirthListView() {
   const state = useFamilyFlowStore();
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState(defaultForm);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+  const [productPreview, setProductPreview] = useState<ProductPreview | null>(null);
 
   // Load items from DB on mount
   useEffect(() => {
@@ -78,6 +90,60 @@ export function BirthListView() {
       })
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    const url = form.storeUrl.trim();
+    if (!url) {
+      setProductPreview(null);
+      setPreviewError(null);
+      return;
+    }
+
+    let canceled = false;
+    const timeout = setTimeout(async () => {
+      setPreviewLoading(true);
+      setPreviewError(null);
+
+      try {
+        const response = await fetch(`/api/url-preview?url=${encodeURIComponent(url)}`);
+        const payload = await response.json();
+
+        if (canceled) return;
+
+        if (!response.ok || !payload.preview) {
+          setProductPreview(null);
+          setPreviewError(payload.error ?? "Aperçu indisponible pour ce lien.");
+          return;
+        }
+
+        const preview = payload.preview as ProductPreview;
+        setProductPreview(preview);
+
+        if (!form.title.trim() && preview.title) {
+          setForm((current) => ({ ...current, title: preview.title ?? current.title }));
+        }
+
+        if (!form.estimatedPrice && preview.price) {
+          const normalizedPrice = preview.price.replace(/[^\d.,]/g, "").replace(",", ".");
+          if (normalizedPrice) {
+            setForm((current) => ({ ...current, estimatedPrice: current.estimatedPrice || normalizedPrice }));
+          }
+        }
+      } catch {
+        if (!canceled) {
+          setProductPreview(null);
+          setPreviewError("Aperçu indisponible pour ce lien.");
+        }
+      } finally {
+        if (!canceled) setPreviewLoading(false);
+      }
+    }, 550);
+
+    return () => {
+      canceled = true;
+      clearTimeout(timeout);
+    };
+  }, [form.storeUrl, form.title, form.estimatedPrice]);
 
   const stats = useMemo(() => {
     const total = state.birthListItems.length;
@@ -317,6 +383,48 @@ export function BirthListView() {
                 />
               </div>
             </div>
+
+            {previewLoading ? (
+              <p className="text-xs text-[var(--foreground-muted)]">Récupération de la prévisualisation du produit…</p>
+            ) : null}
+
+            {productPreview ? (
+              <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-3">
+                <div className="flex gap-3">
+                  {productPreview.image ? (
+                    <img
+                      src={productPreview.image}
+                      alt={productPreview.title ?? "Aperçu du produit"}
+                      className="h-20 w-20 rounded-xl border border-[var(--border)] object-cover"
+                    />
+                  ) : (
+                    <div className="flex h-20 w-20 items-center justify-center rounded-xl border border-dashed border-[var(--border)] text-[10px] text-[var(--foreground-muted)]">
+                      Pas d'image
+                    </div>
+                  )}
+                  <div className="min-w-0 space-y-1">
+                    <p className="line-clamp-2 text-sm font-semibold">{productPreview.title ?? "Produit détecté"}</p>
+                    {productPreview.description ? (
+                      <p className="line-clamp-2 text-xs text-[var(--foreground-muted)]">{productPreview.description}</p>
+                    ) : null}
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      <span className="rounded-full bg-[var(--card-muted)] px-2 py-0.5 text-[var(--foreground-muted)]">
+                        {productPreview.siteName ?? new URL(productPreview.url).hostname}
+                      </span>
+                      {productPreview.price ? (
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700">
+                          ~ {productPreview.price}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {previewError ? (
+              <p className="text-xs text-amber-700">{previewError}</p>
+            ) : null}
 
             <div className="space-y-1.5">
               <Label htmlFor="bl-desc">Description / notes</Label>
