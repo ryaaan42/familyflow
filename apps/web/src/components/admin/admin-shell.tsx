@@ -7,6 +7,7 @@ import {
   FileText,
   Flag,
   LayoutDashboard,
+  Lightbulb,
   Mail,
   Settings,
   Users2
@@ -51,6 +52,15 @@ const nav = [
     activeColor: "text-fuchsia-600",
     activeBg: "bg-fuchsia-100",
     activeGradient: "from-fuchsia-500/20 to-pink-500/10"
+  },
+  {
+    href: "/app/admin/ideas",
+    label: "Idées",
+    icon: Lightbulb,
+    exact: false,
+    activeColor: "text-purple-600",
+    activeBg: "bg-purple-100",
+    activeGradient: "from-purple-500/20 to-violet-500/10"
   },
   {
     href: "/app/admin/flags",

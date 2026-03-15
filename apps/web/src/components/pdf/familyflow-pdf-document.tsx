@@ -75,6 +75,24 @@ const themeMap: Record<
     muted: "#5A5A5A",
     panel: "#FFFFFF",
     border: "#DDDDDD"
+  },
+  aurora: {
+    accent: "#0EA5E9",
+    soft: "#E0F2FE",
+    page: "#F0F9FF",
+    text: "#0F172A",
+    muted: "#475569",
+    panel: "#FFFFFF",
+    border: "#BAE6FD"
+  },
+  terracotta: {
+    accent: "#C2410C",
+    soft: "#FFF2E8",
+    page: "#FFFBF8",
+    text: "#3B1D15",
+    muted: "#7C4A3B",
+    panel: "#FFFFFF",
+    border: "#FED7AA"
   }
 };
 
