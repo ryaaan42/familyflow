@@ -29,7 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" className={`${sans.variable} ${serif.variable}`}>
       <body
-        className="font-[family-name:var(--font-sans)] antialiased selection:bg-[rgba(109,94,244,0.18)]"
+        className="antialiased selection:bg-[rgba(109,94,244,0.18)]"
       >
         {children}
       </body>

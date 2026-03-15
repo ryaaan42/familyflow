@@ -1,14 +1,18 @@
 export const colors = {
-  background: "#FFF9F5",
-  foreground: "#171329",
-  muted: "#6A6782",
+  background: "#FFFFFF",
+  foreground: "#111827",
   primary: "#6D5EF4",
-  coral: "#FF7E6B",
-  mint: "#56C7A1",
-  yellow: "#FFBF5A",
+  "primary-foreground": "#FFFFFF",
+  secondary: "#F472B6",
+  "secondary-foreground": "#FFFFFF",
+  muted: "#6B7280",
+  "muted-foreground": "#E5E7EB",
+  accent: "#FBBF24",
+  destructive: "#EF4444",
+  border: "#E5E7EB",
+  ring: "#A78BFA",
   card: "#FFFFFF",
-  cardMuted: "#F6F1FF",
-  border: "#E8E2FF"
+  "card-foreground": "#111827"
 };
 
 export const formatCurrency = (value: number) =>

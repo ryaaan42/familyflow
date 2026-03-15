@@ -65,7 +65,9 @@
    RESET & BASE
 ══════════════════════════════════════════════ */
 * { box-sizing: border-box; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; font-family: var(--font-sans); }
+
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-serif); }
 
 /* Safe area insets for iOS notch/home indicator */
 .pb-safe-area-inset-bottom {
@@ -78,13 +80,7 @@ html { scroll-behavior: smooth; }
 body {
   margin: 0;
   min-height: 100vh;
-  background:
-    radial-gradient(ellipse at 5% 0%, rgba(99, 102, 241, 0.22) 0%, transparent 42%),
-    radial-gradient(ellipse at 95% 5%, rgba(14, 165, 233, 0.18) 0%, transparent 38%),
-    radial-gradient(ellipse at 85% 75%, rgba(20, 184, 166, 0.15) 0%, transparent 35%),
-    radial-gradient(ellipse at 20% 95%, rgba(244, 63, 94, 0.1) 0%, transparent 30%),
-    radial-gradient(ellipse at 55% 50%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
-    linear-gradient(160deg, #fafbff 0%, #f3f0ff 50%, #f8fdff 100%);
+  background: linear-gradient(160deg, var(--background) 0%, var(--background-strong) 100%);
   color: var(--foreground);
 }
 
