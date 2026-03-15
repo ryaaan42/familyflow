@@ -1,4 +1,3 @@
-import { revalidatePath, revalidateTag } from "next/cache";
 "use server";
 
 import type { SubscriptionPlan } from "@familyflow/shared";
@@ -78,11 +77,9 @@ export async function exportAllDataGdpr(): Promise<string> {
 
 export async function clearApplicationCache() {
   await requireAdmin();
-  revalidateTag("app-shell");
-  revalidateTag("ai-status");
-  revalidatePath("/", "layout");
-  revalidatePath("/app", "layout");
-  revalidatePath("/app/admin", "layout");
+  // NOTE: This project relies on the `pages/` router, where `next/cache`
+  // invalidation APIs (`revalidatePath` / `revalidateTag`) are not supported.
+  // The admin UI does a client-side refresh after this action.
   return { ok: true };
 }
 export async function updateAdminSetting(key: string, value: string) {
