@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useFamilyFlowStore } from "@familyflow/shared";
 import type { BirthListItem } from "@familyflow/shared";
-import { Baby, CheckCircle2, Gift, Plus, Share2, ShoppingBag, X } from "lucide-react";
+import { Baby, CheckCircle2, Gift, Pencil, Plus, Share2, ShoppingBag, Trash2, X } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -63,6 +63,7 @@ export function BirthListView() {
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [productPreview, setProductPreview] = useState<ProductPreview | null>(null);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
 
   // Load items from DB on mount
   useEffect(() => {
@@ -213,6 +214,67 @@ export function BirthListView() {
     }
   }
 
+  async function handleDelete(id: string) {
+    const res = await fetch(`/api/birth-list/items/${id}`, { method: "DELETE" });
+    if (!res.ok) return;
+    useFamilyFlowStore.setState((prev) => ({
+      birthListItems: prev.birthListItems.filter((item) => item.id !== id)
+    }));
+  }
+
+  async function handleUpdate(id: string) {
+    if (!form.title.trim()) return;
+    setSubmitting(true);
+    setSubmitError(null);
+
+    try {
+      const res = await fetch(`/api/birth-list/items/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title.trim(),
+          category: form.category,
+          priority: form.priority,
+          estimatedPrice: form.estimatedPrice || undefined,
+          quantity: form.quantity,
+          storeUrl: form.storeUrl.trim() || undefined,
+          description: form.description.trim() || undefined,
+          imageUrl: productPreview?.image || undefined
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+      const saved = data.item;
+
+      useFamilyFlowStore.setState((prev) => ({
+        birthListItems: prev.birthListItems.map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                title: saved.title,
+                category: saved.category,
+                priority: saved.priority,
+                quantity: saved.quantity,
+                estimatedPrice: saved.estimated_price ?? undefined,
+                storeUrl: saved.store_url ?? undefined,
+                description: saved.description ?? undefined,
+                imageUrl: saved.image_url ?? undefined
+              }
+            : item
+        )
+      }));
+
+      setEditingItemId(null);
+      setForm(defaultForm);
+      setProductPreview(null);
+    } catch (err) {
+      setSubmitError(err instanceof Error ? err.message : "Erreur inconnue.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   return (
     <div className="space-y-5">
       <Card className="overflow-hidden hero-coral text-white hero-glow-coral premium-shell">
@@ -290,7 +352,7 @@ export function BirthListView() {
         <Button
           variant={showForm ? "secondary" : "default"}
           size="sm"
-          onClick={() => setShowForm((v) => !v)}
+          onClick={() => { setShowForm((v) => !v); if (showForm) { setEditingItemId(null); setForm(defaultForm); } }}
         >
           {showForm ? (
             <>
@@ -308,7 +370,7 @@ export function BirthListView() {
 
       {showForm && (
         <Card>
-          <form onSubmit={handleSubmit} className="space-y-5 p-6">
+          <form onSubmit={(e) => { e.preventDefault(); if (editingItemId) { void handleUpdate(editingItemId); } else { void handleSubmit(e); } }} className="space-y-5 p-6">
             <h4 className="font-semibold text-[var(--foreground)]">Nouvel article</h4>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -445,12 +507,12 @@ export function BirthListView() {
             )}
 
             <div className="flex justify-end gap-3">
-              <Button type="button" variant="secondary" onClick={() => { setShowForm(false); setForm(defaultForm); setSubmitError(null); }}>
+              <Button type="button" variant="secondary" onClick={() => { setShowForm(false); setForm(defaultForm); setSubmitError(null); setEditingItemId(null); }}>
                 Annuler
               </Button>
               <Button type="submit" disabled={!form.title.trim() || submitting}>
                 <Plus className="mr-2 h-4 w-4" />
-                {submitting ? "Ajout..." : "Ajouter a la liste"}
+                {submitting ? (editingItemId ? "Mise à jour..." : "Ajout...") : (editingItemId ? "Enregistrer" : "Ajouter a la liste")}
               </Button>
             </div>
           </form>
@@ -500,6 +562,31 @@ export function BirthListView() {
                 <Badge variant="outline">{categoryLabels[item.category] ?? item.category}</Badge>
                 <Badge variant="yellow">{item.priority}</Badge>
                 {item.estimatedPrice ? <Badge variant="mint">{item.estimatedPrice} EUR</Badge> : null}
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="secondary"
+                  onClick={() => {
+                    setEditingItemId(item.id);
+                    setShowForm(true);
+                    setForm({
+                      title: item.title,
+                      category: item.category,
+                      priority: item.priority,
+                      estimatedPrice: item.estimatedPrice ? String(item.estimatedPrice) : "",
+                      quantity: String(item.quantity),
+                      storeUrl: item.storeUrl ?? "",
+                      description: item.description ?? ""
+                    });
+                  }}
+                >
+                  <Pencil className="mr-1.5 h-3.5 w-3.5" /> Modifier
+                </Button>
+                <Button type="button" size="sm" variant="danger" onClick={() => void handleDelete(item.id)}>
+                  <Trash2 className="mr-1.5 h-3.5 w-3.5" /> Supprimer
+                </Button>
               </div>
             </div>
           </Card>
