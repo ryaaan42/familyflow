@@ -382,8 +382,8 @@ export function TasksWeeklyBoard() {
       </div>
 
       {/* Weekly columns */}
-      <div className="overflow-x-auto pb-2">
-        <div className="grid min-w-full grid-flow-col auto-cols-[minmax(240px,1fr)] gap-3 xl:auto-cols-[minmax(260px,1fr)]">
+      <div className="overflow-x-auto pb-2 [-webkit-overflow-scrolling:touch]">
+        <div className="grid min-w-full grid-flow-col auto-cols-[minmax(280px,1fr)] gap-3 xl:auto-cols-[minmax(300px,1fr)]">
         {weekdays.map((day) => {
           const dayTasks = state.tasks.filter((task) => task.dayOfWeek === day.value);
           const isToday = day.value === todayDow;
@@ -488,7 +488,7 @@ export function TasksWeeklyBoard() {
                           setDraggingTaskId(null);
                           setDragOverDay(null);
                         }}
-                        className={`group relative rounded-2xl bg-white p-3 shadow-[0_4px_14px_rgba(31,66,135,0.08)] ring-1 ring-[#e8eef8] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(109,94,244,0.18)] hover:ring-[#6D5EF4]/30 ${
+                        className={`group relative rounded-2xl bg-white p-3 shadow-[0_4px_14px_rgba(31,66,135,0.08)] ring-1 ring-[#e8eef8] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_24px_rgba(109,94,244,0.18)] hover:ring-[#6D5EF4]/30 active:scale-[0.99] ${
                           isDraggingThis ? "opacity-40 scale-95" : ""
                         } ${isBusy ? "opacity-60" : ""}`}
                       >
@@ -520,7 +520,7 @@ export function TasksWeeklyBoard() {
                             <div className="flex items-start gap-1">
                               <Icon className="mt-0.5 h-3.5 w-3.5 shrink-0" style={{ color: catColor }} />
                               <p
-                                className={`text-sm font-semibold leading-snug ${
+                                className={`line-clamp-2 break-words pr-1 text-sm font-semibold leading-snug ${
                                   isDone ? "text-[var(--foreground-muted)] line-through" : "text-[var(--foreground)]"
                                 }`}
                               >

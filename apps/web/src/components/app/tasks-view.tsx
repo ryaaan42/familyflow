@@ -1,7 +1,7 @@
 "use client";
 
 import { useFamilyFlowStore } from "@familyflow/shared";
-import { CalendarDays, CheckCircle2, Clock, ListTodo, Sparkles } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, ListTodo } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
@@ -64,13 +64,6 @@ export function TasksView() {
               );
             })}
           </div>
-        </div>
-      </Card>
-
-      <Card className="border-[#dbe4ff] bg-[linear-gradient(180deg,#ffffff_0%,#f6f9ff_100%)] shadow-[0_8px_28px_rgba(87,117,214,0.12)]">
-        <div className="flex flex-wrap items-center gap-2 p-4 text-sm text-[#4f46e5]">
-          <Sparkles className="h-4 w-4" />
-          Vue revue : colonnes lisibles, cartes plus aérées, meilleure hiérarchie visuelle et drag & drop plus clair.
         </div>
       </Card>
 

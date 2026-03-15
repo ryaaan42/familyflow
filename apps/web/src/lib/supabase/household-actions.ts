@@ -13,6 +13,13 @@ export interface CreateHouseholdInput {
   isExpectingBaby?: boolean;
   pregnancyDueDate?: string;
   objective?: string;
+  aiContext?: {
+    lifestyleRhythm?: string;
+    mealPreferences?: string;
+    organizationGoals?: string;
+    weeklyBudget?: number;
+    monthlyBudget?: number;
+  };
 }
 
 export interface CreateMemberInput {
@@ -93,6 +100,20 @@ export async function createHouseholdWithMembers(
       householdId: null,
       error: rpcError?.message ?? "Erreur lors de la création du foyer"
     };
+  }
+
+  if (household.aiContext) {
+    const { error: aiContextError } = await supabase
+      .from("households")
+      .update({ ai_context: household.aiContext })
+      .eq("id", householdId as string);
+
+    if (aiContextError && aiContextError.code !== "PGRST204") {
+      return {
+        householdId: null,
+        error: aiContextError.message
+      };
+    }
   }
 
   return { householdId: householdId as string, error: null };
