@@ -8,14 +8,15 @@ import type {
   TaskCategory,
   Frequency
 } from "@familyflow/shared";
+import { OPENAI_MODEL } from "@/lib/ai/model";
 
 const aiPlanSchema = z.object({
-  headline: z.string().min(12),
-  summary: z.string().min(220),
+  headline: z.string().min(6),
+  summary: z.string().min(60),
   taskFocus: z.array(
     z.object({
       title: z.string().min(3),
-      reason: z.string().min(25),
+      reason: z.string().min(5),
       who: z.string().min(2),
       when: z.string().min(3),
       category: z.enum(["menage", "cuisine", "animaux", "enfants", "administratif", "budget", "courses", "hygiene", "entretien", "routine"]).optional(),
@@ -24,16 +25,16 @@ const aiPlanSchema = z.object({
       suggestedMemberId: z.string().uuid().optional(),
       suggestedDayOfWeek: z.number().int().min(1).max(7).optional()
     })
-  ).min(8).max(20),
+  ).min(4).max(24),
   routineSuggestions: z.array(z.object({
     title: z.string().min(5),
     timing: z.enum(["matin", "soir", "hebdomadaire"]),
     steps: z.array(z.string().min(8)).min(2).max(8)
-  })).min(3).max(10).default([]),
-  routines: z.array(z.string().min(20)).min(4).max(12),
-  savingsMoves: z.array(z.string().min(20)).min(3).max(10),
-  notes: z.array(z.string().min(20)).min(3).max(10).default([]),
-  budgetSuggestions: z.array(z.string().min(15)).max(8).default([]),
+  })).max(10).default([]),
+  routines: z.array(z.string().min(8)).min(2).max(16),
+  savingsMoves: z.array(z.string().min(8)).min(1).max(12),
+  notes: z.array(z.string().min(8)).min(1).max(12).default([]),
+  budgetSuggestions: z.array(z.string().min(6)).max(10).default([]),
   birthListSuggestions: z.array(
     z.object({
       title: z.string(),
@@ -129,7 +130,7 @@ const buildFallbackPlan = ({ profile, tasks, budgetItems, birthListItems }: AiHo
 
 export const createAiHouseholdPlan = async (request: AiHouseholdRequest): Promise<AiHouseholdPlan> => {
   const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL ?? "gpt-5-mini";
+  const model = OPENAI_MODEL;
 
   if (!apiKey) return buildFallbackPlan(request);
 
@@ -179,7 +180,7 @@ export const createAiHouseholdPlan = async (request: AiHouseholdRequest): Promis
           "Si des enfants ou ados sont présents, génère des tâches d'accompagnement (devoirs, activités, cartables). " +
           "Retourne exactement les clés: headline, summary, taskFocus, routineSuggestions, routines, savingsMoves, notes, budgetSuggestions, birthListSuggestions.",
         input:
-          "Génère un plan long, concret et actionnable: au moins 12 taskFocus bien répartis sur la semaine, 3 routineSuggestions détaillées, 4 routines, 3 savingsMoves, 3 notes. " +
+          "Génère un plan concret et actionnable: au moins 6 taskFocus bien répartis sur la semaine, 2 routineSuggestions, 2 routines, 2 savingsMoves, 2 notes. " +
           "Les taskFocus doivent OBLIGATOIREMENT inclure: titre, raison (25+ chars), qui, quand, catégorie, fréquence, durée estimée, suggestedMemberId quand possible et suggestedDayOfWeek (1=lundi..7=dimanche). " +
           "Distribue les tâches sur TOUS les jours de la semaine (1 à 7), évite de tout mettre le même jour, et couvre ménage + repas + administratif + famille. " +
           "Personnalise CHAQUE tâche en fonction du profil exact: noms des animaux, prénoms des membres, grossesse si applicable, âge des enfants. " +
@@ -215,5 +216,12 @@ export const createAiHouseholdPlan = async (request: AiHouseholdRequest): Promis
   const parsed = aiPlanSchema.safeParse(maybeJson);
   if (!parsed.success) return buildFallbackPlan(request);
 
-  return { ...parsed.data, usedFallback: false };
+  return {
+    ...parsed.data,
+    notes: parsed.data.notes?.length ? parsed.data.notes : ["Plan généré automatiquement à partir du contexte foyer."],
+    budgetSuggestions: parsed.data.budgetSuggestions ?? [],
+    routineSuggestions: parsed.data.routineSuggestions ?? [],
+    birthListSuggestions: parsed.data.birthListSuggestions ?? [],
+    usedFallback: false
+  };
 };

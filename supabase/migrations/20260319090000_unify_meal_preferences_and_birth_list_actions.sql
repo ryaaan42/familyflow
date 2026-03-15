@@ -12,6 +12,8 @@ create table if not exists public.household_meal_preferences (
   updated_at timestamptz not null default timezone('utc', now())
 );
 
+drop trigger if exists set_household_meal_preferences_updated_at on public.household_meal_preferences;
+
 create trigger set_household_meal_preferences_updated_at
 before update on public.household_meal_preferences
 for each row execute procedure public.set_updated_at();

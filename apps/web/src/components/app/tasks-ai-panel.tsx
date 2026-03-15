@@ -56,7 +56,7 @@ export function TasksAiPanel() {
   /* Load status + saved suggestions on mount */
   useEffect(() => {
     void Promise.all([
-      fetch("/api/ai/status")
+      fetch("/api/ai/status", { cache: "no-store" })
         .then((r) => r.json())
         .catch(() => null),
       fetch("/api/ai/suggestions")
