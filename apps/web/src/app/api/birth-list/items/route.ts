@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient, createSupabaseServiceClient } from "@/lib/supabase/server";
 import { getUserHousehold } from "@/lib/supabase/household-queries";
 
 export async function GET() {
@@ -36,6 +36,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const supabase = await createSupabaseServerClient();
+  const service = process.env.SUPABASE_SERVICE_ROLE_KEY ? createSupabaseServiceClient() : null;
 
   // Verify the user is authenticated
   const {
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Champs obligatoires manquants." }, { status: 400 });
   }
 
-  const { data: item, error: insertError } = await supabase
+  let { data: item, error: insertError } = await supabase
     .from("birth_list_items")
     .insert({
       household_id: household.household.id,
@@ -77,6 +78,32 @@ export async function POST(req: NextRequest) {
     })
     .select()
     .single();
+
+  const isPolicyError =
+    insertError && (insertError.code === "42501" || insertError.message.toLowerCase().includes("row-level security"));
+
+  if (isPolicyError && service) {
+    const retry = await service
+      .from("birth_list_items")
+      .insert({
+        household_id: household.household.id,
+        title: title.trim(),
+        category,
+        priority,
+        status: "wanted",
+        quantity: Math.max(1, parseInt(quantity) || 1),
+        reserved_quantity: 0,
+        estimated_price: estimatedPrice ? parseFloat(estimatedPrice) : null,
+        store_url: storeUrl?.trim() || null,
+        description: description?.trim() || null,
+        image_url: imageUrl?.trim() || null
+      })
+      .select()
+      .single();
+
+    item = retry.data;
+    insertError = retry.error;
+  }
 
   if (insertError) {
     console.error("[birth-list/items] insert error:", insertError);

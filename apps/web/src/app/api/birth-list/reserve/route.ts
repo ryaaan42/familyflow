@@ -34,6 +34,9 @@ async function reserveWithServiceDirect({
   buyerName: string;
   buyerMessage?: string;
 }) {
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return { success: false, error: "Configuration serveur incomplète." };
+  }
   const serviceClient = createSupabaseServiceClient();
 
   const { data: household, error: householdError } = await serviceClient
@@ -122,6 +125,10 @@ async function reserveWithFallback({
 
   if (!anonResult.error) {
     return { data: anonResult.data, error: null };
+  }
+
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    return { data: null, error: anonResult.error };
   }
 
   const serviceClient = createSupabaseServiceClient();

@@ -28,7 +28,7 @@ export type BudgetCategory =
   | "imprevus"
   | "maison";
 export type HabitDomain = "sorties" | "repas" | "courses" | "linge" | "animaux" | "organisation";
-export type PdfTheme = "minimal" | "familial-kawaii" | "premium" | "print";
+export type PdfTheme = "minimal" | "familial-kawaii" | "premium" | "print" | "aurora" | "terracotta";
 export type PaperFormat = "A4";
 export type PetType = "chien" | "chat" | "autre";
 export type SubscriptionPlan = "free" | "plus" | "family-pro";
