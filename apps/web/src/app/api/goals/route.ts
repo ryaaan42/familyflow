@@ -74,6 +74,12 @@ export async function POST(request: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    const isPolicyError = error.code === "42501" || error.message.toLowerCase().includes("row-level security");
+    return NextResponse.json(
+      { error: isPolicyError ? "Permissions insuffisantes pour créer un objectif dans ce foyer." : error.message },
+      { status: isPolicyError ? 403 : 500 }
+    );
+  }
   return NextResponse.json(toGoal(data as Record<string, unknown>));
 }

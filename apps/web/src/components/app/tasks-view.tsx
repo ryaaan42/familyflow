@@ -29,7 +29,7 @@ export function TasksView() {
   ];
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <Card className="overflow-hidden border-0 bg-[radial-gradient(circle_at_0%_0%,#4338ca_0%,#312e81_40%,#0f172a_100%)] text-white shadow-[0_20px_60px_rgba(49,46,129,0.45)]">
         <div className="grid gap-6 p-6 md:grid-cols-[1.2fr_0.8fr] md:p-8">
           <div className="space-y-4">
@@ -67,10 +67,10 @@ export function TasksView() {
         </div>
       </Card>
 
-      <Card className="border-[#e0e7ff] bg-[linear-gradient(180deg,#ffffff_0%,#f8faff_100%)]">
-        <div className="flex items-center gap-2 p-4 text-sm text-[#4f46e5]">
+      <Card className="border-[#dbe4ff] bg-[linear-gradient(180deg,#ffffff_0%,#f6f9ff_100%)] shadow-[0_8px_28px_rgba(87,117,214,0.12)]">
+        <div className="flex flex-wrap items-center gap-2 p-4 text-sm text-[#4f46e5]">
           <Sparkles className="h-4 w-4" />
-          Nouveau design : meilleure lisibilité, résumé instantané et progression visible.
+          Vue revue : colonnes lisibles, cartes plus aérées, meilleure hiérarchie visuelle et drag & drop plus clair.
         </div>
       </Card>
 
