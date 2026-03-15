@@ -54,6 +54,14 @@ type ProductPreview = {
   url: string;
 };
 
+const safeHostFromUrl = (value: string) => {
+  try {
+    return new URL(value).hostname;
+  } catch {
+    return value;
+  }
+};
+
 export function BirthListView() {
   const state = useFamilyFlowStore();
   const [showForm, setShowForm] = useState(false);
@@ -474,7 +482,7 @@ export function BirthListView() {
                     ) : null}
                     <div className="flex flex-wrap items-center gap-2 text-xs">
                       <span className="rounded-full bg-[var(--card-muted)] px-2 py-0.5 text-[var(--foreground-muted)]">
-                        {productPreview.siteName ?? new URL(productPreview.url).hostname}
+                        {productPreview.siteName ?? safeHostFromUrl(productPreview.url)}
                       </span>
                       {productPreview.price ? (
                         <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-medium text-emerald-700">
