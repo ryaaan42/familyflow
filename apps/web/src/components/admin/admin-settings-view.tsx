@@ -80,7 +80,7 @@ export function AdminSettingsView({ generalContent, maintenanceEnabled: initialM
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `familyflow-export-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `planille-export-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -174,8 +174,8 @@ export function AdminSettingsView({ generalContent, maintenanceEnabled: initialM
           </div>
           <div className="space-y-3">
             {[
-              { label: "Nom de l'application", value: "FamilyFlow" },
-              { label: "URL publique", value: "familyflow.app" },
+              { label: "Nom de l'application", value: "PLANILLE" },
+              { label: "URL publique", value: "planille.app" },
               { label: "Langue par défaut", value: "Français (fr)" },
               { label: "Devise par défaut", value: "EUR €" },
               { label: "Fuseau horaire", value: "Europe/Paris" }

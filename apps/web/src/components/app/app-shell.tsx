@@ -26,6 +26,7 @@ import type { HouseholdProfile, UserProfile } from "@familyflow/shared";
 
 import { SignOutButton } from "@/components/auth/sign-out-button";
 import { cn } from "@/lib/utils";
+import { PlanilleLogo } from "@/components/brand/planille-logo";
 import { AppHeader } from "./app-header";
 
 const navItems = [
@@ -244,11 +245,11 @@ export function AppShell({
           {/* Brand header */}
           <div className="mb-3 overflow-hidden rounded-[20px] bg-[linear-gradient(140deg,#1e1b4b_0%,#4338ca_35%,#7c3aed_60%,#0ea5e9_100%)] p-4 text-white shadow-[0_8px_24px_rgba(79,70,229,0.36)]">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
-                <span className="text-base font-black">P</span>
-              </div>
+              <PlanilleLogo
+                markClassName="h-8 w-8 rounded-xl bg-white/20 shadow-none"
+                textClassName="text-[10px] uppercase tracking-[0.18em] text-white/70"
+              />
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-white/60">Planille</p>
                 <p className="text-sm font-bold leading-tight">Control Center</p>
               </div>
             </div>
@@ -269,7 +270,7 @@ export function AppShell({
                   key={item.href}
                   href={item.href}
                   className={cn(
-                    "group relative flex shrink-0 items-center gap-2.5 rounded-[14px] px-3 py-2.5 text-sm font-medium transition-all duration-150 overflow-hidden",
+                    "group relative flex shrink-0 items-center gap-2.5 rounded-[14px] px-3 py-2.5 text-sm font-medium transition-all duration-100 active:scale-[0.99] overflow-hidden",
                     active
                       ? `bg-gradient-to-r ${item.activeGradient} ${item.color} font-semibold shadow-[0_2px_12px_rgba(0,0,0,0.08)]`
                       : "text-[#6b7280] hover:bg-[#f8f9ff] hover:text-[#1f2937]"
@@ -329,7 +330,7 @@ export function AppShell({
               <Link
                 key={item.href}
                 href={item.href}
-                className="flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1.5 transition-all"
+                className="flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1.5 transition-all duration-75 active:scale-95"
               >
                 <span
                   className={cn(
@@ -358,7 +359,7 @@ export function AppShell({
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
-            className="flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1.5"
+            className="flex flex-1 flex-col items-center gap-0.5 pt-2 pb-1.5 transition-all duration-75 active:scale-95"
           >
             <span
               className={cn(
@@ -403,7 +404,7 @@ export function AppShell({
               <button
                 type="button"
                 onClick={() => setMoreOpen(false)}
-                className="rounded-full p-2 text-[#9ca3af] hover:bg-gray-100"
+                className="rounded-full p-2 text-[#9ca3af] transition-all duration-75 active:scale-95 hover:bg-gray-100"
               >
                 <X className="h-4 w-4" />
               </button>

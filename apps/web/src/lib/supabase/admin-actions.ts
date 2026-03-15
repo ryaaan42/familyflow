@@ -2,7 +2,7 @@
 
 import type { SubscriptionPlan } from "@familyflow/shared";
 
-import { createSupabaseServerClient } from "./server";
+import { createSupabaseServerClient, createSupabaseServiceClient } from "./server";
 
 async function requireAdmin() {
   const supabase = await createSupabaseServerClient();
@@ -117,4 +117,98 @@ export async function updateSubscriptionPlanConfig(
     active: updates.active
   }).eq("key", key);
   if (error) throw new Error(error.message);
+}
+
+
+export async function updateEmailTemplate(input: { key: string; subject: string; previewText: string; htmlContent: string }) {
+  const supabase = await requireAdmin();
+  const { error } = await supabase
+    .from("email_templates")
+    .update({
+      subject: input.subject,
+      preview_text: input.previewText,
+      html_content: input.htmlContent
+    })
+    .eq("key", input.key);
+
+  if (error) throw new Error(error.message);
+}
+
+export async function saveNewsletterCampaign(input: {
+  id?: string;
+  title: string;
+  subject: string;
+  preheader: string;
+  htmlContent: string;
+}) {
+  const supabase = await requireAdmin();
+
+  if (input.id) {
+    const { error } = await supabase
+      .from("newsletter_campaigns")
+      .update({
+        title: input.title,
+        subject: input.subject,
+        preheader: input.preheader,
+        html_content: input.htmlContent
+      })
+      .eq("id", input.id);
+    if (error) throw new Error(error.message);
+    return;
+  }
+
+  const { data: authData } = await supabase.auth.getUser();
+  const { error } = await supabase.from("newsletter_campaigns").insert({
+    title: input.title,
+    subject: input.subject,
+    preheader: input.preheader,
+    html_content: input.htmlContent,
+    created_by: authData.user?.id ?? null
+  });
+
+  if (error) throw new Error(error.message);
+}
+
+export async function sendNewsletterCampaign(id: string) {
+  const supabase = await requireAdmin();
+
+  const { data: campaign, error: campaignError } = await supabase
+    .from("newsletter_campaigns")
+    .select("id, title, subject, preheader, html_content, status")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (campaignError || !campaign) throw new Error(campaignError?.message ?? "Campagne introuvable");
+  if (campaign.status === "sent") throw new Error("Campagne déjà envoyée");
+
+  const service = createSupabaseServiceClient();
+  const { data: recipients, error: recipientsError } = await service
+    .from("users")
+    .select("email, display_name")
+    .eq("newsletter_opt_in", true);
+
+  if (recipientsError) throw new Error(recipientsError.message);
+
+  const recipientCount = recipients?.length ?? 0;
+
+  const { error: updateError } = await supabase
+    .from("newsletter_campaigns")
+    .update({
+      status: "sent",
+      recipient_count: recipientCount,
+      sent_at: new Date().toISOString()
+    })
+    .eq("id", id);
+
+  if (updateError) throw new Error(updateError.message);
+
+  // TODO: brancher un provider email (Resend/Postmark/Brevo) pour l'envoi réel.
+  return {
+    campaign: {
+      id: campaign.id as string,
+      subject: campaign.subject as string,
+      title: campaign.title as string
+    },
+    recipientCount
+  };
 }

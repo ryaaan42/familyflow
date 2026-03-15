@@ -102,6 +102,27 @@ export interface SubscriptionPlanConfig {
   active: boolean;
 }
 
+export interface EmailTemplate {
+  key: string;
+  label: string;
+  subject: string;
+  previewText: string;
+  htmlContent: string;
+  updatedAt: string;
+}
+
+export interface NewsletterCampaign {
+  id: string;
+  title: string;
+  subject: string;
+  preheader: string;
+  htmlContent: string;
+  status: "draft" | "sent";
+  recipientCount: number;
+  sentAt?: string;
+  createdAt: string;
+}
+
 export interface AdminStats {
   totalUsers: number;
   totalHouseholds: number;
