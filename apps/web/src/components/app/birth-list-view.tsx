@@ -83,6 +83,7 @@ export function BirthListView() {
             estimatedPrice: item.estimated_price ?? undefined,
             storeUrl: item.store_url ?? undefined,
             description: item.description ?? undefined,
+            imageUrl: item.image_url ?? undefined,
             notes: item.notes ?? undefined
           }));
           useFamilyFlowStore.setState({ birthListItems: mapped });
@@ -178,7 +179,8 @@ export function BirthListView() {
           estimatedPrice: form.estimatedPrice || undefined,
           quantity: form.quantity,
           storeUrl: form.storeUrl.trim() || undefined,
-          description: form.description.trim() || undefined
+          description: form.description.trim() || undefined,
+          imageUrl: productPreview?.image || undefined
         })
       });
 
@@ -197,7 +199,8 @@ export function BirthListView() {
         reservedQuantity: saved.reserved_quantity,
         estimatedPrice: saved.estimated_price ?? undefined,
         storeUrl: saved.store_url ?? undefined,
-        description: saved.description ?? undefined
+        description: saved.description ?? undefined,
+        imageUrl: saved.image_url ?? undefined
       };
 
       state.addBirthListItem(newItem);
@@ -480,6 +483,13 @@ export function BirthListView() {
                   {statusLabel[item.status]}
                 </Badge>
               </div>
+              {item.imageUrl ? (
+                <img
+                  src={item.imageUrl}
+                  alt={item.title}
+                  className="h-40 w-full rounded-2xl border border-[var(--border)] object-cover"
+                />
+              ) : null}
               <div>
                 <h3 className="text-lg font-semibold">{item.title}</h3>
                 <p className="mt-2 text-sm leading-6 text-[var(--foreground-muted)]">

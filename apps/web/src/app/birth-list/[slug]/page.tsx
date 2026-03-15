@@ -33,6 +33,7 @@ async function getBirthListBySlug(slug: string): Promise<{
     householdId: row.household_id,
     title: row.title,
     description: row.description ?? undefined,
+    imageUrl: row.image_url ?? undefined,
     category: row.category,
     priority: row.priority,
     status: row.status,
