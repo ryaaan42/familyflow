@@ -21,7 +21,10 @@ export function ShoppingView() {
 
   const loadItems = async () => {
     const res = await fetch("/api/shopping");
-    if (!res.ok) return;
+    if (!res.ok) {
+      setError("Impossible de charger la liste de courses.");
+      return;
+    }
     const data = await res.json();
     setManualItems((data ?? []).map((item: any) => ({ id: item.id, name: item.name, quantity: item.quantity, isChecked: item.isChecked })));
   };
@@ -58,7 +61,8 @@ export function ShoppingView() {
     });
     setSaving(false);
     if (!res.ok) {
-      setError("Impossible d'ajouter l'article.");
+      const payload = await res.json().catch(() => ({}));
+      setError(payload.error ?? "Impossible d'ajouter l'article.");
       return;
     }
     const saved = await res.json();
@@ -81,7 +85,7 @@ export function ShoppingView() {
   };
 
   const addAiToList = (item: string) => {
-    if (!manualItems.some((i) => i.name === item)) {
+    if (!manualItems.some((i) => i.name.toLowerCase() === item.toLowerCase())) {
       void addManual(item);
     }
   };
@@ -116,7 +120,7 @@ export function ShoppingView() {
           </div>
           {error && <p className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-600">{error}</p>}
           <div className="space-y-1.5">{aiItems.map((item) => {
-            const alreadyAdded = manualItems.some((i) => i.name === item);
+            const alreadyAdded = manualItems.some((i) => i.name.toLowerCase() === item.toLowerCase());
             return <div key={item} className="flex items-center justify-between rounded-[14px] border border-[#e0e7ff] bg-[#f8f7ff] px-3.5 py-2.5"><span className="text-sm">{item}</span><button type="button" onClick={() => addAiToList(item)} disabled={alreadyAdded} className="rounded-lg bg-indigo-100 px-2.5 py-1 text-xs font-semibold text-indigo-600">{alreadyAdded ? "Ajouté" : "Ajouter"}</button></div>;
           })}</div>
         </div></Card>
