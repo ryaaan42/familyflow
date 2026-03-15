@@ -1,43 +1,98 @@
 create extension if not exists "pgcrypto";
 
-create type public.subscription_plan as enum ('free', 'plus', 'family-pro');
-create type public.housing_type as enum ('appartement', 'maison');
-create type public.member_role as enum ('parent', 'adulte', 'ado', 'enfant', 'autre');
-create type public.pet_type as enum ('chien', 'chat', 'autre');
-create type public.task_category as enum (
-  'menage',
-  'cuisine',
-  'animaux',
-  'enfants',
-  'administratif',
-  'budget',
-  'courses',
-  'hygiene',
-  'entretien',
-  'routine'
-);
-create type public.task_frequency as enum ('quotidienne', 'hebdomadaire', 'mensuelle', 'personnalisee');
-create type public.task_status as enum ('todo', 'in_progress', 'done', 'late');
-create type public.task_origin as enum ('template', 'custom', 'smart');
-create type public.budget_item_type as enum ('income', 'fixed', 'variable');
-create type public.budget_category as enum (
-  'loyer_credit',
-  'courses',
-  'transport',
-  'abonnements',
-  'loisirs',
-  'sorties',
-  'restaurant_fast_food',
-  'animaux',
-  'enfants',
-  'sante',
-  'imprevus',
-  'maison'
-);
-create type public.savings_domain as enum ('sorties', 'repas', 'courses', 'linge', 'animaux', 'organisation');
-create type public.pdf_theme as enum ('minimal', 'familial-kawaii', 'premium', 'print');
-create type public.notification_channel as enum ('email', 'push', 'in_app');
-create type public.notification_type as enum ('task_reminder', 'budget_reminder', 'pdf_summary', 'system');
+do $$ begin
+  create type public.subscription_plan as enum ('free', 'plus', 'family-pro');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.housing_type as enum ('appartement', 'maison');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.member_role as enum ('parent', 'adulte', 'ado', 'enfant', 'autre');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.pet_type as enum ('chien', 'chat', 'autre');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.task_category as enum (
+    'menage',
+    'cuisine',
+    'animaux',
+    'enfants',
+    'administratif',
+    'budget',
+    'courses',
+    'hygiene',
+    'entretien',
+    'routine'
+  );
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.task_frequency as enum ('quotidienne', 'hebdomadaire', 'mensuelle', 'personnalisee');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.task_status as enum ('todo', 'in_progress', 'done', 'late');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.task_origin as enum ('template', 'custom', 'smart');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.budget_item_type as enum ('income', 'fixed', 'variable');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.budget_category as enum (
+    'loyer_credit',
+    'courses',
+    'transport',
+    'abonnements',
+    'loisirs',
+    'sorties',
+    'restaurant_fast_food',
+    'animaux',
+    'enfants',
+    'sante',
+    'imprevus',
+    'maison'
+  );
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.savings_domain as enum ('sorties', 'repas', 'courses', 'linge', 'animaux', 'organisation');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.pdf_theme as enum ('minimal', 'familial-kawaii', 'premium', 'print');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.notification_channel as enum ('email', 'push', 'in_app');
+exception when duplicate_object then null;
+end $$;
+
+do $$ begin
+  create type public.notification_type as enum ('task_reminder', 'budget_reminder', 'pdf_summary', 'system');
+exception when duplicate_object then null;
+end $$;
 
 create table public.users (
   id uuid primary key references auth.users(id) on delete cascade,
