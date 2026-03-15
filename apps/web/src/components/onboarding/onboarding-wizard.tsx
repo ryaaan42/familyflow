@@ -34,7 +34,12 @@ const householdStep = z.object({
   childrenCount: z.coerce.number().min(0).max(12),
   hasPets: z.boolean(),
   isExpectingBaby: z.boolean(),
-  pregnancyDueDate: z.string().optional()
+  pregnancyDueDate: z.string().optional(),
+  lifestyleRhythm: z.string().optional(),
+  mealPreferences: z.string().optional(),
+  organizationGoals: z.string().optional(),
+  weeklyBudget: z.coerce.number().min(0).max(5000).optional(),
+  monthlyBudget: z.coerce.number().min(0).max(20000).optional()
 });
 
 const membersStep = z.object({
@@ -76,6 +81,34 @@ const ROLE_LABELS: Record<string, string> = {
 
 const PREGNANT_ROLES = new Set(["adulte"]);
 
+
+const LIFESTYLE_OPTIONS = [
+  "Horaires classiques (9h-18h)",
+  "Horaires décalés / travail en soirée",
+  "Travail de nuit",
+  "Planning variable chaque semaine",
+  "Télétravail majoritaire"
+] as const;
+
+const MEAL_OPTIONS = [
+  "Repas maison rapides",
+  "Batch cooking le week-end",
+  "Mélange maison + livraison",
+  "Végétarien / flexitarien",
+  "Sans contrainte particulière"
+] as const;
+
+const ORGANIZATION_OPTIONS = [
+  "Mieux répartir les tâches quotidiennes",
+  "Créer des routines matin/soir",
+  "Mieux anticiper les courses et repas",
+  "Réduire la charge mentale",
+  "Préparer l'arrivée de bébé"
+] as const;
+
+const WEEKLY_BUDGET_OPTIONS = [80, 120, 160, 220, 300] as const;
+const MONTHLY_BUDGET_OPTIONS = [500, 800, 1200, 1800, 2500] as const;
+
 export function OnboardingWizard({ displayName }: { displayName: string }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
@@ -96,7 +129,12 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
       childrenCount: 0,
       hasPets: false,
       isExpectingBaby: false,
-      pregnancyDueDate: ""
+      pregnancyDueDate: "",
+      lifestyleRhythm: "",
+      mealPreferences: "",
+      organizationGoals: "",
+      weeklyBudget: undefined,
+      monthlyBudget: undefined
     }
   });
 
@@ -150,7 +188,14 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
         city: householdData.city,
         isExpectingBaby: householdData.isExpectingBaby,
         pregnancyDueDate: householdData.pregnancyDueDate || undefined,
-        objective: selectedObjective
+        objective: selectedObjective,
+        aiContext: {
+          lifestyleRhythm: householdData.lifestyleRhythm,
+          mealPreferences: householdData.mealPreferences,
+          organizationGoals: householdData.organizationGoals,
+          weeklyBudget: householdData.weeklyBudget,
+          monthlyBudget: householdData.monthlyBudget
+        }
       },
       membersValues.members.map((m, i) => {
         const category = getMemberCategoryFromAge(m.age);
@@ -317,6 +362,81 @@ export function OnboardingWizard({ displayName }: { displayName: string }) {
                   />
                 </div>
               )}
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="lifestyleRhythm">Rythme de vie</Label>
+                <select
+                  id="lifestyleRhythm"
+                  className="flex h-11 w-full rounded-2xl border border-[var(--border)] bg-white px-4 text-sm"
+                  {...householdForm.register("lifestyleRhythm")}
+                >
+                  <option value="">Choisir une proposition</option>
+                  {LIFESTYLE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mealPreferences">Préférences repas</Label>
+                <select
+                  id="mealPreferences"
+                  className="flex h-11 w-full rounded-2xl border border-[var(--border)] bg-white px-4 text-sm"
+                  {...householdForm.register("mealPreferences")}
+                >
+                  <option value="">Choisir une proposition</option>
+                  {MEAL_OPTIONS.map((option) => (
+                    <option key={option} value={option}>{option}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="weeklyBudget">Budget hebdo estimé (€)</Label>
+                <select
+                  id="weeklyBudget"
+                  className="flex h-11 w-full rounded-2xl border border-[var(--border)] bg-white px-4 text-sm"
+                  {...householdForm.register("weeklyBudget", {
+                    setValueAs: (value) => (value === "" ? undefined : Number(value))
+                  })}
+                >
+                  <option value="">Choisir un budget</option>
+                  {WEEKLY_BUDGET_OPTIONS.map((option) => (
+                    <option key={option} value={option}>{option} €</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="monthlyBudget">Budget mensuel (€)</Label>
+                <select
+                  id="monthlyBudget"
+                  className="flex h-11 w-full rounded-2xl border border-[var(--border)] bg-white px-4 text-sm"
+                  {...householdForm.register("monthlyBudget", {
+                    setValueAs: (value) => (value === "" ? undefined : Number(value))
+                  })}
+                >
+                  <option value="">Choisir un budget</option>
+                  {MONTHLY_BUDGET_OPTIONS.map((option) => (
+                    <option key={option} value={option}>{option} €</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="organizationGoals">Objectifs d'organisation</Label>
+              <select
+                id="organizationGoals"
+                className="flex h-11 w-full rounded-2xl border border-[var(--border)] bg-white px-4 text-sm"
+                {...householdForm.register("organizationGoals")}
+              >
+                <option value="">Choisir une proposition</option>
+                {ORGANIZATION_OPTIONS.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
             </div>
 
             <Button type="submit" className="w-full">

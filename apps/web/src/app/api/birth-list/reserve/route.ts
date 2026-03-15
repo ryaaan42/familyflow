@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { createSupabaseServiceClient } from "@/lib/supabase/server";
 
 export interface ReservePayload {
   slug: string;
@@ -21,6 +22,43 @@ function createAnonSupabaseClient() {
   );
 }
 
+
+async function reserveWithFallback({
+  slug,
+  itemId,
+  buyerName,
+  buyerMessage
+}: {
+  slug: string;
+  itemId: string;
+  buyerName: string;
+  buyerMessage?: string;
+}) {
+  const rpcPayload = {
+    p_slug: slug,
+    p_item_id: itemId,
+    p_buyer_name: buyerName.trim(),
+    p_buyer_message: buyerMessage?.trim() ?? null
+  };
+
+  const anonClient = createAnonSupabaseClient();
+  const anonResult = await anonClient.rpc("reserve_birth_list_item", rpcPayload);
+
+  if (!anonResult.error) {
+    return anonResult;
+  }
+
+  const serviceClient = createSupabaseServiceClient();
+  const serviceResult = await serviceClient.rpc("reserve_birth_list_item", rpcPayload);
+
+  if (!serviceResult.error) {
+    console.warn("[birth-list/reserve] anon rpc failed, service fallback succeeded:", anonResult.error);
+    return serviceResult;
+  }
+
+  return anonResult;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body: ReservePayload = await req.json();
@@ -30,13 +68,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Champs obligatoires manquants." }, { status: 400 });
     }
 
-    const supabase = createAnonSupabaseClient();
-
-    const { data, error } = await supabase.rpc("reserve_birth_list_item", {
-      p_slug: slug,
-      p_item_id: itemId,
-      p_buyer_name: buyerName.trim(),
-      p_buyer_message: buyerMessage?.trim() ?? null
+    const { data, error } = await reserveWithFallback({
+      slug,
+      itemId,
+      buyerName,
+      buyerMessage
     });
 
     if (error) {
