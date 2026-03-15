@@ -35,6 +35,8 @@ const STATUS_LABEL: Record<GoalStatus, string> = {
   abandoned: "Abandonné"
 };
 
+const GOAL_UNIT_OPTIONS = ["€", "%", "fois", "heures", "jours", "km", "sessions"];
+
 interface AddGoalFormProps {
   onSave: (data: { title: string; description?: string; targetValue?: number; unit?: string; category: GoalCategory; dueDate?: string }) => Promise<boolean>;
   onClose: () => void;
@@ -78,7 +80,12 @@ function AddGoalForm({ onSave, onClose }: AddGoalFormProps) {
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Description (optionnel)" rows={2} className="w-full rounded-2xl border border-[var(--border)] bg-[var(--card-muted)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)] resize-none" />
           <div className="grid grid-cols-2 gap-3">
             <input type="number" value={targetValue} onChange={(e) => setTargetValue(e.target.value)} placeholder="Valeur cible" className="rounded-2xl border border-[var(--border)] bg-[var(--card-muted)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]" />
-            <input value={unit} onChange={(e) => setUnit(e.target.value)} placeholder="Unité (€, km, fois…)" className="rounded-2xl border border-[var(--border)] bg-[var(--card-muted)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]" />
+            <select value={unit} onChange={(e) => setUnit(e.target.value)} className="rounded-2xl border border-[var(--border)] bg-[var(--card-muted)] px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]">
+              <option value="">Unité</option>
+              {GOAL_UNIT_OPTIONS.map((option) => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <select value={category} onChange={(e) => setCategory(e.target.value as GoalCategory)} className="rounded-2xl border border-[var(--border)] bg-[var(--card-muted)] px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary)]">

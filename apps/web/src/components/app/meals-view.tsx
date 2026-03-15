@@ -25,6 +25,7 @@ export function MealsView() {
   const [saving, setSaving] = useState<string | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const load = async () => {
     setLoading(true);
@@ -75,13 +76,21 @@ export function MealsView() {
   };
 
   const adaptWithAi = async (dayOfWeek: number, mealType: "lunch" | "dinner") => {
+    setAiError(null);
     const res = await fetch("/api/ai/meal-suggestions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ goal, dayOfWeek, mealType, servings })
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      setAiError("Suggestion IA indisponible pour le moment.");
+      return;
+    }
     const data = await res.json();
+    if (!data?.title) {
+      setAiError("L'IA n'a pas renvoyé de recette exploitable.");
+      return;
+    }
     await saveMeal(dayOfWeek, mealType, data.title);
   };
 
@@ -123,7 +132,12 @@ export function MealsView() {
                 </div>
 
                 <div className="space-y-1">
-                  <p className="text-[11px] font-semibold uppercase tracking-wide text-[#0f766e]">Déjeuner</p>
+                  <div className="flex items-center justify-between">
+                    <p className="text-[11px] font-semibold uppercase tracking-wide text-[#0f766e]">Déjeuner</p>
+                    <Button size="sm" variant="secondary" onClick={() => void adaptWithAi(row.dayOfWeek, "lunch")}>
+                      <Sparkles className="mr-1 h-3.5 w-3.5" /> IA
+                    </Button>
+                  </div>
                   <input
                     className="w-full rounded-xl border border-[#99f6e4] bg-white px-3 py-2 text-sm"
                     value={row.lunch}
@@ -168,8 +182,8 @@ export function MealsView() {
         </div>
       )}
 
-      {(loadError ?? saveError) ? (
-        <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">{loadError ?? saveError}</p>
+      {(loadError ?? saveError ?? aiError) ? (
+        <p className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-sm text-rose-700">{loadError ?? saveError ?? aiError}</p>
       ) : null}
 
       <Card>

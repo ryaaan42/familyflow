@@ -129,7 +129,7 @@ const buildFallbackPlan = ({ profile, tasks, budgetItems, birthListItems }: AiHo
 
 export const createAiHouseholdPlan = async (request: AiHouseholdRequest): Promise<AiHouseholdPlan> => {
   const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+  const model = process.env.OPENAI_MODEL ?? "gpt-5-mini";
 
   if (!apiKey) return buildFallbackPlan(request);
 
@@ -170,8 +170,10 @@ export const createAiHouseholdPlan = async (request: AiHouseholdRequest): Promis
         instructions:
           "Tu es l'assistant IA Planille. Réponds en JSON strict, sans markdown. " +
           "Tu dois proposer un plan détaillé, personnalisé et bienveillant pour un foyer réel, structuré et exploitable par le code. " +
+          "Le JSON doit être valide, sans virgule finale, avec toutes les clés attendues même si certaines listes sont vides. " +
           "Respect absolu des catégories d'âge: bebe (0-3), enfant (4-11), ado (12-17), adulte (18+). " +
           "N'assigne jamais une tâche non adaptée à l'âge/capacité. " +
+          "Garde des titres de tâches courts (max 70 caractères), actionnables et sans doublons. " +
           "Si un membre est enceinte (isPregnant=true), génère des tâches spécifiques: suivi prénatal, préparation chambre bébé, liste naissance. " +
           "Si des animaux sont présents, génère des tâches pour chaque animal (par nom et type: chat=litière/brossage, chien=promenade/bain). " +
           "Si des enfants ou ados sont présents, génère des tâches d'accompagnement (devoirs, activités, cartables). " +
@@ -179,10 +181,10 @@ export const createAiHouseholdPlan = async (request: AiHouseholdRequest): Promis
         input:
           "Génère un plan long, concret et actionnable: au moins 12 taskFocus bien répartis sur la semaine, 3 routineSuggestions détaillées, 4 routines, 3 savingsMoves, 3 notes. " +
           "Les taskFocus doivent OBLIGATOIREMENT inclure: titre, raison (25+ chars), qui, quand, catégorie, fréquence, durée estimée, suggestedMemberId quand possible et suggestedDayOfWeek (1=lundi..7=dimanche). " +
-          "Distribue les tâches sur TOUS les jours de la semaine (1 à 7), évite de tout mettre le même jour. " +
+          "Distribue les tâches sur TOUS les jours de la semaine (1 à 7), évite de tout mettre le même jour, et couvre ménage + repas + administratif + famille. " +
           "Personnalise CHAQUE tâche en fonction du profil exact: noms des animaux, prénoms des membres, grossesse si applicable, âge des enfants. " +
           `Données foyer:\n${JSON.stringify(compactContext)}`,
-        max_output_tokens: 2400
+        max_output_tokens: 3000
       })
     });
   } catch {
